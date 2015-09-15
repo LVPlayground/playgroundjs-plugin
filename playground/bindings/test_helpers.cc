@@ -6,69 +6,36 @@
 
 #include <include/v8.h>
 
+#include "base/file_path.h"
+#include "base/logging.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_options.h"
 
 namespace bindings {
 
+// Directory in which data files for JavaScript tests will reside.
+const char kTestDataDirectory[] = "test_data";
+
 // static
 bool ScriptRunner::Execute(const RuntimeOptions& options, const std::string& source) {
-  Runtime runtime(options);
+  std::unique_ptr<Runtime> runtime =
+      std::make_unique<Runtime>(options,
+                                base::FilePath::CurrentDirectory().Append(kTestDataDirectory),
+                                nullptr /** delegate **/);
 
-  Runtime::ScriptSource script;
-  script.source = source;
+  Runtime::ScriptSource script(source);
 
-  v8::HandleScope handle_scope(runtime.isolate());
+  v8::HandleScope handle_scope(runtime->isolate());
   v8::Local<v8::Value> result;
 
-  if (!runtime.Execute(script, &result))
+  if (!runtime->Execute(script, &result))
     return false;
 
   if (result->IsBoolean())
     return result.As<v8::Boolean>()->Value();
 
-  // TODO: Log a warning when the return value can't be converted.
+  LOG(WARNING) << "Unable to convert the return value to a boolean.";
   return false;
-}
-
-// static
-int32_t ScriptRunner::ExecuteInt(const RuntimeOptions& options, const std::string& source) {
-  Runtime runtime(options);
-
-  Runtime::ScriptSource script;
-  script.source = source;
-
-  v8::HandleScope handle_scope(runtime.isolate());
-  v8::Local<v8::Value> result;
-
-  if (!runtime.Execute(script, &result))
-    return false;
-
-  if (result->IsInt32())
-    return result.As<v8::Int32>()->Value();
-
-  // TODO: Log a warning when the return value can't be converted.
-  return -1;
-}
-
-// static
-std::string ScriptRunner::ExecuteString(const RuntimeOptions& options, const std::string& source) {
-  Runtime runtime(options);
-
-  Runtime::ScriptSource script;
-  script.source = source;
-
-  v8::HandleScope handle_scope(runtime.isolate());
-  v8::Local<v8::Value> result;
-
-  if (!runtime.Execute(script, &result))
-    return false;
-
-  v8::String::Utf8Value string(result);
-  if (!string.length())
-    return std::string();
-
-  return std::string(*string, string.length());
 }
 
 }  // namespace bindings

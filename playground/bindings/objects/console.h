@@ -15,7 +15,7 @@ class Runtime;
 // will also be represented in the SA-MP server log. The syntax follows browser implementations.
 class Console : public GlobalObject {
  public:
-  Console(Runtime* runtime);
+  explicit Console(Runtime* runtime);
   ~Console();
 
   enum Severity {

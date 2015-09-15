@@ -19,12 +19,16 @@ inline v8::Local<v8::String> v8String(const std::string& string) {
   return v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), string.c_str());
 }
 
-inline std::string toString(v8::Local<v8::String> string) {
+inline std::string toString(v8::Local<v8::Value> string) {
   v8::String::Utf8Value value(string);
   if (value.length())
     return std::string(*value, value.length());
 
   return std::string();
+}
+
+inline void ThrowException(const std::string& message) {
+  v8::Isolate::GetCurrent()->ThrowException(v8::Exception::TypeError(v8String(message)));
 }
 
 }  // namespace bindings

@@ -4,19 +4,49 @@
 
 #include "bindings/runtime.h"
 
+#include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <streambuf>
+
 #include <include/libplatform/libplatform.h>
 
 #include "base/logging.h"
+#include "base/time.h"
 #include "bindings/allocator.h"
 #include "bindings/global_scope.h"
 #include "bindings/runtime_options.h"
+#include "bindings/script_prologue.h"
+#include "bindings/utilities.h"
 
 using namespace v8;
 
 namespace bindings {
 
-Runtime::Runtime(const RuntimeOptions& options, Delegate* delegate)
-    : delegate_(delegate) {
+namespace {
+
+// Name of the event on the global scope to invoke every frame.
+const char kFrameEventName[] = "frame";
+
+// Returns whether |character| represents a line break.
+bool IsLineBreak(char character) {
+  return character == '\n' || character == '\r';
+}
+
+// Returns a string with all line breaks removed from |line|.
+std::string RemoveLineBreaks(std::string line) {
+  line.erase(std::remove_if(line.begin(), line.end(), IsLineBreak), line.end());
+  return line;
+}
+
+}  // namespace
+
+Runtime::Runtime(const RuntimeOptions& options,
+                 const base::FilePath& script_directory,
+                 Delegate* runtime_delegate)
+    : script_directory_(script_directory),
+      runtime_delegate_(runtime_delegate),
+      frame_event_name_(kFrameEventName) {
   V8::InitializeICU();
 
   platform_.reset(platform::CreateDefaultPlatform());
@@ -63,14 +93,23 @@ void Runtime::Initialize() {
   global_scope_->InstallObjects(context->Global());
 
   context_.Reset(isolate_, context);
+
+  // Make sure that the global script prologue is loaded in the virtual machine.
+  {
+    ScriptSource global_prologue(kScriptPrologue);
+    if (!Execute(global_prologue, nullptr /** result **/))
+      LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
+  }
 }
 
-bool Runtime::Execute(const ScriptSource& script_source, v8::Local<v8::Value>* result) {
+void Runtime::Dispose() {
+  global_scope_.reset();
+}
+
+bool Runtime::Execute(const ScriptSource& script_source,
+                      v8::Local<v8::Value>* result) {
   EscapableHandleScope handle_scope(isolate());
   Context::Scope context_scope(context());
-
-  // TODO: Check that a HandleScope has been created by the caller.
-  // TODO: Prepend and append module boiler-plate before creating |script_string|?
 
   MaybeLocal<String> script_string =
       String::NewFromUtf8(isolate_, script_source.source.c_str(), NewStringType::kNormal);
@@ -87,14 +126,13 @@ bool Runtime::Execute(const ScriptSource& script_source, v8::Local<v8::Value>* r
 
   MaybeLocal<Script> script = Script::Compile(context(), source, &origin);
   if (script.IsEmpty()) {
-    // The script could not be compiled - syntax error?
-    DispatchException(try_catch);
+    DisplayException(try_catch);
     return false;
   }
 
   MaybeLocal<Value> script_result = script.ToLocalChecked()->Run(context());
   if (try_catch.HasCaught()) {
-    DispatchException(try_catch);
+    DisplayException(try_catch);
     return false;
   }
 
@@ -104,23 +142,67 @@ bool Runtime::Execute(const ScriptSource& script_source, v8::Local<v8::Value>* r
   return true;
 }
 
-bool Runtime::Call(v8::Local<v8::Function> function, size_t argument_count, v8::Local<v8::Value> arguments[]) {
+bool Runtime::ExecuteFile(const base::FilePath& file,
+                          ExecutionType execution_type,
+                          v8::Local<v8::Value>* result) {
+  const base::FilePath script_path = script_directory_.Append(file);
+
+  std::ifstream handle(script_path.value().c_str());
+  if (!handle.is_open() || handle.fail())
+    return false;
+
+  ScriptSource script;
+  script.filename = file.value();
+
+  std::stringstream source_stream;
+
+  // Prepend and append the module prologue and epilogue if the execution type is set to module
+  // style. Otherwise just pass through the file's source to |source_stream|.
+  if (execution_type == EXECUTION_TYPE_MODULE)
+    source_stream << RemoveLineBreaks(kModulePrologue);
+
+  std::copy(std::istreambuf_iterator<char>(handle),
+            std::istreambuf_iterator<char>(),
+            std::ostreambuf_iterator<char>(source_stream));
+  
+  if (execution_type == EXECUTION_TYPE_MODULE)
+    source_stream << RemoveLineBreaks(kModuleEpilogue);
+
+  script.source.swap(source_stream.str());
+
+  // Now execute |script| normally on the runtime.
+  return Execute(script, result);
+}
+
+void Runtime::OnFrame() {
+  v8::HandleScope handle_scope(isolate());
+  v8::Context::Scope context_scope(context());
+  
+  v8::Local<v8::Object> dict = v8::Object::New(isolate());
+  dict->Set(v8String("now"), v8::Number::New(isolate(), base::monotonicallyIncreasingTime()));
+
+  global_scope_->triggerEvent(frame_event_name_, dict);
+}
+
+bool Runtime::Call(v8::Local<v8::Function> function,
+                   size_t argument_count,
+                   v8::Local<v8::Value> arguments[]) {
   TryCatch try_catch;
 
   Local<Context> current_context = context();
-  MaybeLocal<Value> result = function->Call(current_context,
-                                            current_context->Global(), argument_count, arguments);
+  MaybeLocal<Value> result = function->Call(current_context, current_context->Global(),
+                                            argument_count, arguments);
 
   if (result.IsEmpty() || try_catch.HasCaught()) {
-    DispatchException(try_catch);
+    DisplayException(try_catch);
     return false;
   }
 
   return true;
 }
 
-void Runtime::DispatchException(const TryCatch& try_catch) {
-  if (!delegate_)
+void Runtime::DisplayException(const TryCatch& try_catch) {
+  if (!runtime_delegate_)
     return;
 
   // TODO: Exceptions ideally should have stack traces attached to them.
@@ -137,7 +219,7 @@ void Runtime::DispatchException(const TryCatch& try_catch) {
 
   size_t line_number = message->GetLineNumber();
 
-  delegate_->OnScriptError(filename, line_number, exception_string);
+  runtime_delegate_->OnScriptError(filename, line_number, exception_string);
 }
 
 }  // namespace bindings

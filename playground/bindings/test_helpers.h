@@ -17,8 +17,6 @@ struct RuntimeOptions;
 class ScriptRunner {
  public:
   static bool Execute(const RuntimeOptions& options, const std::string& script);
-  static int32_t ExecuteInt(const RuntimeOptions& options, const std::string& script);
-  static std::string ExecuteString(const RuntimeOptions& options, const std::string& script);
 };
 
 }  // namespace bindings

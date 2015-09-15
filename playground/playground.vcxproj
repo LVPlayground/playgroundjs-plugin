@@ -22,10 +22,13 @@
     <ClCompile Include="base\file_path.cpp" />
     <ClCompile Include="base\logging.cc" />
     <ClCompile Include="base\string_piece.cc" />
+    <ClCompile Include="base\time.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
+    <ClCompile Include="bindings\global_scope_event_target.cc" />
     <ClCompile Include="bindings\objects\console.cc" />
     <ClCompile Include="bindings\objects\event.cc" />
-    <ClCompile Include="bindings\script_loader.cc" />
+    <ClCompile Include="bindings\objects\include.cc" />
+    <ClCompile Include="bindings\script_prologue.cc" />
     <ClCompile Include="playground_controller.cc" />
     <ClCompile Include="bindings\runtime_options_test.cc" />
     <ClCompile Include="bindings\test_helpers.cc" />
@@ -52,11 +55,14 @@
     <ClInclude Include="base\logging.h" />
     <ClInclude Include="base\macros.h" />
     <ClInclude Include="base\string_piece.h" />
+    <ClInclude Include="base\time.h" />
     <ClInclude Include="bindings\global_object.h" />
     <ClInclude Include="bindings\global_scope.h" />
+    <ClInclude Include="bindings\global_scope_event_target.h" />
     <ClInclude Include="bindings\objects\console.h" />
     <ClInclude Include="bindings\objects\event.h" />
-    <ClInclude Include="bindings\script_loader.h" />
+    <ClInclude Include="bindings\objects\include.h" />
+    <ClInclude Include="bindings\script_prologue.h" />
     <ClInclude Include="bindings\utilities.h" />
     <ClInclude Include="playground_controller.h" />
     <ClInclude Include="bindings\allocator.h" />
@@ -149,6 +155,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(ProjectDir)</AdditionalIncludeDirectories>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

@@ -81,9 +81,6 @@
     <ClCompile Include="plugin\fake_amx.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\script_loader.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bindings\global_scope.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,6 +88,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bindings\objects\event.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\global_scope_event_target.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\script_prologue.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\objects\include.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\time.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -170,9 +179,6 @@
     <ClInclude Include="plugin\fake_amx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\script_loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bindings\objects\console.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -186,6 +192,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\utilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\global_scope_event_target.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\script_prologue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\objects\include.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

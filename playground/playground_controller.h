@@ -12,7 +12,6 @@
 
 namespace bindings {
 class Runtime;
-class ScriptLoader;
 }
 
 namespace plugin {
@@ -51,10 +50,6 @@ class PlaygroundController : public plugin::PluginDelegate,
 
   // The v8 runtime that will be responsible for the JavaScript-based gamemode.
   std::unique_ptr<bindings::Runtime> runtime_;
-
-  // The script loader interface, which loads the main JavaScript file and allows it to load
-  // subsequent JavaScript files.
-  std::unique_ptr<bindings::ScriptLoader> script_loader_;
 };
 
 }  // namespace playground

@@ -36,6 +36,8 @@ public:
 
   const std::string& value() const { return path_; }
 
+  bool empty() const { return path_.empty(); }
+
   // Returns a FilePath representing the directory name of the path contained by
   // this object, stripping away the filename component.
   FilePath DirName() const;

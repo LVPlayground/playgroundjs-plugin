@@ -12,7 +12,6 @@
 #include "bindings/global_scope.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_options.h"
-#include "bindings/script_loader.h"
 #include "plugin/arguments.h"
 #include "plugin/callback.h"
 #include "plugin/plugin_controller.h"
@@ -46,7 +45,8 @@ PlaygroundController::PlaygroundController(plugin::PluginController* plugin_cont
     : plugin_controller_(plugin_controller) {}
 
 PlaygroundController::~PlaygroundController() {
-  runtime_->global_scope()->Dispose();
+  if (runtime_)
+    runtime_->Dispose();
 }
 
 bool PlaygroundController::CreateRuntime() {
@@ -56,15 +56,10 @@ bool PlaygroundController::CreateRuntime() {
   // TODO: We may want to parse the server's configuration file to make the two constants
   // (kJavaScriptDirectory and kJavaScriptFile) configurable.
 
-  runtime_.reset(new bindings::Runtime(options, this));
-
   base::FilePath script_directory = base::FilePath::CurrentDirectory();
   script_directory = script_directory.Append(kJavaScriptDirectory);
 
-  // Initialize the script loading interface, which will be responsible for loading the actual
-  // scripts into the engine. It will also expose functions to do so from JavaScript.
-  script_loader_.reset(new bindings::ScriptLoader(runtime_.get(), script_directory));
-
+  runtime_.reset(new bindings::Runtime(options, script_directory, this));
   return true;
 }
 
@@ -77,10 +72,6 @@ void PlaygroundController::OnCallbacksAvailable(const std::vector<plugin::Callba
   bindings::GlobalScope* global_scope = runtime_->global_scope();
   for (const auto& callback : callbacks)
     global_scope->CreateInterfaceForCallback(callback);
-
-  runtime_->Initialize();
-  if (!script_loader_->Load(base::FilePath(kJavaScriptFile)))
-    LOG(ERROR) << "Unable to load the main JavaScript file.";
 }
 
 bool PlaygroundController::OnCallbackIntercepted(const plugin::Callback& callback,
@@ -102,7 +93,19 @@ bool PlaygroundController::OnCallbackIntercepted(const plugin::Callback& callbac
 }
 
 void PlaygroundController::OnGamemodeLoaded() {
+  runtime_->Initialize();
 
+  {
+    v8::HandleScope scope(runtime_->isolate());
+
+    const bool result =
+        runtime_->ExecuteFile(base::FilePath(kJavaScriptFile),
+                              bindings::Runtime::EXECUTION_TYPE_NORMAL,
+                              nullptr /** result **/);
+
+    if (!result)
+      LOG(ERROR) << "Unable to load the main JavaScript file.";
+  }
 }
 
 void PlaygroundController::OnGamemodeUnloaded() {
@@ -110,7 +113,7 @@ void PlaygroundController::OnGamemodeUnloaded() {
 }
 
 void PlaygroundController::OnServerFrame() {
-
+  runtime_->OnFrame();
 }
 
 void PlaygroundController::OnScriptOutput(const std::string& message) {
