@@ -47,7 +47,8 @@ class PluginController : public CallbackHook::Delegate {
 
   // CallbackHook::Delegate implementation.
   void OnGamemodeChanged(AMX* gamemode) override;
-  bool OnCallbackIntercepted(const Callback& callback, const Arguments& arguments) override;
+  bool OnCallbackIntercepted(const std::string& callback,
+                             const Arguments& arguments) override;
 
  private:
   // The hook through which we intercept callbacks issued by the SA-MP server, as well those

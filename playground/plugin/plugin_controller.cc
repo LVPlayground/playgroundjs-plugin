@@ -74,7 +74,8 @@ void PluginController::OnGamemodeChanged(AMX* gamemode) {
     plugin_delegate_->OnGamemodeUnloaded();
 }
 
-bool PluginController::OnCallbackIntercepted(const Callback& callback, const Arguments& arguments) {
+bool PluginController::OnCallbackIntercepted(const std::string& callback,
+                                             const Arguments& arguments) {
   return plugin_delegate_->OnCallbackIntercepted(callback, arguments);
 }
 

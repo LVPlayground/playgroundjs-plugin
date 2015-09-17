@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <streambuf>
+#include <unordered_map>
 
 #include <include/libplatform/libplatform.h>
 
@@ -15,7 +16,6 @@
 #include "base/time.h"
 #include "bindings/allocator.h"
 #include "bindings/global_scope.h"
-#include "bindings/runtime_options.h"
 #include "bindings/script_prologue.h"
 #include "bindings/utilities.h"
 
@@ -25,8 +25,16 @@ namespace bindings {
 
 namespace {
 
-// Name of the event on the global scope to invoke every frame.
-const char kFrameEventName[] = "frame";
+// Map of v8 Isolates to the associated Runtime instances (weak references).
+std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
+
+// String of the v8 flags that should apply to this virtual machine. See flag-definitions.h in
+// the v8 source code for a list of all supported command line flags.
+const char kRuntimeFlags[] =
+    "--use_strict "
+    "--harmony "
+    "--harmony_destructuring "
+    "--harmony_default_parameters";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {
@@ -41,21 +49,34 @@ std::string RemoveLineBreaks(std::string line) {
 
 }  // namespace
 
-Runtime::Runtime(const RuntimeOptions& options,
-                 const base::FilePath& script_directory,
-                 Delegate* runtime_delegate)
-    : script_directory_(script_directory),
-      runtime_delegate_(runtime_delegate),
-      frame_event_name_(kFrameEventName) {
+// static
+std::shared_ptr<Runtime> Runtime::FromIsolate(v8::Isolate* isolate) {
+  const auto instance = g_runtime_instances_.find(isolate);
+  if (instance == g_runtime_instances_.end())
+    return nullptr;
+
+  CHECK(!instance->second.expired());
+  return instance->second.lock();
+}
+
+// static
+std::shared_ptr<Runtime> Runtime::Create(Delegate* runtime_delegate) {
+  auto instance = std::shared_ptr<Runtime>(new Runtime(runtime_delegate));
+  CHECK(instance->isolate());
+
+  g_runtime_instances_[instance->isolate()] = instance;
+  return instance;
+}
+
+Runtime::Runtime(Delegate* runtime_delegate)
+    : global_scope_(new GlobalScope()),
+      runtime_delegate_(runtime_delegate) {
   V8::InitializeICU();
 
   platform_.reset(platform::CreateDefaultPlatform());
   V8::InitializePlatform(platform_.get());
 
-  std::string option_string = RuntimeOptionsToArgumentString(options);
-  if (option_string.length())
-    V8::SetFlagsFromString(option_string.c_str(), static_cast<int>(option_string.length()));
-
+  V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));
   V8::Initialize();
 
   allocator_.reset(new SimpleArrayBufferAllocator());
@@ -66,10 +87,15 @@ Runtime::Runtime(const RuntimeOptions& options,
   isolate_ = Isolate::New(create_params);
   isolate_scope_.reset(new Isolate::Scope(isolate_));
 
-  global_scope_.reset(new GlobalScope(this));
+  // TODO: This should be set by some sort of Configuration object.
+  script_directory_ = base::FilePath("javascript");
 }
 
 Runtime::~Runtime() {
+  g_runtime_instances_.erase(isolate_);
+
+  global_scope_.reset();
+
   isolate_scope_.reset();
   isolate_->Dispose();
 
@@ -95,15 +121,9 @@ void Runtime::Initialize() {
   context_.Reset(isolate_, context);
 
   // Make sure that the global script prologue is loaded in the virtual machine.
-  {
-    ScriptSource global_prologue(kScriptPrologue);
-    if (!Execute(global_prologue, nullptr /** result **/))
-      LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
-  }
-}
-
-void Runtime::Dispose() {
-  global_scope_.reset();
+  ScriptSource global_prologue(kScriptPrologue);
+  if (!Execute(global_prologue, nullptr /** result **/))
+    LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
 }
 
 bool Runtime::Execute(const ScriptSource& script_source,
@@ -172,33 +192,6 @@ bool Runtime::ExecuteFile(const base::FilePath& file,
 
   // Now execute |script| normally on the runtime.
   return Execute(script, result);
-}
-
-void Runtime::OnFrame() {
-  v8::HandleScope handle_scope(isolate());
-  v8::Context::Scope context_scope(context());
-  
-  v8::Local<v8::Object> dict = v8::Object::New(isolate());
-  dict->Set(v8String("now"), v8::Number::New(isolate(), base::monotonicallyIncreasingTime()));
-
-  global_scope_->triggerEvent(frame_event_name_, dict);
-}
-
-bool Runtime::Call(v8::Local<v8::Function> function,
-                   size_t argument_count,
-                   v8::Local<v8::Value> arguments[]) {
-  TryCatch try_catch;
-
-  Local<Context> current_context = context();
-  MaybeLocal<Value> result = function->Call(current_context, current_context->Global(),
-                                            argument_count, arguments);
-
-  if (result.IsEmpty() || try_catch.HasCaught()) {
-    DisplayException(try_catch);
-    return false;
-  }
-
-  return true;
 }
 
 void Runtime::DisplayException(const TryCatch& try_catch) {

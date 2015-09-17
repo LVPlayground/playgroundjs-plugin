@@ -28,13 +28,9 @@ class PlaygroundController : public plugin::PluginDelegate,
   explicit PlaygroundController(plugin::PluginController* plugin_controller);
   ~PlaygroundController();
 
-  // Will create the v8 runtime. The runtime will not be started yet, as this gives other parts
-  // of the controller the ability to register the necessary interfaces.
-  bool CreateRuntime();
-
   // plugin::PluginDelete implementation.
   void OnCallbacksAvailable(const std::vector<plugin::Callback>& callbacks) override;
-  bool OnCallbackIntercepted(const plugin::Callback& callback,
+  bool OnCallbackIntercepted(const std::string& callback,
                              const plugin::Arguments& arguments) override;
   void OnGamemodeLoaded() override;
   void OnGamemodeUnloaded() override;
@@ -49,7 +45,7 @@ class PlaygroundController : public plugin::PluginDelegate,
   plugin::PluginController* plugin_controller_;
 
   // The v8 runtime that will be responsible for the JavaScript-based gamemode.
-  std::unique_ptr<bindings::Runtime> runtime_;
+  std::shared_ptr<bindings::Runtime> runtime_;
 };
 
 }  // namespace playground

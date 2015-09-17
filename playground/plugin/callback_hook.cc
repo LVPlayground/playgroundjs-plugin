@@ -103,7 +103,7 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
 
   // TODO: Support custom |retval| values in the parser?
 
-  const bool result = delegate_->OnCallbackIntercepted(callback, arguments);
+  const bool result = delegate_->OnCallbackIntercepted(callback.name, arguments);
   if (callback.triggers_unload) {
     if (delegate_)
       delegate_->OnGamemodeChanged(nullptr);

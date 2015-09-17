@@ -13,7 +13,7 @@ namespace base {
 #if defined(WIN32)
 
 double monotonicallyIncreasingTime() {
-  static ULONGLONG begin_time = 0ull;
+  static DWORD begin_time = 0ul;
   static bool begin_time_initialized = false;
 
   FILETIME tm;
@@ -30,7 +30,7 @@ double monotonicallyIncreasingTime() {
     begin_time_initialized = true;
   }
 
-  ULONGLONG time = ((ULONGLONG) (begin_time - tm.dwHighDateTime) << 32) | (ULONGLONG)tm.dwLowDateTime;
+  ULONGLONG time = ((ULONGLONG) (begin_time - tm.dwHighDateTime) << 32) | (ULONGLONG) tm.dwLowDateTime;
   return static_cast<double>(time) / 10000.0;
 }
 

@@ -4,15 +4,13 @@
 
 #include "playground_controller.h"
 
-#include <algorithm>
-
 #include "base/file_path.h"
 #include "base/logging.h"
-#include "base/string_piece.h"
+#include "base/time.h"
+#include "bindings/event.h"
 #include "bindings/global_scope.h"
 #include "bindings/runtime.h"
-#include "bindings/runtime_options.h"
-#include "plugin/arguments.h"
+#include "bindings/utilities.h"
 #include "plugin/callback.h"
 #include "plugin/plugin_controller.h"
 
@@ -20,77 +18,47 @@ namespace playground {
 
 namespace {
 
-// Directory in which the JavaScript code will reside.
-const char kJavaScriptDirectory[] = "javascript";
-
-// Filename of the main JavaScript file to begin executing.
-const char kJavaScriptFile[] = "playground.js";
-
-// Converts |callback_name| to a JavaScript event-target name.
-std::string toEventName(base::StringPiece callback_name) {
-  if (!callback_name.starts_with("On"))
-    return callback_name.as_string();
-
-  callback_name.remove_prefix(2 /* On */);
-
-  std::string event_name = callback_name.as_string();
-  std::transform(event_name.begin(), event_name.end(), event_name.begin(), ::tolower);
-
-  return event_name;
-}
+// Event type of the "frame" event, which should be run for every server frame.
+const std::string g_frame_event_type = "frame";
 
 }  // namespace
 
 PlaygroundController::PlaygroundController(plugin::PluginController* plugin_controller)
-    : plugin_controller_(plugin_controller) {}
+    : plugin_controller_(plugin_controller),
+      runtime_(bindings::Runtime::Create(this)) {}
 
-PlaygroundController::~PlaygroundController() {
-  if (runtime_)
-    runtime_->Dispose();
-}
-
-bool PlaygroundController::CreateRuntime() {
-  bindings::RuntimeOptions options;
-  options.strict_mode = true;
-
-  // TODO: We may want to parse the server's configuration file to make the two constants
-  // (kJavaScriptDirectory and kJavaScriptFile) configurable.
-
-  base::FilePath script_directory = base::FilePath::CurrentDirectory();
-  script_directory = script_directory.Append(kJavaScriptDirectory);
-
-  runtime_.reset(new bindings::Runtime(options, script_directory, this));
-  return true;
-}
+PlaygroundController::~PlaygroundController() {}
 
 void PlaygroundController::OnCallbacksAvailable(const std::vector<plugin::Callback>& callbacks) {
-  if (!CreateRuntime()) {
-    LOG(FATAL) << "Unable to initialize the JavaScript runtime.";
-    return;
-  }
+  bindings::GlobalScope* global = runtime_->GetGlobalScope();
 
-  bindings::GlobalScope* global_scope = runtime_->global_scope();
+  // Create event interfaces for each of the |callbacks| and install them on the global scope. This
+  // will make sure that the properties of the SA-MP events can be inspected by the script.
   for (const auto& callback : callbacks)
-    global_scope->CreateInterfaceForCallback(callback);
+    global->RegisterEvent(callback.name, bindings::Event::Create(callback));
 }
 
-bool PlaygroundController::OnCallbackIntercepted(const plugin::Callback& callback,
+bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
                                                  const plugin::Arguments& arguments) {
+  // Convert the |callback| name to the associated idiomatic JavaScript event type.
+  const std::string& type = bindings::Event::ToEventType(callback);
+
+  bindings::GlobalScope* global = runtime_->GetGlobalScope();
+
+  // Bail out immediately if there are no listeners for this callback.
+  if (!global->HasEventListeners(type))
+    return false;
+
   v8::HandleScope handle_scope(runtime_->isolate());
   v8::Context::Scope context_scope(runtime_->context());
 
-  bindings::GlobalScope* global_scope = runtime_->global_scope();
+  bindings::Event* event = global->GetEvent(callback);
+  DCHECK(event);
 
-  const std::string event_name = toEventName(callback.name);
-  if (!global_scope->hasEventListeners(event_name))
-    return false;
-
-  v8::Local<v8::Object> object = global_scope->CreateEventForCallback(callback, arguments);
-  if (object.IsEmpty())
-    return false;
-
-  return global_scope->triggerEvent(event_name, object);
+  return global->DispatchEvent(type, event->NewInstance(arguments));
 }
+
+// TODO: Clean up everything after here.
 
 void PlaygroundController::OnGamemodeLoaded() {
   runtime_->Initialize();
@@ -99,7 +67,7 @@ void PlaygroundController::OnGamemodeLoaded() {
     v8::HandleScope scope(runtime_->isolate());
 
     const bool result =
-        runtime_->ExecuteFile(base::FilePath(kJavaScriptFile),
+        runtime_->ExecuteFile(base::FilePath("playground.js"),
                               bindings::Runtime::EXECUTION_TYPE_NORMAL,
                               nullptr /** result **/);
 
@@ -113,7 +81,23 @@ void PlaygroundController::OnGamemodeUnloaded() {
 }
 
 void PlaygroundController::OnServerFrame() {
-  runtime_->OnFrame();
+  bindings::GlobalScope* global = runtime_->GetGlobalScope();
+
+  // Bail out immediately if there are no listeners for the frame callback.
+  if (!global->HasEventListeners(g_frame_event_type))
+    return;
+  
+  v8::HandleScope handle_scope(runtime_->isolate());
+  v8::Context::Scope context_scope(runtime_->context());
+
+  v8::Local<v8::Object> event = v8::Object::New(runtime_->isolate());
+
+  // The "frame" event has a "now" property on the event object which refers to the monotonically
+  // increasing time, allowing timers to be based on the implementation.
+  event->Set(bindings::v8String("now"),
+             v8::Number::New(runtime_->isolate(), base::monotonicallyIncreasingTime()));
+
+  global->DispatchEvent(g_frame_event_type, event);
 }
 
 void PlaygroundController::OnScriptOutput(const std::string& message) {

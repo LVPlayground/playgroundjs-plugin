@@ -24,7 +24,7 @@ class PluginDelegate {
   // Called when a callback has been intercepted. The |callback| contains information about the
   // event that has been invoked, the |arguments| contain the actual context. Returning true
   // from this method will block the callback from being invoked in the Pawn runtime.
-  virtual bool OnCallbackIntercepted(const Callback& callback, const Arguments& arguments) = 0;
+  virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments) = 0;
 
   // Called when the gamemode has been loaded. This is the appropriate time to initialize the v8
   // runtime, as callbacks will start to be invoked shortly after this.

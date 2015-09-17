@@ -6,6 +6,7 @@
 #define PLAYGROUND_PLUGIN_CALLBACK_HOOK_H_
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 typedef struct tagAMX AMX;
@@ -34,7 +35,7 @@ class CallbackHook {
 
     // Called when a callback to the gamemode has been intercepted. Returning true will block
     // the callback from being invoked in the Pawn runtime.
-    virtual bool OnCallbackIntercepted(const Callback& callback, const Arguments& arguments) = 0;
+    virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments) = 0;
   };
 
   CallbackHook(Delegate* delegate, const std::shared_ptr<CallbackParser>& callback_parser);

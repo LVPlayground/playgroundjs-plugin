@@ -18,16 +18,7 @@
     <ClCompile Include="bindings\runtime.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\runtime_options.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="test_runner.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bindings\runtime_options_test.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bindings\test_helpers.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="plugin\plugin.cc">
@@ -84,30 +75,27 @@
     <ClCompile Include="bindings\global_scope.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\objects\console.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bindings\objects\event.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bindings\global_scope_event_target.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bindings\script_prologue.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bindings\objects\include.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="base\time.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\global_callbacks.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\event.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\console.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\runtime_operations.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\runtime_options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="test_runner.h">
@@ -120,9 +108,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="base\macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\test_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\allocator.h">
@@ -179,31 +164,28 @@
     <ClInclude Include="plugin\fake_amx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\objects\console.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bindings\global_scope.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\global_object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\objects\event.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\global_scope_event_target.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bindings\script_prologue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\objects\include.h">
+    <ClInclude Include="base\time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="base\time.h">
+    <ClInclude Include="bindings\global_callbacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\runtime_operations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

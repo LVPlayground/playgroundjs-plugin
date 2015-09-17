@@ -23,15 +23,13 @@
     <ClCompile Include="base\logging.cc" />
     <ClCompile Include="base\string_piece.cc" />
     <ClCompile Include="base\time.cc" />
+    <ClCompile Include="bindings\event.cc" />
+    <ClCompile Include="bindings\global_callbacks.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
-    <ClCompile Include="bindings\global_scope_event_target.cc" />
-    <ClCompile Include="bindings\objects\console.cc" />
-    <ClCompile Include="bindings\objects\event.cc" />
-    <ClCompile Include="bindings\objects\include.cc" />
+    <ClCompile Include="bindings\console.cc" />
+    <ClCompile Include="bindings\runtime_operations.cc" />
     <ClCompile Include="bindings\script_prologue.cc" />
     <ClCompile Include="playground_controller.cc" />
-    <ClCompile Include="bindings\runtime_options_test.cc" />
-    <ClCompile Include="bindings\test_helpers.cc" />
     <ClCompile Include="plugin\arguments.cc" />
     <ClCompile Include="plugin\callback_hook.cc" />
     <ClCompile Include="plugin\callback_parser.cc" />
@@ -44,7 +42,6 @@
     <ClCompile Include="plugin\sdk\amxplugin.cpp" />
     <ClCompile Include="test_runner.cc" />
     <ClCompile Include="bindings\runtime.cc" />
-    <ClCompile Include="bindings\runtime_options.cc" />
     <ClCompile Include="third_party\subhook\subhook.c" />
     <ClCompile Include="third_party\subhook\subhook_windows.c" />
     <ClCompile Include="third_party\subhook\subhook_x86.c" />
@@ -56,17 +53,15 @@
     <ClInclude Include="base\macros.h" />
     <ClInclude Include="base\string_piece.h" />
     <ClInclude Include="base\time.h" />
-    <ClInclude Include="bindings\global_object.h" />
+    <ClInclude Include="bindings\event.h" />
+    <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
-    <ClInclude Include="bindings\global_scope_event_target.h" />
-    <ClInclude Include="bindings\objects\console.h" />
-    <ClInclude Include="bindings\objects\event.h" />
-    <ClInclude Include="bindings\objects\include.h" />
+    <ClInclude Include="bindings\console.h" />
+    <ClInclude Include="bindings\runtime_operations.h" />
     <ClInclude Include="bindings\script_prologue.h" />
     <ClInclude Include="bindings\utilities.h" />
     <ClInclude Include="playground_controller.h" />
     <ClInclude Include="bindings\allocator.h" />
-    <ClInclude Include="bindings\test_helpers.h" />
     <ClInclude Include="plugin\arguments.h" />
     <ClInclude Include="plugin\callback.h" />
     <ClInclude Include="plugin\callback_hook.h" />
@@ -81,7 +76,6 @@
     <ClInclude Include="third_party\subhook\subhook.h" />
     <ClInclude Include="third_party\subhook\subhook_private.h" />
     <ClInclude Include="version.h" />
-    <ClInclude Include="bindings\runtime_options.h" />
     <ClInclude Include="bindings\runtime.h" />
     <ClInclude Include="test_runner.h" />
   </ItemGroup>

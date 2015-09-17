@@ -15,10 +15,9 @@
 namespace bindings {
 
 class GlobalScope;
-struct RuntimeOptions;
 
-// The runtime class represents a v8 virtual machine. It establishes and maintains the VM and
-// provides the ability to execute scripts or callbacks on it.
+// The runtime class represents a v8 virtual machine. It must be externally owned, but additional
+// references may be retrieved by the v8 Isolate it's keyed on.
 class Runtime {
  public:
   // The delegate enables the runtime to communicate with its embedder for the purposes of passing
@@ -32,17 +31,21 @@ class Runtime {
     virtual ~Delegate() {}
   };
 
-  Runtime(const RuntimeOptions& options,
-          const base::FilePath& script_directory,
-          Delegate* runtime_delegate);
+  // Returns the Runtime instance associated with |isolate|. May be a nullptr.
+  static std::shared_ptr<Runtime> FromIsolate(v8::Isolate* isolate);
+
+  // Creates a new instance of the Runtime based on |options|, optionally with |runtime_delegate|.
+  static std::shared_ptr<Runtime> Create(Delegate* runtime_delegate);
+
   ~Runtime();
 
-  // Initializes the runtime by installing all prototypes and objects. The list of prototypes must
-  // have been completed at the time of this call.
+  // Initializes the runtime by installing all prototypes and objects. The global scope should have
+  // been fully initialized prior to this call.
   void Initialize();
 
-  // Tears down parts of the runtime that have to be destroyed before other parts.
-  void Dispose();
+  // Returns the global scope associated with this runtime. May be used to get access to the event
+  // target and instances of the common JavaScript objects.
+  GlobalScope* GetGlobalScope() { return global_scope_.get(); }
 
   // Encapsulates both the source-code of a script and the origin filename.
   struct ScriptSource {
@@ -61,6 +64,10 @@ class Runtime {
     EXECUTION_TYPE_MODULE
   };
 
+  // TODO: Move these to helper functions, e.g.
+  //     bindings::Execute()
+  //     bindings::ExecuteFile()
+
   // Executes |script_source| using the runtime. May be called multiple times in the lifetime of
   // this runtime. The same global object will be reused for each invocation. The caller must
   // have created a handle scope prior to using this method.
@@ -73,34 +80,23 @@ class Runtime {
                    ExecutionType execution_type,
                    v8::Local<v8::Value>* result = nullptr);
 
-  // To be called on every frame of the server.
-  void OnFrame();
-
-  // Calls |function| with |arguments| in a safe manner. Exceptions will be logged, but will not
-  // terminate either current execution or the script as a whole.
-  bool Call(v8::Local<v8::Function> function,
-            size_t argument_count,
-            v8::Local<v8::Value> arguments[]);
-
   // Returns the isolate associated with this runtime.
   v8::Isolate* isolate() const { return isolate_; }
 
   // Returns the context associated with this runtime.
   v8::Local<v8::Context> context() const { return context_.Get(isolate_); }
 
-  // Returns the global scope instance, allowing external users to install additional objects.
-  GlobalScope* global_scope() { return global_scope_.get(); }
-
   // Returns the delegate for this runtime. May be a nullptr.
   Delegate* delegate() { return runtime_delegate_; }
 
  private:
+  explicit Runtime(Delegate* runtime_delegate);
+
   // Dispatches the exception caught in |try_catch| to the delegate, if any.
   void DisplayException(const v8::TryCatch& try_catch);
 
   base::FilePath script_directory_;
   Delegate* runtime_delegate_;
-  std::string frame_event_name_;
 
   std::unique_ptr<v8::Platform> platform_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> allocator_;

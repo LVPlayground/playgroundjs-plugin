@@ -46,10 +46,24 @@ class LogMessage {
   std::ostringstream stream_;
 };
 
+// This class is used to explicitly ignore values in the conditional
+// logging macros.  This avoids compiler warnings like "value computed
+// is not used" and "statement has no effect".
+class LogMessageVoidify {
+public:
+  LogMessageVoidify() { }
+  // This has to be an operator with a precedence lower than << but
+  // higher than ?:
+  void operator&(std::ostream&) { }
+};
+
 }  // namespace logging
 
+#define LAZY_STREAM(stream, condition)     \
+    !(condition) ? (void) 0 : logging::LogMessageVoidify() & (stream)
+
 #define LOG_STREAM(severity, condition)    \
-    !(condition) ? (void) 0 : (logging::LogMessage(__FILE__, __LINE__, logging::severity).stream())
+    LAZY_STREAM(logging::LogMessage(__FILE__, __LINE__, logging::severity).stream(), condition)
 
 #define LOG_FATAL     LOG_STREAM(Fatal,   true)
 #define LOG_ERROR     LOG_STREAM(Error,   true)
