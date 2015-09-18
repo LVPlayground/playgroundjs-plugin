@@ -115,7 +115,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
       break;
     case 'a':
       if (format[i + 1] != 'i' /* |format| is zero-terminated */) {
-        LOG(WARNING) << "Cannot invoke " << function_name << ": 'a' parameter must be followed by a 'd'.";
+        LOG(WARNING) << "Cannot invoke " << function_name << ": 'a' parameter must be followed by a 'i'.";
         return -1;
       }
 

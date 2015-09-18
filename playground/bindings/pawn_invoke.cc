@@ -25,7 +25,9 @@ enum SignatureType {
 
 }  // namespace
 
-//
+// Buffer in which we store the data associated with each invocation. This significantly reduces
+// the need to do many allocations for each function invocation, at the expense of a little bit
+// of memory usage.
 struct PawnInvoke::StaticBuffer {
   SignatureType signature[PawnInvoke::kMaxArgumentCount];
 
@@ -95,8 +97,11 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     return v8::Local<v8::Value>();
   }
 
+  size_t argument_offset = 0;
+
   // Iterate over each of the arguments to verify their types and to set pointers accordingly.
-  for (size_t argument = 0; argument < argument_count; ++argument) {
+  for (size_t signature_index = 0; signature_index < signature_length; ++signature_index) {
+    size_t argument = signature_index + argument_offset;
     size_t index = argument + 2;
 
     bool type_mismatch = false;
@@ -124,8 +129,6 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
         break;
 
       static_buffer_->number_values[argument] = arguments[index]->Int32Value();
-      static_buffer_->arguments[argument] = &static_buffer_->number_values[argument];
-
       static_buffer_->arguments[argument] = &static_buffer_->number_values[argument];
       static_buffer_->arguments_format[argument] = 'i';
       break;
@@ -159,7 +162,14 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
     case SIGNATURE_TYPE_STRING_REFERENCE:
       static_buffer_->arguments[argument] = &static_buffer_->string_values[argument];
-      static_buffer_->arguments_format[argument] = 's';
+      static_buffer_->arguments_format[argument] = 'a';
+
+      ++argument_offset;
+      ++argument;
+
+      static_buffer_->number_values[argument] = StaticBuffer::kMaxStringLength;
+      static_buffer_->arguments[argument] = &static_buffer_->number_values[argument];
+      static_buffer_->arguments_format[argument] = 'i';
       break;
     }
 
@@ -173,8 +183,13 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     }
   }
 
+  // The Pawn argument count may not match the JavaScript one, since we substitute the allowed
+  // length for string reference arguments automatically.
+  const size_t pawn_argument_count = signature_length + argument_offset;
+
   // Make sure that the argument format string is zero-terminated.
-  static_buffer_->arguments_format[signature_length] = 0;
+  static_buffer_->arguments_format[pawn_argument_count] = 0;
+  DCHECK(strlen(static_buffer_->arguments_format) == pawn_argument_count);
 
   // Invoke the native SA-MP function. We simply pass the assembled argument format and the
   // array of void* pointers to the intended arguments to the function itself.
@@ -186,15 +201,19 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
   if (!return_count)
     return v8::Number::New(isolate, static_cast<double>(result));
 
+  // We want to eagerly return a value immediately if there is only one return value. In all other
+  // cases, the return values will be stored in an array, and the array will be returned.
+  const bool eager_return = (return_count == 1);
+
   v8::Local<v8::Array> return_array;
-  if (return_count > 1)
+  if (!eager_return)
     return_array = v8::Array::New(isolate, return_count);
 
   size_t stored_return_values = 0;
 
   // Iterate over the arguments again to find those which were passed as a reference. Those will
   // be considered return values of the JavaScript function.
-  for (size_t argument = 0; argument < argument_count; ++argument) {
+  for (size_t argument = 0; argument < pawn_argument_count; ++argument) {
     v8::Local<v8::Value> value;
 
     switch (static_buffer_->signature[argument]) {
@@ -207,14 +226,14 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
       value = v8::Number::New(isolate,
                               *reinterpret_cast<float*>(&static_buffer_->number_values[argument]));
 
-      if (return_count == 1)
+      if (eager_return)
         return value;
 
       return_array->Set(stored_return_values++, value);
       break;
     case SIGNATURE_TYPE_INT_REFERENCE:
       value = v8::Number::New(isolate, static_buffer_->number_values[argument]);
-      if (return_count == 1)
+      if (eager_return)
         return value;
 
       return_array->Set(stored_return_values++, value);
@@ -228,7 +247,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
         value = maybe.IsEmpty() ? v8::Null(isolate) : maybe.ToLocalChecked();
       }
 
-      if (return_count == 1)
+      if (eager_return)
         return value;
 
       return_array->Set(stored_return_values++, value);
@@ -288,8 +307,5 @@ bool PawnInvoke::ParseSignature(v8::Local<v8::Value> signature,
 
   return true;
 }
-
-// (const std::string& function_name,
-//  const char* format, void** arguments)
 
 }  // namespace bindings
