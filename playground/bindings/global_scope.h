@@ -13,10 +13,15 @@
 
 #include "base/macros.h"
 
+namespace plugin {
+class PluginController;
+}
+
 namespace bindings {
 
 class Console;
 class Event;
+class PawnInvoke;
 class Runtime;
 
 // The global scope object represents and owns the global scope of the Runtime instance that owns
@@ -32,7 +37,7 @@ class Runtime;
 // it gets deleted before the v8 context or isolate. Failing to do so will result in a SEGFAULT.
 class GlobalScope {
  public:
-  GlobalScope();
+  explicit GlobalScope(plugin::PluginController* plugin_controller);
   ~GlobalScope();
 
   // Registers |event| as the interface for handling events of type |type|. All event types must
@@ -50,8 +55,9 @@ class GlobalScope {
   // Accessor providing access to the instances of created event types.
   Event* GetEvent(const std::string& type);
 
-  // Accessor providing access to the global Console instance.
+  // Accessors providing access to global object instances.
   Console* GetConsole() { return console_.get(); }
+  PawnInvoke* GetPawnInvoke() { return pawn_invoke_.get(); }
 
  public:
   // Implementation of the addEventListener() function, which registers |listener| as a handler
@@ -87,6 +93,9 @@ class GlobalScope {
 
   // The Console object, which provides debugging abilities to authors.
   std::unique_ptr<Console> console_;
+
+  // The PawnInvoke object, which enables authors to call Pawn native functions.
+  std::unique_ptr<PawnInvoke> pawn_invoke_;
 
   // Map of callback names to the Event* instance that defines their interface.
   std::unordered_map<std::string, std::unique_ptr<Event>> events_;

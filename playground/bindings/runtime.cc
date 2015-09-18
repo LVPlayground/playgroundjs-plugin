@@ -60,16 +60,19 @@ std::shared_ptr<Runtime> Runtime::FromIsolate(v8::Isolate* isolate) {
 }
 
 // static
-std::shared_ptr<Runtime> Runtime::Create(Delegate* runtime_delegate) {
-  auto instance = std::shared_ptr<Runtime>(new Runtime(runtime_delegate));
+std::shared_ptr<Runtime> Runtime::Create(Delegate* runtime_delegate,
+                                         plugin::PluginController* plugin_controller) {
+  auto instance = std::shared_ptr<Runtime>(
+      new Runtime(runtime_delegate, plugin_controller));
   CHECK(instance->isolate());
 
   g_runtime_instances_[instance->isolate()] = instance;
   return instance;
 }
 
-Runtime::Runtime(Delegate* runtime_delegate)
-    : global_scope_(new GlobalScope()),
+Runtime::Runtime(Delegate* runtime_delegate,
+                 plugin::PluginController* plugin_controller)
+    : global_scope_(new GlobalScope(plugin_controller)),
       runtime_delegate_(runtime_delegate) {
   V8::InitializeICU();
 

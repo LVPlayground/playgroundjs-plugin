@@ -12,6 +12,10 @@
 
 #include "base/file_path.h"
 
+namespace plugin {
+class PluginController;
+}
+
 namespace bindings {
 
 class GlobalScope;
@@ -35,7 +39,8 @@ class Runtime {
   static std::shared_ptr<Runtime> FromIsolate(v8::Isolate* isolate);
 
   // Creates a new instance of the Runtime based on |options|, optionally with |runtime_delegate|.
-  static std::shared_ptr<Runtime> Create(Delegate* runtime_delegate);
+  static std::shared_ptr<Runtime> Create(Delegate* runtime_delegate,
+                                         plugin::PluginController* plugin_controller);
 
   ~Runtime();
 
@@ -90,7 +95,7 @@ class Runtime {
   Delegate* delegate() { return runtime_delegate_; }
 
  private:
-  explicit Runtime(Delegate* runtime_delegate);
+  Runtime(Delegate* runtime_delegate, plugin::PluginController* plugin_controller);
 
   // Dispatches the exception caught in |try_catch| to the delegate, if any.
   void DisplayException(const v8::TryCatch& try_catch);

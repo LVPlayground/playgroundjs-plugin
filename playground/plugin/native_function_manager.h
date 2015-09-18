@@ -45,7 +45,7 @@ class NativeFunctionManager {
   // The following parameter formats for |format| are supported, with the accompanying type that
   // is expected to be available in |arguments|:
   //
-  //   d (int*)      - 32-bit signed integer
+  //   i (int*)      - 32-bit signed integer
   //   f (float*)    - 32-bit floating point
   //   r (void*)     - reference variable (will be read back)
   //   s (char*)     - zero-terminated string

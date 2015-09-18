@@ -5,6 +5,7 @@
 #include "bindings/global_callbacks.h"
 
 #include "bindings/global_scope.h"
+#include "bindings/pawn_invoke.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 
@@ -78,6 +79,18 @@ void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
   arguments.GetReturnValue().Set(global->HighResolutionTime());
+}
+
+// any pawnInvoke(string name[, string signature[, ...]]);
+void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+
+  if (arguments.Length() == 0) {
+    ThrowException("unable to execute pawnInvoke(): 1 argument required, but only 0 provided.");
+    return;
+  }
+
+  arguments.GetReturnValue().Set(global->GetPawnInvoke()->Call(arguments));
 }
 
 // void removeEventListener(string type[, function listener]);

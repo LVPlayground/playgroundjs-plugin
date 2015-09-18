@@ -16,6 +16,7 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 

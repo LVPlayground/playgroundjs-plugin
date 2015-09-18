@@ -25,7 +25,7 @@ const std::string g_frame_event_type = "frame";
 
 PlaygroundController::PlaygroundController(plugin::PluginController* plugin_controller)
     : plugin_controller_(plugin_controller),
-      runtime_(bindings::Runtime::Create(this)) {}
+      runtime_(bindings::Runtime::Create(this, plugin_controller)) {}
 
 PlaygroundController::~PlaygroundController() {}
 

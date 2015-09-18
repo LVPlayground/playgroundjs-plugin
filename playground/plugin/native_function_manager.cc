@@ -101,7 +101,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
   // Process the existing parameters, either store them in |params_| or push them on the stack.
   for (size_t i = 0; i < param_count; ++i) {
     switch (format[i]) {
-    case 'd':
+    case 'i':
       params_[i + 1] = *reinterpret_cast<cell*>(arguments[i]);
       break;
     case 'f':
@@ -114,7 +114,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
       params_[i + 1] = amx_stack.PushString(reinterpret_cast<char*>(arguments[i]));
       break;
     case 'a':
-      if (format[i + 1] != 'd' /* |format| is zero-terminated */) {
+      if (format[i + 1] != 'i' /* |format| is zero-terminated */) {
         LOG(WARNING) << "Cannot invoke " << function_name << ": 'a' parameter must be followed by a 'd'.";
         return -1;
       }

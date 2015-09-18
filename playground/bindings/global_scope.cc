@@ -9,14 +9,16 @@
 #include "bindings/event.h"
 #include "bindings/console.h"
 #include "bindings/global_callbacks.h"
+#include "bindings/pawn_invoke.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_operations.h"
 #include "bindings/utilities.h"
 
 namespace bindings {
 
-GlobalScope::GlobalScope()
-    : console_(new Console) {}
+GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
+    : console_(new Console),
+      pawn_invoke_(new PawnInvoke(plugin_controller)) {}
 
 GlobalScope::~GlobalScope() {}
 
@@ -34,6 +36,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   // Install the other functions that should be available on |global|.
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
+  InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
 
   // Install the Console interface which enables debugging.
