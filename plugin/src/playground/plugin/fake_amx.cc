@@ -64,7 +64,7 @@ cell FakeAMX::ScopedStackModifier::PushString(char* string) {
   cell address = Allocate(length + 1);
 
   amx_SetString(reinterpret_cast<cell*>(fake_amx_->amx_heap_.get()) + address,
-                string, 0, 0, length);
+                string, 0, 0, length + 1);
 
   return address;
 }

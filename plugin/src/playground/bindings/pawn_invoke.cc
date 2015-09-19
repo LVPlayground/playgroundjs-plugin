@@ -152,13 +152,13 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
           return v8::Local<v8::Value>();
         }
 
-        strncpy_s(static_buffer_->string_values[argument], string.length(),
-                  *string, StaticBuffer::kMaxStringLength);
-
+        memcpy(static_buffer_->string_values[argument], *string, string.length());
         static_buffer_->string_values[argument][string.length()] = 0;
       }
 
-      /** deliberate fall-through **/
+      static_buffer_->arguments[argument] = &static_buffer_->string_values[argument];
+      static_buffer_->arguments_format[argument] = 's';
+      break;
 
     case SIGNATURE_TYPE_STRING_REFERENCE:
       static_buffer_->arguments[argument] = &static_buffer_->string_values[argument];

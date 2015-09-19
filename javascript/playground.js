@@ -2,10 +2,13 @@
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
-function GetPlayerName(playerid) {
-  return pawnInvoke('GetPlayerName', 'iS', playerid);
-}
+require('entities/player.js');
+require('libraries/timers.js');
 
 self.addEventListener('playerconnect', event => {
-  console.log(GetPlayerName(event.playerid) + ' joined!');
+  let player = new Player(event.playerid);
+  player.name = 'YourNewName';
+  
+  wait(1500).then(() =>
+      console.log('Hello, ' + player.name + '!'));
 });

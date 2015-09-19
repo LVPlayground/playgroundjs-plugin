@@ -12,19 +12,19 @@ class PendingTimer {
     this.fn = fn;
     this.interval = Math.max(interval, 1);
     this.repetitive = repetitive;
-    this.next_invocation = 0;
+    this.nextInvocation = 0;
 
-    this.UpdateNextInvocationTime();
+    this.updateNextInvocationTime();
   }
 
-  UpdateNextInvocationTime() {
-    this.next_invocation = highResolutionTime() + this.interval;
+  updateNextInvocationTime() {
+    this.nextInvocation = highResolutionTime() + this.interval;
   }
 
   // Comperator used to determine the ordering of two PendingTimer instances. The priority
   // queue should store them in ascending order based on the next invocation time.
-  static Comperator(lhs, rhs) {
-    return lhs.next_invocation - rhs.next_invocation;
+  static comperator(lhs, rhs) {
+    return lhs.nextInvocation - rhs.nextInvocation;
   }
 };
 
@@ -32,20 +32,20 @@ class PendingTimer {
 // JavaScript code by setting (repetitive) timers.
 class TimerManager {
   constructor() {
-    this.id_ = 0;
-    this.timers_ = new PriorityQueue(PendingTimer.Comperator);
+    this.id = 0;
+    this.timers = new PriorityQueue(PendingTimer.comperator);
   }
 
   // Called every server frame. The |event| has a property named |now| which provides the
   // monotonically increasing time that can be compared against the top of the queue. Repetitive
   // timers will automatically be re-added to the priority queue again.
   OnFrame(event) {
-    while (this.timers_.Size()) {
-      let timer = this.timers_.Peek();
-      if (timer.next_invocation > event.now)
+    while (this.timers.size()) {
+      let timer = this.timers.peek();
+      if (timer.nextInvocation > event.now)
         return;
 
-      this.timers_.Dequeue();
+      this.timers.dequeue();
       try {
         timer.fn.call();
       } catch (exception) {
@@ -54,9 +54,9 @@ class TimerManager {
         if (!timer.repetitive)
           continue;
     
-        timer.UpdateNextInvocationTime();
+        timer.updateNextInvocationTime();
 
-        this.timers_.Enqueue(timer);
+        this.timers.enqueue(timer);
       }
     }
   }
@@ -64,21 +64,21 @@ class TimerManager {
   // Creates a new timer for |fn| to be invoked once after |time| milliseconds. Follows the syntax
   // and behavior of the window.setTimeout() function available on the Web.
   SetTimeout(fn, time) {
-    this.timers_.Enqueue(new PendingTimer(this.id_, fn, time, false));
-    return this.id_++;
+    this.timers.enqueue(new PendingTimer(this.id, fn, time, false));
+    return this.id++;
   }
 
   // Creates a new repetitive timer for |fn| to be invoked each |interval| milliseconds. Follows the
   // syntax and behaviour of the window.setInterval() function available on the Web.
   SetInterval(fn, interval) {
-    this.timers_.Enqueue(new PendingTimer(this.id_, fn, interval, true));
-    return this.id_++;
+    this.timers.enqueue(new PendingTimer(this.id, fn, interval, true));
+    return this.id++;
   }
 
   // Removes the timer with Id |id| from the priority queue. Used for both the clearTimeout() and
   // clearInterval() functions as they share an Id pool.
   RemoveTimer(id) {
-    this.timers_.Filter(entry => entry.id != id);
+    this.timers.filter(entry => entry.id != id);
   }
 };
 

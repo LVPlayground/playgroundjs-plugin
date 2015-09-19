@@ -7,66 +7,66 @@
 // dequeue entries. Additionally, existing entries can be filtered using a predicate.
 class PriorityQueue {
   constructor(comperator) {
-    this.comperator_ = comperator;
-    this.entries_ = [];
+    this.comperator = comperator;
+    this.entries = [];
   }
 
   // Enqueues |entry| in the priority queue.
-  Enqueue(entry) {
-    this.entries_.push(entry);
-    this.Bubble(this.entries_.length - 1);
+  enqueue(entry) {
+    this.entries.push(entry);
+    this.bubble(this.entries.length - 1);
   }
 
   // Removes the element with the highest priority. Throws if the priority queue is empty.
-  Dequeue() {
-    if (!this.entries_.length)
+  dequeue() {
+    if (!this.entries.length)
       throw new Error('Cannot dequeue from an empty PriorityQueue.')
 
-    this.entries_.shift();
+    this.entries.shift();
   }
 
   // Returns the entry with the highest priority. Throws if the priority queue is empty.
-  Peek() {
-    if (!this.entries_.length)
+  peek() {
+    if (!this.entries.length)
       throw new Error('Cannot peek in an empty PriorityQueue.');
 
-    return this.entries_[0];
+    return this.entries[0];
   }
 
   // Filters items in m the priority queue for which |predicate| returns false. This method will
   // iterate over all entries in the queue, and therefore has O(n) performance.
-  Filter(predicate) {
-    this.entries_ = this.entries_.filter(predicate);
+  filter(predicate) {
+    this.entries = this.entries.filter(predicate);
   }
 
   // Returns the number of entries currently in this priority queue.
-  Size() {
-    return this.entries_.length;
+  size() {
+    return this.entries.length;
   }
 
   // Logarithmically bubbles the element at |index| up to the position where it should be. Used
   // to find the position within the queue for newly added elements.
-  Bubble(index) {
+  bubble(index) {
     while (index >= 1) {
-      let candidate_index = index >> 1;
-      if (this.Compare(index, candidate_index) > 0)
+      let candidateIndex = index >> 1;
+      if (this.compare(index, candidateIndex) > 0)
         break;
 
-      this.Swap(index, candidate_index);
-      index = candidate_index;
+      this.swap(index, candidateIndex);
+      index = candidateIndex;
     }
   }
 
   // Compares the entries at indices |lhs| and |rhs| with each other.
-  Compare(lhs, rhs) {
-    return this.comperator_(this.entries_[lhs], this.entries_[rhs]);
+  compare(lhs, rhs) {
+    return this.comperator(this.entries[lhs], this.entries[rhs]);
   }
 
   // Swaps the entries at indices |lhs| and |rhs| with each other.
-  Swap(lhs, rhs) {
-    let temp = this.entries_[lhs];
-    this.entries_[lhs] = this.entries_[rhs];
-    this.entries_[rhs] = temp;
+  swap(lhs, rhs) {
+    let temp = this.entries[lhs];
+    this.entries[lhs] = this.entries[rhs];
+    this.entries[rhs] = temp;
   }
 
 };
