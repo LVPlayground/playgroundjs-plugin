@@ -52,8 +52,8 @@ void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
   }
 
   v8::Local<v8::Value> event =
-      arguments.Length() >= 2
-          ? arguments[1] : v8::Null(arguments.GetIsolate());
+      arguments.Length() >= 2 ? arguments[1]
+                              : v8::Null(arguments.GetIsolate());
 
   global->DispatchEvent(toString(arguments[0]), event);
 }

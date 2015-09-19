@@ -4,6 +4,12 @@
 
 #include "bindings/runtime_operations.h"
 
+#include <memory>
+
+#include "base/logging.h"
+#include "bindings/exception_handler.h"
+#include "bindings/runtime.h"
+
 namespace bindings {
 
 v8::Local<v8::Value> Call(v8::Isolate* isolate,
@@ -20,6 +26,14 @@ v8::Local<v8::Value> Call(v8::Isolate* isolate,
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
   v8::MaybeLocal<v8::Value> result = function->Call(context, context->Global(),
                                                     argument_count, arguments);
+
+  // Make sure to report the exception to the ExceptionHandler so that it can be outputted. This
+  // will not affect execution of any following JavaScript calls.
+  if (try_catch.HasCaught()) {
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
+    if (runtime)
+      runtime->GetExceptionHandler()->OnMessage(try_catch.Message(), try_catch.Exception());
+  }
 
   if (result.IsEmpty())
     return v8::Local<v8::Value>();

@@ -8,6 +8,7 @@
 #include "base/time.h"
 #include "bindings/event.h"
 #include "bindings/console.h"
+#include "bindings/exception_handler.h"
 #include "bindings/global_callbacks.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/runtime.h"
@@ -78,6 +79,8 @@ bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> ev
   // Initialize an array with the |event| value that will be available.
   v8::Local<v8::Value> arguments[1];
   arguments[0] = event;
+
+  ScopedExceptionSource source("dispatched event `" + type + "`");
 
   for (const auto& persistent_function : event_list_iter->second) {
     // Convert the persistent function to a local one again, without losing the persistent reference

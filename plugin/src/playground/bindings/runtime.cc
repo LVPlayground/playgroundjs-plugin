@@ -15,6 +15,7 @@
 #include "base/logging.h"
 #include "base/time.h"
 #include "bindings/allocator.h"
+#include "bindings/exception_handler.h"
 #include "bindings/global_scope.h"
 #include "bindings/script_prologue.h"
 #include "bindings/utilities.h"
@@ -45,6 +46,20 @@ bool IsLineBreak(char character) {
 std::string RemoveLineBreaks(std::string line) {
   line.erase(std::remove_if(line.begin(), line.end(), IsLineBreak), line.end());
   return line;
+}
+
+// Callback for the v8 message handler. Forward the call to the exception handler.
+void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+  if (runtime)
+    runtime->GetExceptionHandler()->OnMessage(message, error);
+}
+
+// Callback for the v8 fatal error handler. Forward the call to the exception handler.
+void FatalErrorCallback(const char* location, const char* message) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+  if (runtime)
+    runtime->GetExceptionHandler()->OnFatalError(location, message);
 }
 
 }  // namespace
@@ -89,6 +104,11 @@ Runtime::Runtime(Delegate* runtime_delegate,
 
   isolate_ = Isolate::New(create_params);
   isolate_scope_.reset(new Isolate::Scope(isolate_));
+
+  exception_handler_.reset(new ExceptionHandler(runtime_delegate_));
+  isolate_->SetCaptureStackTraceForUncaughtExceptions(true, 15);
+  isolate_->AddMessageListener(MessageCallback);
+  isolate_->SetFatalErrorHandler(FatalErrorCallback);
 
   // TODO: This should be set by some sort of Configuration object.
   script_directory_ = base::FilePath("javascript");

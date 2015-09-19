@@ -24,6 +24,7 @@
     <ClCompile Include="base\string_piece.cc" />
     <ClCompile Include="base\time.cc" />
     <ClCompile Include="bindings\event.cc" />
+    <ClCompile Include="bindings\exception_handler.cc" />
     <ClCompile Include="bindings\global_callbacks.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
@@ -55,6 +56,7 @@
     <ClInclude Include="base\string_piece.h" />
     <ClInclude Include="base\time.h" />
     <ClInclude Include="bindings\event.h" />
+    <ClInclude Include="bindings\exception_handler.h" />
     <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />

@@ -96,6 +96,9 @@
     <ClCompile Include="bindings\pawn_invoke.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\exception_handler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -192,6 +195,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\pawn_invoke.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\exception_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
