@@ -20,4 +20,6 @@ Therefore, JavaScript may be used _in addition_ of the existing Pawn gamemode, a
 # Further reading
 This repository contains the source code of [the plugin](plugin/src) as well as the source code of our JavaScript-based [gamemode](javascript/). All code is available under a friendly [MIT license](LICENSE.md), although we do ask you to give us some attribution.
 
+An [installation guide](INSTALL.md) is available for PlaygroundJS as well.
+
 Read [the documentation](docs/), or continue to the [Las Venturas Playground website](https://sa-mp.nl/).
