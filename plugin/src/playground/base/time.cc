@@ -4,17 +4,28 @@
 
 #include "base/time.h"
 
+#include <stdint.h>
+
 #if defined(WIN32)
 #include <Windows.h>
+#elif defined(LINUX)
+#include <sys/time.h>
+#include <time.h>
 #endif
 
 namespace base {
 
+const double kDivisor = 10000.0;
+
 #if defined(WIN32)
 
+// Difference between January 1st, 1601 and January 1st, 1970 in nanoseconds, to convert from
+// the Windows file time epoch to the UNIX timestamp epoch.
+const uint64_t kEpochDelta = 116444736000000000ull;
+
 double monotonicallyIncreasingTime() {
-  static DWORD begin_time = 0ul;
-  static bool begin_time_initialized = false;
+  static uint64_t begin_time = 0ull;
+  static bool set_begin_time = false;
 
   FILETIME tm;
 
@@ -25,13 +36,37 @@ double monotonicallyIncreasingTime() {
   GetSystemTimeAsFileTime(&tm);
 #endif
 
-  if (!begin_time_initialized) {
-    begin_time = tm.dwHighDateTime;
-    begin_time_initialized = true;
+  uint64_t time = 0;
+  time  |= tm.dwHighDateTime;
+  time <<= 32;
+  time  |= tm.dwLowDateTime;
+  time  -= kEpochDelta;
+  
+  if (!set_begin_time) {
+    set_begin_time = true;
+    begin_time = time;
   }
 
-  ULONGLONG time = ((ULONGLONG) (begin_time - tm.dwHighDateTime) << 32) | (ULONGLONG) tm.dwLowDateTime;
-  return static_cast<double>(time) / 10000.0;
+  return static_cast<double>(time - begin_time) / kDivisor;
+}
+
+#elif defined(LINUX)
+
+double monotonicallyIncreasingTime() {
+  static uint64_t begin_time = 0ull;
+  static bool set_begin_time = false;
+
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+
+  uint64_t time = static_cast<uint64_t>(ts.tvsec) * 1000000000u + static_cast<uint64_t>(ts.tv_nsec);
+
+  if (!set_begin_time) {
+    set_begin_time = true;
+    begin_time = time;
+  }
+
+  return static_cast<double>(time - begin_time) / kDivisor;
 }
 
 #else

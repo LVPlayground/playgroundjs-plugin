@@ -18,9 +18,6 @@ public:
   // Returns a FilePath representing the current directory.
   static FilePath CurrentDirectory();
 
-  // Returns a FilePath representing the compiler directory.
-  static FilePath CompilerDirectory();
-
 public:
   FilePath();
   FilePath(const FilePath& path);

@@ -18,6 +18,13 @@ class Player {
   get position() {
     return pawnInvoke('GetPlayerPos', 'iFFF', this.playerId);
   }
+
+  set position(value) {
+    if (!Array.isArray(value) || value.length != 3)
+      throw new Error('unable to update the position of player ' + this.playerId + ': expected a 3-value array.');
+
+    pawnInvoke('SetPlayerPos', 'ifff', this.playerId, value[0], value[1], value[2]);
+  }
 };
 
 // Expose the Player object globally since it will be commonly used.

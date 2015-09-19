@@ -6,6 +6,8 @@
 
 #if defined(WIN32)
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 namespace base {
@@ -13,7 +15,6 @@ namespace base {
 namespace {
 
 FilePath current_directory_;
-FilePath compiler_directory_;
 
 #if defined(WIN32)
 const char kSeparators[] = "\\/";
@@ -52,20 +53,16 @@ void FilePath::Initialize() {
 
   GetCurrentDirectoryA(MAX_PATH, directory_buffer);
   current_directory_ = FilePath(std::string(directory_buffer));
-
-  GetModuleFileNameA(NULL, directory_buffer, MAX_PATH);
-  compiler_directory_ = FilePath(std::string(directory_buffer)).DirName();
 #else
-#error FilePath::Initialize() has not been implemented for the current platform.
+  char directory_buffer[FILENAME_MAX];
+
+  getcwd(directory_buffer, FILENAME_MAX);
+  current_directory_ = FilePath(std::string(directory_buffer));
 #endif
 }
 
 FilePath FilePath::CurrentDirectory() {
   return current_directory_;
-}
-
-FilePath FilePath::CompilerDirectory() {
-  return compiler_directory_;
 }
 
 // -----------------------------------------------------------------------------

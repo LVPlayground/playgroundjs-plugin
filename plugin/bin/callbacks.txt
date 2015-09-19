@@ -13,7 +13,7 @@ forward OnPlayerDeath(playerid, killerid, reason);
 forward OnVehicleSpawn(vehicleid);
 forward OnVehicleDeath(vehicleid, killerid);
 [Cancelable] forward OnPlayerText(playerid, text[]);
-forward OnPlayerCommandText(playerid, cmdtext[]);
+[Cancelable] forward OnPlayerCommandText(playerid, cmdtext[]);
 forward OnPlayerRequestClass(playerid, classid);
 forward OnPlayerEnterVehicle(playerid, vehicleid, ispassenger);
 forward OnPlayerExitVehicle(playerid, vehicleid);

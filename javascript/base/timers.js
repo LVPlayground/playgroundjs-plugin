@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
-let PriorityQueue = require('libraries/priority_queue.js');
+let PriorityQueue = require('base/priority_queue.js');
 
 // Structure representing the information associated with a pending timer. Timers which are
 // repetitive will automatically be re-queued by the TimerManager.

@@ -2,8 +2,10 @@
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
+require('base/command_manager.js');
+require('base/timers.js');
+
 require('entities/player.js');
-require('libraries/timers.js');
 
 self.addEventListener('playerconnect', event => {
   let player = new Player(event.playerid);
@@ -11,4 +13,17 @@ self.addEventListener('playerconnect', event => {
   
   wait(1500).then(() =>
       console.log('Hello, ' + player.name + '!'));
+
+  wait(2500).then(() =>
+      self.commands.triggerCommand(player, '/test hello'));
+});
+
+self.commands.registerCommand('test', command => {
+  console.log(command.player.name + ' said ' + command.arguments);
+});
+
+let counter = 0;
+self.addEventListener('frame', event => {
+  if (++counter % 100 == 0)
+    console.log('Time: ' + event.now);
 });
