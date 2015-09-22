@@ -186,7 +186,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\lib\release\v8.lib;$(SolutionDir)v8\lib\release\v8_libbase.lib;$(SolutionDir)v8\lib\release\v8_libplatform.lib;$(SolutionDir)v8\lib\release\v8_nosnapshot.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ModuleDefinitionFile>playground.def</ModuleDefinitionFile>
     </Link>
