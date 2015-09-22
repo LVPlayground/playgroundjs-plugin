@@ -1,6 +1,5 @@
 .vs/
 out/
-v8/
 *.opensdf
 *.sdf
 *.user
