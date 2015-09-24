@@ -19,6 +19,7 @@ all: playground link move
 
 # Target: /playground
 playground: playground_base playground_bindings playground_plugin playground_third_party
+	$(CC) $(CFLAGS) playground/playground_controller.cc -o out/obj/playground_playground_controller.o
 
 # Target: /playground/base/
 playground_base:
@@ -66,11 +67,12 @@ playground_third_party: playground_third_party_subhook
 # Link playground.so
 link:
 	$(CC) -O2 -m32 -fshort-wchar -shared -o out/$(OUTFILE) \
+		out/obj/*.o \
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
 		$(V8LIBS)/libv8_nosnapshot.a \
 		$(V8LIBS)/libv8_base.a \
-		out/obj/*.o
+		out/libv8.so
 
 # Move libv8.so
 move:

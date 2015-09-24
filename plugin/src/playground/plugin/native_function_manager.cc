@@ -4,6 +4,8 @@
 
 #include "plugin/native_function_manager.h"
 
+#include <string.h>
+
 #include "base/logging.h"
 #include "plugin/fake_amx.h"
 #include "plugin/sdk/amx.h"
