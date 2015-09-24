@@ -6,7 +6,9 @@
 #include "base/string_piece.h"
 
 #include <algorithm>
+#include <climits>
 #include <ostream>
+#include <string.h>
 
 #include "base/logging.h"
 

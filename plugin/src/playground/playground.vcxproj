@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="base\file_path.cpp" />
+    <ClCompile Include="base\file_path.cc" />
     <ClCompile Include="base\logging.cc" />
     <ClCompile Include="base\string_piece.cc" />
     <ClCompile Include="base\time.cc" />

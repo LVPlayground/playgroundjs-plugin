@@ -45,7 +45,7 @@ bool CallbackHook::Install() {
     return false;
   }
 
-  hook_.reset(new SubHook(current_address, amx_Exec_hook));
+  hook_.reset(new SubHook(current_address, (void*) amx_Exec_hook));
   if (!hook_->Install()) {
     LOG(ERROR) << "Unable to install a SubHook for the amx_Exec() function.";
     return false;
@@ -66,7 +66,7 @@ int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
   }
 
   // Trampoline back to the original amx_Exec function that we intercepted.
-  return static_cast<amx_Exec_t>(hook_->GetTrampoline())(amx, retval, index);
+  return ((amx_Exec_t) hook_->GetTrampoline())(amx, retval, index);
 }
 
 bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) {

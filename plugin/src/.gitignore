@@ -1,5 +1,6 @@
 .vs/
 out/
+.gclient_entries
 *.opensdf
 *.sdf
 *.user

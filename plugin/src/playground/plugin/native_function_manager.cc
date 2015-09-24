@@ -42,7 +42,7 @@ bool NativeFunctionManager::Install() {
     return false;
   }
 
-  hook_.reset(new SubHook(current_address, amx_Register_hook));
+  hook_.reset(new SubHook(current_address, (void*) amx_Register_hook));
   if (!hook_->Install()) {
     LOG(ERROR) << "Unable to install a SubHook for the amx_Register() function.";
     return false;
@@ -69,7 +69,7 @@ int NativeFunctionManager::OnRegister(AMX* amx, const AMX_NATIVE_INFO* nativelis
   }
 
   // Trampoline back to the original amx_Register function that we intercepted.
-  return static_cast<amx_Register_t>(hook_->GetTrampoline())(amx, nativelist, number);
+  return ((amx_Register_t) hook_->GetTrampoline())(amx, nativelist, number);
 }
 
 bool NativeFunctionManager::FunctionExists(const std::string& function_name) const {

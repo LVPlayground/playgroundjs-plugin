@@ -5,6 +5,7 @@
 #include "plugin/fake_amx.h"
 
 #include <string>
+#include <string.h>
 
 #include "base/logging.h"
 
@@ -20,14 +21,14 @@ const size_t kHeapCellSize = 4096;
 FakeAMX::FakeAMX() {
   amx_heap_.reset(static_cast<unsigned char*>(calloc(1, kHeapCellSize * sizeof(cell))));
 
-  memset(&amx_, 0, sizeof(amx_));
+  memset((void*) &amx_, 0, sizeof(amx_));
   amx_.base = reinterpret_cast<unsigned char*>(&amx_header_);
   amx_.callback = amx_Callback;
   amx_.data = amx_heap_.get();
   amx_.flags = AMX_FLAG_NTVREG | AMX_FLAG_RELOC;
   amx_.stk = amx_.stp = kHeapCellSize * sizeof(cell);
 
-  memset(&amx_header_, 0, sizeof(amx_header_));
+  memset((void*) &amx_header_, 0, sizeof(amx_header_));
   amx_header_.amx_version = MIN_AMX_VERSION;
   amx_header_.dat =
       reinterpret_cast<cell>(amx_heap_.get()) - reinterpret_cast<cell>(&amx_header_);

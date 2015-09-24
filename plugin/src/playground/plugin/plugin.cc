@@ -39,12 +39,12 @@ PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports() {
 
 PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
-  g_logprintf = static_cast<logprintf_t>(ppData[PLUGIN_DATA_LOGPRINTF]);
+  g_logprintf = (logprintf_t) ppData[PLUGIN_DATA_LOGPRINTF];
 
   base::FilePath::Initialize();
 
   // Override the destination for LOG() messages throughout this plugin's source.
-  logging::LogMessage::SetLogHandler(std::make_unique<SAMPLogHandler>());
+  logging::LogMessage::SetLogHandler(std::unique_ptr<SAMPLogHandler>(new SAMPLogHandler));
 
   // Initialize the PluginController. This will (synchronously) initialize many of the systems
   // required to load the v8 runtime when the gamemode gets loaded.

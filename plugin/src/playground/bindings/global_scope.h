@@ -6,6 +6,7 @@
 #define PLAYGROUND_BINDINGS_GLOBAL_SCOPE_H_
 
 #include <memory>
+#include <string>
 #include <vector>
 #include <unordered_map>
 

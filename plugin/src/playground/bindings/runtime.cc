@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <streambuf>
+#include <string.h>
 #include <unordered_map>
 
 #include <include/libplatform/libplatform.h>
@@ -211,7 +212,7 @@ bool Runtime::ExecuteFile(const base::FilePath& file,
   if (execution_type == EXECUTION_TYPE_MODULE)
     source_stream << RemoveLineBreaks(kModuleEpilogue);
 
-  script.source.swap(source_stream.str());
+  script.source = source_stream.str();
 
   // Now execute |script| normally on the runtime.
   return Execute(script, result);

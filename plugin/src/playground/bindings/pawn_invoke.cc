@@ -4,6 +4,8 @@
 
 #include "bindings/pawn_invoke.h"
 
+#include <string.h>
+
 #include "base/logging.h"
 #include "bindings/utilities.h"
 #include "plugin/plugin_controller.h"
@@ -244,7 +246,10 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
             v8::String::NewFromUtf8(isolate,
                                     static_buffer_->string_values[argument], v8::NewStringType::kNormal);
 
-        value = maybe.IsEmpty() ? v8::Null(isolate) : maybe.ToLocalChecked();
+        if (maybe.IsEmpty())
+          value = v8::Null(isolate);
+        else
+          value = maybe.ToLocalChecked();
       }
 
       if (eager_return)

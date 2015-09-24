@@ -57,9 +57,6 @@
     <ClCompile Include="plugin\plugin_controller.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="base\file_path.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="plugin\pawn_helpers.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bindings\exception_handler.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="base\file_path.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

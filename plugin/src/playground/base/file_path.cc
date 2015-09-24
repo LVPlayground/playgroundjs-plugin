@@ -4,8 +4,11 @@
 
 #include "base/file_path.h"
 
+#include <algorithm>
+
 #if defined(WIN32)
 #include <windows.h>
+#undef max
 #else
 #include <unistd.h>
 #endif
@@ -160,7 +163,7 @@ FilePath FilePath::EnsureAbsolute() const {
 void FilePath::StripTrailingSeparators() {
   const size_t last_character = path_.find_last_not_of(kSeparators,
     std::string::npos, kSeparatorsLength);
-  path_.resize(max(last_character + 1, 1));
+  path_.resize(std::max(last_character + 1, 1u));
 }
 
 }  // namespace base

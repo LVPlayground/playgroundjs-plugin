@@ -7,6 +7,10 @@
 #include <iostream>
 #include <stdio.h>
 
+#if defined(LINUX)
+#include <signal.h>
+#endif
+
 namespace logging {
 
 namespace {
@@ -68,7 +72,11 @@ LogMessage::~LogMessage() {
     return;
 
 #ifndef NDEBUG
+#if defined(WIN32)
   __debugbreak();
+#else
+  raise(SIGTRAP);
+#endif
 #endif
 
   // Wait for any further input from the user to halt the console.

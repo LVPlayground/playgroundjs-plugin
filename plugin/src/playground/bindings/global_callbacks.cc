@@ -51,11 +51,12 @@ void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
     return;
   }
 
-  v8::Local<v8::Value> event =
-      arguments.Length() >= 2 ? arguments[1]
-                              : v8::Null(arguments.GetIsolate());
+  const std::string type = toString(arguments[0]);
 
-  global->DispatchEvent(toString(arguments[0]), event);
+  if (arguments.Length() >= 2)
+    global->DispatchEvent(type, arguments[1]);
+  else
+    global->DispatchEvent(type, v8::Null(arguments.GetIsolate()));
 }
 
 // boolean hasEventListeners(string type);

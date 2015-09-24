@@ -59,7 +59,7 @@ double monotonicallyIncreasingTime() {
   struct timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
 
-  uint64_t time = static_cast<uint64_t>(ts.tvsec) * 1000000000u + static_cast<uint64_t>(ts.tv_nsec);
+  uint64_t time = static_cast<uint64_t>(ts.tv_sec) * 1000000000u + static_cast<uint64_t>(ts.tv_nsec);
 
   if (!set_begin_time) {
     set_begin_time = true;
