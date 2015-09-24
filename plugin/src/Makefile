@@ -71,12 +71,12 @@ link:
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
 		$(V8LIBS)/libv8_nosnapshot.a \
-		$(V8LIBS)/libv8_base.a \
 		out/libv8.so
 
 # Move libv8.so
 move:
 	cp v8/out/ia32.release/lib.target/libv8.so out/libv8.so
+	strip out/libv8.so
 
 # Clean
 clean:
