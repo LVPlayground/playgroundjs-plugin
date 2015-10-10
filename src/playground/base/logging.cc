@@ -9,6 +9,7 @@
 
 #if defined(LINUX)
 #include <signal.h>
+#include <unistd.h>
 #endif
 
 namespace logging {

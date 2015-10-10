@@ -12,10 +12,10 @@ CC=clang++
 CFLAGS=-c -m32 -fPIC -O3 -std=gnu++0x -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
-OUTFILE=playground.so
+OUTFILE=playgroundjs-plugin.so
 
 # Target: /
-all: playground link move
+all: playground move link
 
 # Target: /playground
 playground: playground_base playground_bindings playground_plugin playground_third_party
