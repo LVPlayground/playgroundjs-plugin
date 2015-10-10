@@ -1,4 +1,4 @@
-[submodule "plugin/src/v8"]
-	path = plugin/src/v8
+[submodule "src/v8"]
+	path = src/v8
 	url = https://github.com/v8/v8-git-mirror.git
-    ignore = dirty
+	ignore = dirty
