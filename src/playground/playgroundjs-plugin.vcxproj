@@ -87,6 +87,7 @@
     <ProjectGuid>{E5740268-229C-460B-BFB2-DC1468C730A2}</ProjectGuid>
     <RootNamespace>playground</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>playgroundjs-plugin</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -188,7 +189,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-      <ModuleDefinitionFile>playground.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>playgroundjs-plugin.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

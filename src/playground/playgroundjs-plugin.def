@@ -1,4 +1,4 @@
-LIBRARY "playground"
+LIBRARY "playgroundjs-plugin"
 EXPORTS
     Supports
     Load

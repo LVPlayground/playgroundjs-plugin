@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "gtest\gtest.vcxproj", "{6D275241-74C1-45F1-9C88-D1A005F50F3E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "playground", "playground\playground.vcxproj", "{E5740268-229C-460B-BFB2-DC1468C730A2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "playgroundjs-plugin", "playground\playgroundjs-plugin.vcxproj", "{E5740268-229C-460B-BFB2-DC1468C730A2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{6D275241-74C1-45F1-9C88-D1A005F50F3E} = {6D275241-74C1-45F1-9C88-D1A005F50F3E}
 		{CE6E73A7-3FA2-4DDF-94C4-85621235C962} = {CE6E73A7-3FA2-4DDF-94C4-85621235C962}
