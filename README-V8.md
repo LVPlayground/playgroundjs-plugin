@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    0ad9b9e523c82320dc6fa5483d2fae56ea9cf9b4
-    "PPC: [builtins] Add support for NewTarget to Execution::New."
-    Tuesday, September 22nd, 2015
+    bef2fbcc690784f554d3b688da02b9efc38fd7df
+    "[cleanup] Use NewVariableProxy() instead of NewUnresolved where possible"
+    Friday, October 9th, 2015
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
