@@ -79,7 +79,7 @@ void FakeAMX::ScopedStackModifier::ReadCell(cell address, cell* dest) {
 }
 
 void FakeAMX::ScopedStackModifier::ReadArray(cell address, char* data, size_t size) {
-  const cell* source = reinterpret_cast<cell*>(fake_amx_->amx_heap_.get()) + address;
+  const cell* source = reinterpret_cast<cell*>(fake_amx_->amx_heap_.get()) + address / sizeof(cell);
   amx_GetString(data, source, 0, size);
 }
 

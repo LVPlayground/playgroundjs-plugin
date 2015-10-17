@@ -67,7 +67,7 @@ void PlaygroundController::OnGamemodeLoaded() {
     v8::HandleScope scope(runtime_->isolate());
 
     const bool result =
-        runtime_->ExecuteFile(base::FilePath("playground.js"),
+        runtime_->ExecuteFile(base::FilePath("main.js"),
                               bindings::Runtime::EXECUTION_TYPE_NORMAL,
                               nullptr /** result **/);
 
