@@ -4,6 +4,9 @@
 
 #include "bindings/global_scope.h"
 
+#include <fstream>
+#include <sstream>
+
 #include "base/logging.h"
 #include "base/time.h"
 #include "bindings/event.h"
@@ -39,6 +42,9 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
+
+  // TODO(Russell): Provide some kind of filesystem module.
+  InstallFunction(global, "readFile", ReadFileCallback);
 
   // Install the Console interface which enables debugging.
   console_->InstallPrototype(global);
@@ -121,6 +127,21 @@ void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Fun
     else
       event_listener_iter++;
   }
+}
+
+std::string GlobalScope::ReadFile(const std::string& filename) const {
+  std::ifstream handle(filename.c_str());
+  if (!handle.is_open() || handle.fail()) {
+    ThrowException("unable to execute readFile(): file " + filename + " does not exist.");
+    return std::string();
+  }
+    
+  std::stringstream content_stream;
+  std::copy(std::istreambuf_iterator<char>(handle),
+            std::istreambuf_iterator<char>(),
+            std::ostreambuf_iterator<char>(content_stream));
+
+  return content_stream.str();
 }
 
 v8::Local<v8::Value> GlobalScope::RequireImpl(Runtime* runtime, const std::string& filename) const {

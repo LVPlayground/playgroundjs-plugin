@@ -87,11 +87,23 @@ void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
 
   if (arguments.Length() == 0) {
-    ThrowException("unable to execute pawnInvoke(): 1 argument required, but only 0 provided.");
+    ThrowException("unable to execute pawnInvoke(): 1 argument required, but 0 provided.");
     return;
   }
 
   arguments.GetReturnValue().Set(global->GetPawnInvoke()->Call(arguments));
+}
+
+// string readFile(string filename);
+void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+
+  if (arguments.Length() == 0) {
+    ThrowException("unable to execute readFile(): 1 argument required, but 0 provided.");
+    return;
+  }
+
+  arguments.GetReturnValue().Set(v8String(global->ReadFile(toString(arguments[0]))));
 }
 
 // void removeEventListener(string type[, function listener]);
@@ -99,7 +111,7 @@ void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
 
   if (arguments.Length() == 0) {
-    ThrowException("unable to execute removeEventListener(): 1 argument required, but only 0 provided.");
+    ThrowException("unable to execute removeEventListener(): 1 argument required, but 0 provided.");
     return;
   }
 
