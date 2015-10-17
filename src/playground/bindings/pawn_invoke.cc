@@ -143,8 +143,6 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     case SIGNATURE_TYPE_STRING:
       {
         v8::String::Utf8Value string(arguments[index]);
-        if (type_mismatch = !string.length())
-          break;
 
         // If the string is longer than our buffer supports, bail out.
         if (string.length() >= StaticBuffer::kMaxStringLength) {
@@ -154,7 +152,8 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
           return v8::Local<v8::Value>();
         }
 
-        memcpy(static_buffer_->string_values[argument], *string, string.length());
+        if (string.length())
+          memcpy(static_buffer_->string_values[argument], *string, string.length());
         static_buffer_->string_values[argument][string.length()] = 0;
       }
 
