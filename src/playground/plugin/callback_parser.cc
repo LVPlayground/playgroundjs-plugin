@@ -17,6 +17,7 @@ namespace {
 
 // The known annotations as they will be parsed by ParseAnnotations().
 const char kAnnotationCancelable[] = "Cancelable";
+const char kAnnotationReturnOne[] = "ReturnOne";
 const char kAnnotationUnload[] = "Unload";
 
 // The whitespace characters as specified by CSS 2.1.
@@ -63,6 +64,8 @@ bool ParseAnnotations(base::StringPiece* line, Callback* callback) {
   for (const auto& annotation : annotations) {
     if (annotation == kAnnotationCancelable)
       callback->cancelable = true;
+    else if (annotation == kAnnotationReturnOne)
+      callback->return_value = 1;
     else if (annotation == kAnnotationUnload)
       callback->triggers_unload = true;
 
@@ -229,6 +232,7 @@ bool CallbackParser::ParseLine(const base::StringPiece& line, Callback* callback
   // Parsing of the callback was successful. Move the results to |callback|.
   callback->arguments.swap(candidate_callback.arguments);
   callback->name.swap(candidate_callback.name);
+  callback->return_value = candidate_callback.return_value;
   callback->cancelable = candidate_callback.cancelable;
 
   return true;

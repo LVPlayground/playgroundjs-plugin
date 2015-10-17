@@ -35,10 +35,11 @@ TEST(CallbackParserTest, ParseLineUnknownAnnotation) {
   Callback callback;
 
   std::unique_ptr<CallbackParser> parser(new CallbackParser());
-  ASSERT_TRUE(parser->ParseLine("[CatsAreAwesome, Cancelable] forward OnFilterScriptInit();", &callback));
+  ASSERT_TRUE(parser->ParseLine("[CatsAreAwesome, ReturnOne, Cancelable] forward OnFilterScriptInit();", &callback));
 
   EXPECT_EQ("OnFilterScriptInit", callback.name);
   EXPECT_EQ(0u, callback.arguments.size());
+  EXPECT_EQ(1, callback.return_value);
   EXPECT_TRUE(callback.cancelable);
 }
 

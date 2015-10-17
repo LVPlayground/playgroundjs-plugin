@@ -54,7 +54,7 @@ class CallbackHook {
   void OnGamemodeLoaded(AMX* amx);
 
   // Called when |callback| has been intercepted by the |amx| runtime. Returning true will block
-  // the callback from being invoked on the Pawn runtime.
+  // the callback from being invoked on the Pawn runtime, returning |return_value| there.
   bool DoIntercept(AMX* amx, int* retval, const Callback& callback);
 
   // Weak reference. Will usually own this instance.

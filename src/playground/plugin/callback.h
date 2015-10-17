@@ -27,6 +27,7 @@ struct Callback {
 
   bool cancelable = false;
   bool triggers_unload = false;
+  int return_value = 0;
 };
 
 }  // namespace plugin
