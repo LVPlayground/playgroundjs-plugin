@@ -30,7 +30,8 @@ int amx_Exec_hook(AMX* amx, int* retval, int index) {
 
 CallbackHook::CallbackHook(Delegate* delegate, const std::shared_ptr<CallbackParser>& callback_parser)
     : delegate_(delegate),
-      callback_parser_(callback_parser) {
+      callback_parser_(callback_parser),
+      gamemode_(nullptr) {
   g_callback_hook = this;
 }
 
