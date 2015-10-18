@@ -18,7 +18,6 @@ namespace {
 // The known annotations as they will be parsed by ParseAnnotations().
 const char kAnnotationCancelable[] = "Cancelable";
 const char kAnnotationReturnOne[] = "ReturnOne";
-const char kAnnotationUnload[] = "Unload";
 
 // The whitespace characters as specified by CSS 2.1.
 const char kWhitespaceCharacters[] = "\x09\x0A\x0C\x0D\x20";
@@ -66,8 +65,6 @@ bool ParseAnnotations(base::StringPiece* line, Callback* callback) {
       callback->cancelable = true;
     else if (annotation == kAnnotationReturnOne)
       callback->return_value = 1;
-    else if (annotation == kAnnotationUnload)
-      callback->triggers_unload = true;
 
     // TODO: Parse additional annotations here.
   }

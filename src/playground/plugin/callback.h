@@ -22,11 +22,18 @@ enum CallbackArgumentType {
 // Structure representing a parsed Callback with all arguments and known annotations. Note
 // that unknown annotations will be silently ignored.
 struct Callback {
+  Callback() = default;
+  Callback(const Callback& other) {
+    name = other.name;
+    arguments = other.arguments;
+    cancelable = other.cancelable;
+    return_value = other.return_value;
+  }
+
   std::string name;
   std::vector<std::pair<std::string, CallbackArgumentType>> arguments;
 
   bool cancelable = false;
-  bool triggers_unload = false;
   int return_value = 0;
 };
 

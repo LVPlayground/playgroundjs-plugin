@@ -106,13 +106,6 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
   if (result && retval)
     *retval = callback.return_value;
 
-  if (callback.triggers_unload) {
-    if (delegate_)
-      delegate_->OnGamemodeChanged(nullptr);
-
-    gamemode_ = nullptr;
-  }
-
   return result;
 }
 
