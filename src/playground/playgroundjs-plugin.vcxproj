@@ -28,6 +28,10 @@
     <ClCompile Include="bindings\global_callbacks.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
+    <ClCompile Include="bindings\modules\mysql\connection_client.cc" />
+    <ClCompile Include="bindings\modules\mysql\connection_host.cc" />
+    <ClCompile Include="bindings\modules\mysql\mutex.cc" />
+    <ClCompile Include="bindings\modules\mysql\thread.cc" />
     <ClCompile Include="bindings\pawn_invoke.cc" />
     <ClCompile Include="bindings\runtime_operations.cc" />
     <ClCompile Include="bindings\script_prologue.cc" />
@@ -60,6 +64,14 @@
     <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />
+    <ClInclude Include="bindings\modules\mysql\connection_client.h" />
+    <ClInclude Include="bindings\modules\mysql\connection_delegate.h" />
+    <ClInclude Include="bindings\modules\mysql\connection_host.h" />
+    <ClInclude Include="bindings\modules\mysql\connection_messages.h" />
+    <ClInclude Include="bindings\modules\mysql\mutex.h" />
+    <ClInclude Include="bindings\modules\mysql\result_entry.h" />
+    <ClInclude Include="bindings\modules\mysql\thread_safe_queue.h" />
+    <ClInclude Include="bindings\modules\mysql\thread.h" />
     <ClInclude Include="bindings\pawn_invoke.h" />
     <ClInclude Include="bindings\runtime_operations.h" />
     <ClInclude Include="bindings\script_prologue.h" />
@@ -179,7 +191,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -187,7 +199,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\libmysql\RelWithDebInfo\libmysql.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ModuleDefinitionFile>playgroundjs-plugin.def</ModuleDefinitionFile>
     </Link>
