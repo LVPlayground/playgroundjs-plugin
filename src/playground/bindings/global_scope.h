@@ -22,6 +22,7 @@ namespace bindings {
 
 class Console;
 class Event;
+class MySQLModule;
 class PawnInvoke;
 class Runtime;
 
@@ -100,6 +101,9 @@ class GlobalScope {
 
   // The PawnInvoke object, which enables authors to call Pawn native functions.
   std::unique_ptr<PawnInvoke> pawn_invoke_;
+
+  // The MySQL module, which grants access to MySQL connections from JavaScript.
+  std::unique_ptr<MySQLModule> mysql_module_;
 
   // Map of callback names to the Event* instance that defines their interface.
   std::unordered_map<std::string, std::unique_ptr<Event>> events_;
