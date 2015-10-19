@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "base/logging.h"
 #include "playground/bindings/modules/mysql/result_entry.h"
 
 namespace mysql {
@@ -39,7 +40,7 @@ static ColumnInfo::ColumnType toColumnType(enum_field_types type) {
 // Client-thread methods.
 
 void ConnectionClient::doConnect() {
-  mysql_thread_init();
+  mysql_init(&connection_);
   mysql_options(&connection_, MYSQL_OPT_RECONNECT, &my_Enable);
 
   ConnectionMessages::ConnectionAttemptResult result;
@@ -47,7 +48,7 @@ void ConnectionClient::doConnect() {
 
   if (mysql_real_connect(&connection_, connection_status_.information.hostname.c_str(),
                          connection_status_.information.username.c_str(), connection_status_.information.password.c_str(),
-                         connection_status_.information.database.c_str(), connection_status_.information.port, NULL, 0)) {
+                         connection_status_.information.database.c_str(), connection_status_.information.port, nullptr, 0)) {
     result.succeeded = true;
     result.error_number = 0;
     result.error_message = "";
@@ -133,6 +134,8 @@ void ConnectionClient::doQuery(unsigned int request_id, const std::string& query
 }
 
 void ConnectionClient::run() {
+  mysql_thread_init();
+
   while (!shutdown_requested()) {
     if (connection_status_.has_connection_information == false) {
       if (connection_queue_.size() > 0) {
@@ -189,6 +192,8 @@ void ConnectionClient::run() {
   // Always gracefully close the connection after we're done.
   if (connection_status_.has_connection_information == true && connection_status_.is_connected == true)
     doClose();
+
+  mysql_thread_end();
 }
 
 }  // namespace mysql

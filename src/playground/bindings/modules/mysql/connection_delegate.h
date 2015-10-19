@@ -26,6 +26,8 @@ class ConnectionDelegate {
   // Called when a query has failed to execute. The |error_number| and |error_message| contain the
   // cause of the failure.
   virtual void DidQueryFail(unsigned int request_id, int error_number, const std::string& error_message) = 0;
+
+  virtual ~ConnectionDelegate() {}
 };
 
 }  // namespace mysql
