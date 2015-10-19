@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include <include/v8.h>
 
@@ -19,6 +20,7 @@ class PluginController;
 namespace bindings {
 
 class ExceptionHandler;
+class FrameObserver;
 class GlobalScope;
 
 // The runtime class represents a v8 virtual machine. It must be externally owned, but additional
@@ -48,6 +50,15 @@ class Runtime {
   // Initializes the runtime by installing all prototypes and objects. The global scope should have
   // been fully initialized prior to this call.
   void Initialize();
+
+  // To be called once per server frame. Will call listening frame delegates of features that need
+  // to be informed every frame in order to work correctly (e.g. for asynchronous work).
+  void OnFrame();
+
+  // Adds or removes a frame observer from the runtime. Users of this functionality should use a
+  // ScopedFrameObserver rather than trying to do this manually.
+  void AddFrameObserver(FrameObserver* observer);
+  void RemoveFrameObserver(FrameObserver* observer);
 
   // Returns the global scope associated with this runtime. May be used to get access to the event
   // target and instances of the common JavaScript objects.
@@ -107,6 +118,9 @@ class Runtime {
 
   base::FilePath script_directory_;
   Delegate* runtime_delegate_;
+
+  // Set of attached frame observers.
+  std::unordered_set<FrameObserver*> frame_observers_;
 
   std::unique_ptr<v8::Platform> platform_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> allocator_;

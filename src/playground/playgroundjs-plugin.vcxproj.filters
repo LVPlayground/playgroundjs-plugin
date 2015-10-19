@@ -248,5 +248,8 @@
     <ClInclude Include="bindings\promise.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bindings\frame_observer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

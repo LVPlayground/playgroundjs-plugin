@@ -63,6 +63,7 @@
     <ClInclude Include="base\time.h" />
     <ClInclude Include="bindings\event.h" />
     <ClInclude Include="bindings\exception_handler.h" />
+    <ClInclude Include="bindings\frame_observer.h" />
     <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />

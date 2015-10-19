@@ -81,6 +81,8 @@ void PlaygroundController::OnGamemodeUnloaded() {
 }
 
 void PlaygroundController::OnServerFrame() {
+  runtime_->OnFrame();
+
   bindings::GlobalScope* global = runtime_->GetGlobalScope();
 
   // Bail out immediately if there are no listeners for the frame callback.

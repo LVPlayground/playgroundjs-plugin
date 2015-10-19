@@ -17,6 +17,7 @@
 #include "base/time.h"
 #include "bindings/allocator.h"
 #include "bindings/exception_handler.h"
+#include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
 #include "bindings/script_prologue.h"
 #include "bindings/utilities.h"
@@ -148,6 +149,19 @@ void Runtime::Initialize() {
   ScriptSource global_prologue(kScriptPrologue);
   if (!Execute(global_prologue, nullptr /** result **/))
     LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
+}
+
+void Runtime::OnFrame() {
+  for (FrameObserver* observer : frame_observers_)
+    observer->OnFrame();
+}
+
+void Runtime::AddFrameObserver(FrameObserver* observer) {
+  frame_observers_.insert(observer);
+}
+
+void Runtime::RemoveFrameObserver(FrameObserver* observer) {
+  frame_observers_.erase(observer);
 }
 
 bool Runtime::Execute(const ScriptSource& script_source,
