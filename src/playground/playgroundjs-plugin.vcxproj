@@ -34,6 +34,7 @@
     <ClCompile Include="bindings\modules\mysql\thread.cc" />
     <ClCompile Include="bindings\modules\mysql_module.cc" />
     <ClCompile Include="bindings\pawn_invoke.cc" />
+    <ClCompile Include="bindings\promise.cc" />
     <ClCompile Include="bindings\runtime_operations.cc" />
     <ClCompile Include="bindings\script_prologue.cc" />
     <ClCompile Include="playground_controller.cc" />
@@ -75,6 +76,7 @@
     <ClInclude Include="bindings\modules\mysql\thread.h" />
     <ClInclude Include="bindings\modules\mysql_module.h" />
     <ClInclude Include="bindings\pawn_invoke.h" />
+    <ClInclude Include="bindings\promise.h" />
     <ClInclude Include="bindings\runtime_operations.h" />
     <ClInclude Include="bindings\script_prologue.h" />
     <ClInclude Include="bindings\utilities.h" />
