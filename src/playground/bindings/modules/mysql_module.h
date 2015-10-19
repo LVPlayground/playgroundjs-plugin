@@ -12,7 +12,7 @@ namespace bindings {
 // The MySQL module provides JavaScript with the ability to asynchronously communicate with
 // a MySQL database, for example to deal with player information.
 //
-// [Constructor(string hostname, string username, string password, int port)]
+// [Constructor(string hostname, string username, string password, string database, int port)]
 // interface MySQL {
 //     Promise<sequence<object>> query(string query);
 //

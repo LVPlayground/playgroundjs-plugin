@@ -4,10 +4,15 @@
 
 #include "playground/bindings/modules/mysql_module.h"
 
+#include <memory>
 #include <string>
 
 #include "base/logging.h"
 #include "base/macros.h"
+#include "playground/bindings/frame_observer.h"
+#include "playground/bindings/modules/mysql/connection_delegate.h"
+#include "playground/bindings/modules/mysql/connection_host.h"
+#include "playground/bindings/modules/mysql/result_entry.h"
 #include "playground/bindings/promise.h"
 #include "playground/bindings/utilities.h"
 
@@ -18,32 +23,92 @@ namespace {
 // The MySQL class encapsulates a single connection to a MySQL server with a given set of
 // information. The connection may be used for any number of queries, and will continue to try
 // to auto-reconnect when issues with the connection are identified.
-class MySQL {
+class MySQL : public mysql::ConnectionDelegate,
+              public FrameObserver {
  public:
-  MySQL(const std::string& hostname, const std::string& username, const std::string& password, int port)
-      : hostname_(hostname), username_(username), password_(password), port_(port) {
-    // TODO(Russell): Begin establishing the connection.
+  MySQL(const std::string& hostname, const std::string& username, const std::string& password, const std::string& database, int port)
+      : frame_observer_(this),
+        hostname_(hostname),
+        username_(username),
+        password_(password),
+        database_(database),
+        port_(port) {
+    // Initialize the |ready| promise, which will be informed of the connection result.
+    ready_.reset(new Promise());
+
+    // Begin establishing the connection through the mysql::ConnectionHost.
+    connection_.reset(new mysql::ConnectionHost(this));
+    connection_->Connect(hostname, username, password, database, port);
+
+    LOG(INFO) << "Connecting to " << hostname << ":" << std::to_string(port) << "...";
   }
 
-  ~MySQL() {}
+  ~MySQL() override { close(); }
 
-  // Installs a weak reference to |object|, which is the JavaScript object that owns this instance.
-  // A callback will be used to determine when it has been collected, so we can free up resources.
-  void WeakBind(v8::Isolate* isolate, v8::Local<v8::Object> object) {
-    object_.Reset(isolate, object);
-    object_.SetWeak(this, OnGarbageCollected);
+  // mysql::ConnectionDelegate implementation.
+  void DidConnect(unsigned int request_id,
+                  bool succeeded,
+                  int error_number,
+                  const std::string& error_message) override {
+    DCHECK(!ready_->HasSettled());
+    LOG(INFO) << "Connection to " << hostname_ << ":" << std::to_string(port_)
+              << (succeeded ? " succeeded" : " failed") << ".";
+
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+
+    v8::HandleScope handle_scope(runtime->isolate());
+    v8::Context::Scope context_scope(runtime->context());
+
+    // If the connection attempt succeeded, resolve the promise immediately.
+    if (succeeded) {
+      ready_->Resolve(true /* this should be NULL */);
+      return;
+    }
+
+    // Otherwise it failed. Output the reason to the console, and create an error object with
+    // which we can reject the Promise, so that the JavaScript code knows as well.
+    LOG(ERROR) << "MySQL (#" << error_number << "): " << error_message;
+
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+    v8::Local<v8::Object> error = v8::Object::New(isolate);
+    error->Set(v8String("error"), v8::Integer::New(isolate, error_number));
+    error->Set(v8String("message"), v8::String::NewFromUtf8(isolate, error_message.c_str()));
+
+    ready_->Reject(error);
+  }
+
+  void DidQuery(unsigned int request_id, std::shared_ptr<mysql::ResultEntry> result) override {
+    --unresolved_query_count_;
+  }
+
+  void DidQueryFail(unsigned int request_id, int error_number, const std::string& error_message) override {
+    --unresolved_query_count_;
+  }
+
+  // bindings::FrameObserver implementation.
+  void OnFrame() override {
+    connection_->ProcessUpdates();
   }
 
   // Executes |query| on this connection. The returned promise will be resolved when the result
   // is known, or rejected when there was a problem when executing the query.
-  v8::Local<v8::Promise> query(const std::string& query) { return v8::Local<v8::Promise>(); }
+  v8::Local<v8::Promise> query(const std::string& query) {
+    ++total_query_count_;
+    ++unresolved_query_count_;
+
+    return v8::Local<v8::Promise>();
+  }
 
   // Immediately closes the connection with the MySQL database.
-  void close() {}
+  void close() {
+    LOG(INFO) << "Closing the connection to " << hostname_ << ":" << std::to_string(port_) << "...";
+    connection_->Close();
+  }
 
   // A promise that will be settled when it's known whether the connection could be established
   // with the database. This will always return the same promise.
-  v8::Local<v8::Promise> ready() const { return v8::Local<v8::Promise>(); }
+  v8::Local<v8::Promise> ready() const { return ready_->GetPromise(); }
 
   // Returns whether this MySQL instance has successfully connected to a database.
   bool connected() const { return connected_; }
@@ -53,6 +118,13 @@ class MySQL {
 
   // Number of queries which are still in-progress, and no result is known of.
   int unresolved_query_count() const { return unresolved_query_count_; }
+
+  // Installs a weak reference to |object|, which is the JavaScript object that owns this instance.
+  // A callback will be used to determine when it has been collected, so we can free up resources.
+  void WeakBind(v8::Isolate* isolate, v8::Local<v8::Object> object) {
+    object_.Reset(isolate, object);
+    object_.SetWeak(this, OnGarbageCollected);
+  }
 
  private:
   // Called when a MySQL instance has been garbage collected by the v8 engine. While this mechanism
@@ -65,10 +137,17 @@ class MySQL {
     delete instance;
   }
 
+  ScopedFrameObserver frame_observer_;
+
   std::string hostname_;
   std::string username_;
   std::string password_;
+  std::string database_;
   int port_;
+
+  std::unique_ptr<mysql::ConnectionHost> connection_;
+
+  std::unique_ptr<Promise> ready_;
 
   bool connected_ = false;
 
@@ -98,20 +177,20 @@ void MySQLConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
     return;
   }
 
-  if (arguments.Length() < 4) {
-    ThrowException("unable to construct MySQL: 4 argument required, but only " +
+  if (arguments.Length() < 5) {
+    ThrowException("unable to construct MySQL: 5 argument required, but only " +
                    std::to_string(arguments.Length()) + " provided.");
     return;
   }
 
-  if (!arguments[3]->IsNumber()) {
-    ThrowException("unable to construct MySQL: expected an integer for the fourth argument.");
+  if (!arguments[4]->IsNumber()) {
+    ThrowException("unable to construct MySQL: expected an integer for the fifth argument.");
     return;
   }
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
-  v8::MaybeLocal<v8::Number> maybe_port = arguments[3]->ToNumber(isolate->GetCallingContext());
+  v8::MaybeLocal<v8::Number> maybe_port = arguments[4]->ToNumber(isolate->GetCallingContext());
   if (maybe_port.IsEmpty())
     return;  // ???
 
@@ -120,6 +199,7 @@ void MySQLConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   MySQL* instance = new MySQL(toString(arguments[0]),  // hostname
                               toString(arguments[1]),  // username
                               toString(arguments[2]),  // password
+                              toString(arguments[3]),  // database
                               port->Int32Value());   // port
 
   instance->WeakBind(isolate, arguments.Holder());
@@ -152,7 +232,7 @@ void MySQLCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 
 // Promise<> MySQL.prototype.ready
 void MySQLReadyGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  MySQL* instance = GetInstanceFromObject(info.Holder());
+  MySQL* instance = GetInstanceFromObject(info.This());
   if (!instance)
     return;
 
