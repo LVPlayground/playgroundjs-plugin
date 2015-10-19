@@ -42,18 +42,18 @@ class Promise {
   bool has_settled_;
 };
 
-template<> bool Promise::Resolve(v8::Local<v8::Value> value) { return ResolveInternal(value); }
-template<> bool Promise::Reject(v8::Local<v8::Value> value) { return RejectInternal(value); }
+template<> inline bool Promise::Resolve(v8::Local<v8::Value> value) { return ResolveInternal(value); }
+template<> inline bool Promise::Reject(v8::Local<v8::Value> value) { return RejectInternal(value); }
 
-template<> bool Promise::Resolve(bool value) {
+template<> inline bool Promise::Resolve(bool value) {
   return ResolveInternal(v8::Boolean::New(v8::Isolate::GetCurrent(), value));
 }
 
-template<> bool Promise::Reject(bool value) {
+template<> inline bool Promise::Reject(bool value) {
   return RejectInternal(v8::Boolean::New(v8::Isolate::GetCurrent(), value));
 }
 
-template<> bool Promise::Resolve(const std::string& value) {
+template<> inline bool Promise::Resolve(const std::string& value) {
   v8::MaybeLocal<v8::String> string = v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), value.c_str(), v8::NewStringType::kNormal);
   if (string.IsEmpty())
     return false;
@@ -61,7 +61,7 @@ template<> bool Promise::Resolve(const std::string& value) {
   return ResolveInternal(string.ToLocalChecked());
 }
 
-template<> bool Promise::Reject(const std::string& value) {
+template<> inline bool Promise::Reject(const std::string& value) {
   v8::MaybeLocal<v8::String> string = v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), value.c_str(), v8::NewStringType::kNormal);
   if (string.IsEmpty())
     return false;
@@ -70,10 +70,10 @@ template<> bool Promise::Reject(const std::string& value) {
 }
 
 #define DEFINE_RESOLVE_REJECT_FOR_NUMBER_TYPE(type) \
-  template<> bool Promise::Resolve(type value) { \
+  template<> inline bool Promise::Resolve(type value) { \
     return ResolveInternal(v8::Number::New(v8::Isolate::GetCurrent(), static_cast<double>(value))); \
   } \
-  template<> bool Promise::Reject(type value) { \
+  template<> inline bool Promise::Reject(type value) { \
     return RejectInternal(v8::Number::New(v8::Isolate::GetCurrent(), static_cast<double>(value))); \
   }
 

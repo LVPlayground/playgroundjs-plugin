@@ -11,6 +11,19 @@ namespace bindings {
 
 // The MySQL module provides JavaScript with the ability to asynchronously communicate with
 // a MySQL database, for example to deal with player information.
+//
+// [Constructor(string hostname, string username, string password, int port)]
+// interface MySQL {
+//     Promise<sequence<object>> query(string query);
+//
+//     void close();
+//
+//     readonly attribute Promise<> ready;
+//
+//     readonly attribute boolean connected;
+//     readonly attribute int totalQueryCount;
+//     readonly attribute int unresolvedQueryCount;
+// }
 class MySQLModule {
  public:
   MySQLModule();
@@ -18,7 +31,6 @@ class MySQLModule {
 
   // Called when the prototype for the global object is being constructed. 
   void InstallPrototypes(v8::Local<v8::ObjectTemplate> global);
-
 };
 
 }  // namespace bindings
