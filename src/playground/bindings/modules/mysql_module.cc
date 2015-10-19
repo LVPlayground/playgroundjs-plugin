@@ -119,6 +119,13 @@ class MySQL : public mysql::ConnectionDelegate,
   // Number of queries which are still in-progress, and no result is known of.
   int unresolved_query_count() const { return unresolved_query_count_; }
 
+  // Returns the information with which the MySQL connection was established.
+  v8::Local<v8::String> hostname() const { return v8String(hostname_); }
+  v8::Local<v8::String> username() const { return v8String(username_); }
+  v8::Local<v8::String> password() const { return v8String(password_); }
+  v8::Local<v8::String> database() const { return v8String(database_); }
+  int port() const { return port_; }
+
   // Installs a weak reference to |object|, which is the JavaScript object that owns this instance.
   // A callback will be used to determine when it has been collected, so we can free up resources.
   void WeakBind(v8::Isolate* isolate, v8::Local<v8::Object> object) {
@@ -230,41 +237,31 @@ void MySQLCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   instance->close();
 }
 
-// Promise<> MySQL.prototype.ready
-void MySQLReadyGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  MySQL* instance = GetInstanceFromObject(info.This());
-  if (!instance)
-    return;
+// -------------------------------------------------------------------------------------------------
 
-  info.GetReturnValue().Set(instance->ready());
-}
+#define DEFINE_MAPPING(Name, Member) \
+  void Name(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) { \
+    MySQL* instance = GetInstanceFromObject(info.This()); \
+    if (!instance) return; \
+    info.GetReturnValue().Set(instance->Member()); \
+  }
 
-// bool MySQL.prototype.connected
-void MySQLConnectedGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  MySQL* instance = GetInstanceFromObject(info.This());
-  if (!instance)
-    return;
+DEFINE_MAPPING(MySQLReadyGetter, ready);
 
-  info.GetReturnValue().Set(instance->connected());
-}
+DEFINE_MAPPING(MySQLConnectedGetter, connected);
 
-// int MySQL.prototype.totalQueryCount
-void MySQLTotalQueryCountGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  MySQL* instance = GetInstanceFromObject(info.This());
-  if (!instance)
-    return;
+DEFINE_MAPPING(MySQLTotalQueryCountGetter, total_query_count);
+DEFINE_MAPPING(MySQLUnresolvedQueryCountGetter, unresolved_query_count);
 
-  info.GetReturnValue().Set(instance->total_query_count());
-}
+DEFINE_MAPPING(MySQLHostnameGetter, hostname);
+DEFINE_MAPPING(MySQLUsernameGetter, username);
+DEFINE_MAPPING(MySQLPasswordGetter, password);
+DEFINE_MAPPING(MySQLDatabaseGetter, database);
+DEFINE_MAPPING(MySQLPortGetter, port);
 
-// int MySQL.prototype.unresolvedQueryCount
-void MySQLUnresolvedQueryCountGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  MySQL* instance = GetInstanceFromObject(info.This());
-  if (!instance)
-    return;
+#undef DEFINE_MAPPING
 
-  info.GetReturnValue().Set(instance->unresolved_query_count());
-}
+// -------------------------------------------------------------------------------------------------
 
 }  // namespace
 
@@ -289,6 +286,12 @@ void MySQLModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   prototype_template->SetAccessor(v8String("connected"), MySQLConnectedGetter);
   prototype_template->SetAccessor(v8String("totalQueryCount"), MySQLTotalQueryCountGetter);
   prototype_template->SetAccessor(v8String("unresolvedQueryCount"), MySQLUnresolvedQueryCountGetter);
+
+  prototype_template->SetAccessor(v8String("hostname"), MySQLHostnameGetter);
+  prototype_template->SetAccessor(v8String("username"), MySQLUsernameGetter);
+  prototype_template->SetAccessor(v8String("password"), MySQLPasswordGetter);
+  prototype_template->SetAccessor(v8String("database"), MySQLDatabaseGetter);
+  prototype_template->SetAccessor(v8String("port"), MySQLPortGetter);
 
   global->Set(v8String("MySQL"), function_template);
 }

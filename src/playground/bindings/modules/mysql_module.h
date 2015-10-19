@@ -23,6 +23,12 @@ namespace bindings {
 //     readonly attribute boolean connected;
 //     readonly attribute int totalQueryCount;
 //     readonly attribute int unresolvedQueryCount;
+//
+//     readonly attribute string hostname;
+//     readonly attribute string username;
+//     readonly attribute string password;
+//     readonly attribute string database;
+//     readonly attribute int port;
 // }
 class MySQLModule {
  public:
