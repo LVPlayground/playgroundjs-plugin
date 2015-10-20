@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "base/logging.h"
 #include "base/macros.h"
@@ -62,6 +63,7 @@ class MySQL : public mysql::ConnectionDelegate,
     // If the connection attempt succeeded, resolve the promise immediately.
     if (succeeded) {
       ready_->Resolve(true /* this should be NULL */);
+      connected_ = true;
       return;
     }
 
@@ -69,21 +71,53 @@ class MySQL : public mysql::ConnectionDelegate,
     // which we can reject the Promise, so that the JavaScript code knows as well.
     LOG(ERROR) << "MySQL (#" << error_number << "): " << error_message;
 
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-
-    v8::Local<v8::Object> error = v8::Object::New(isolate);
-    error->Set(v8String("error"), v8::Integer::New(isolate, error_number));
-    error->Set(v8String("message"), v8::String::NewFromUtf8(isolate, error_message.c_str()));
+    v8::Local<v8::Object> error = v8::Object::New(runtime->isolate());
+    error->Set(v8String("error"), v8::Integer::New(runtime->isolate(), error_number));
+    error->Set(v8String("message"), v8::String::NewFromUtf8(runtime->isolate(), error_message.c_str()));
 
     ready_->Reject(error);
+
+    // Close the connection. We require the first connection attempt to succeed.
+    connection_->Close();
   }
 
   void DidQuery(unsigned int request_id, std::shared_ptr<mysql::ResultEntry> result) override {
-    --unresolved_query_count_;
+    if (!queries_.count(request_id)) {
+      LOG(ERROR) << "Received an unexpected response for request " << request_id;
+      return;
+    }
+
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+    {
+      v8::HandleScope handle_scope(runtime->isolate());
+      v8::Context::Scope context_scope(runtime->context());
+
+      // TODO(Russell): Convert |result| to a JavaScript object.
+      queries_[request_id]->Resolve(true);
+    }
+
+    queries_.erase(request_id);
   }
 
   void DidQueryFail(unsigned int request_id, int error_number, const std::string& error_message) override {
-    --unresolved_query_count_;
+    if (!queries_.count(request_id)) {
+      LOG(ERROR) << "Received an unexpected response for request " << request_id;
+      return;
+    }
+
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+    {
+      v8::HandleScope handle_scope(runtime->isolate());
+      v8::Context::Scope context_scope(runtime->context());
+
+      v8::Local<v8::Object> error = v8::Object::New(runtime->isolate());
+      error->Set(v8String("error"), v8::Integer::New(runtime->isolate(), error_number));
+      error->Set(v8String("message"), v8::String::NewFromUtf8(runtime->isolate(), error_message.c_str()));
+
+      queries_[request_id]->Reject(error);
+    }
+
+    queries_.erase(request_id);
   }
 
   // bindings::FrameObserver implementation.
@@ -95,9 +129,13 @@ class MySQL : public mysql::ConnectionDelegate,
   // is known, or rejected when there was a problem when executing the query.
   v8::Local<v8::Promise> query(const std::string& query) {
     ++total_query_count_;
-    ++unresolved_query_count_;
 
-    return v8::Local<v8::Promise>();
+    unsigned int request_id = connection_->Query(query);
+
+    std::shared_ptr<Promise> promise = std::make_shared<Promise>();
+    queries_[request_id] = promise;
+
+    return promise->GetPromise();
   }
 
   // Immediately closes the connection with the MySQL database.
@@ -117,7 +155,7 @@ class MySQL : public mysql::ConnectionDelegate,
   int total_query_count() const { return total_query_count_; }
 
   // Number of queries which are still in-progress, and no result is known of.
-  int unresolved_query_count() const { return unresolved_query_count_; }
+  int unresolved_query_count() const { return queries_.size(); }
 
   // Returns the information with which the MySQL connection was established.
   v8::Local<v8::String> hostname() const { return v8String(hostname_); }
@@ -153,13 +191,13 @@ class MySQL : public mysql::ConnectionDelegate,
   int port_;
 
   std::unique_ptr<mysql::ConnectionHost> connection_;
+  std::unordered_map<unsigned int, std::shared_ptr<Promise>> queries_;
 
   std::unique_ptr<Promise> ready_;
 
   bool connected_ = false;
 
   int total_query_count_ = 0;
-  int unresolved_query_count_ = 0;
 
   v8::Persistent<v8::Object> object_;
 
