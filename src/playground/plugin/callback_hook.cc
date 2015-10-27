@@ -40,6 +40,9 @@ CallbackHook::~CallbackHook() {
 }
 
 bool CallbackHook::Install() {
+  if (!pAMXFunctions)
+    return true;  // testing
+
   void* current_address = static_cast<void**>(pAMXFunctions)[PLUGIN_AMX_EXPORT_Exec];
   if (current_address == nullptr) {
     LOG(ERROR) << "Invalid address found for the amx_Exec() function.";

@@ -117,7 +117,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)out\release\playground.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)out\release\playgroundjs-plugin.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -141,11 +141,6 @@
   <ItemGroup>
     <ClCompile Include="logging.cc" />
     <ClCompile Include="main.cc" />
-    <ClCompile Include="pawn\amx.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pawn\amx.h" />
-    <ClInclude Include="pawn\osdefs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

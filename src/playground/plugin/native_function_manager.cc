@@ -38,6 +38,9 @@ NativeFunctionManager::~NativeFunctionManager() {
 }
 
 bool NativeFunctionManager::Install() {
+  if (!pAMXFunctions)
+    return true;  // testing
+
   void* current_address = static_cast<void**>(pAMXFunctions)[PLUGIN_AMX_EXPORT_Register];
   if (current_address == nullptr) {
     LOG(ERROR) << "Invalid address found for the amx_Register() function.";
