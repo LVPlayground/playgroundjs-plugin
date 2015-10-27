@@ -119,7 +119,8 @@ Runtime::Runtime(Delegate* runtime_delegate,
 }
 
 Runtime::~Runtime() {
-  g_runtime_instances_.erase(isolate_);
+  // TODO: Multiple instances would now break.
+  //g_runtime_instances_.erase(isolate_);
 
   global_scope_.reset();
 
