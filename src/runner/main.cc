@@ -27,8 +27,8 @@ const size_t kServerFrameRate = 100;
 // Boolean indicating whether the test runner has finished.
 bool g_finished = false;
 
-// Whether all tests have passed. Will only be used when |g_finished| is set to true.
-bool g_all_tests_pass = false;
+// Failure count of the test runner. Will be used as the process' exit code.
+unsigned int g_failure_count = 0;
 
 // Local implementation of the logprintf() function exported by the SA-MP server. Does not log the
 // issued statements to a file (not even to server_log.txt).
@@ -46,7 +46,7 @@ void DidRunTests(unsigned int total_tests, unsigned int failed_tests) {
   LOG(INFO) << "Ran " << total_tests << " tests (" << (total_tests - failed_tests) << " passed, "
             << failed_tests << " failed).";
 
-  g_all_tests_pass = !failed_tests;
+  g_failure_count = failed_tests;
   g_finished = true;
 }
 
@@ -89,5 +89,5 @@ int main(int argc, char** argv) {
     Unload();
   }
 
-  return 0;
+  return g_failure_count;
 }
