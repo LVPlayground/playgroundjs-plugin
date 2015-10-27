@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    bef2fbcc690784f554d3b688da02b9efc38fd7df
-    "[cleanup] Use NewVariableProxy() instead of NewUnresolved where possible"
-    Friday, October 9th, 2015
+    b436635ac4f81f0248eefea4bc83e7cb0f5c3e21
+    "Update to ES2015 == semantics for Symbol/SIMD wrappers"
+    Tuesday, October 27th, 2015
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
