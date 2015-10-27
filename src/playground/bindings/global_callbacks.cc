@@ -127,6 +127,27 @@ void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   global->RemoveEventListener(toString(arguments[0]), function);
 }
 
+// void reportTestsFinished(int totalTests, int failedTests);
+void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() != 2) {
+    ThrowException("unable to execute reportTestsFinished(): 2 argument required, but only" +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsNumber() || !arguments[1]->IsNumber()) {
+    ThrowException("unable to execute reportTestsFinished(): expected numbers as arguments.");
+    return;
+  }
+
+  unsigned int total_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
+  unsigned int failed_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
+
+  Runtime::Delegate* runtime_delegate = Runtime::FromIsolate(arguments.GetIsolate())->delegate();
+  if (runtime_delegate)
+    runtime_delegate->OnScriptTestsDone(total_tests, failed_tests);
+}
+
 // object requireImpl(string filename);
 // NOTE: The public entry-point is require(), so reflect this in exceptions.
 void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {

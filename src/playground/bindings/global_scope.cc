@@ -45,6 +45,9 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
 
+  // Used for telling the test runner (if it's enabled) that the JavaScript tests have finished.
+  InstallFunction(global, "reportTestsFinished", ReportTestsFinishedCallback);
+
   // TODO(Russell): Provide some kind of filesystem module.
   InstallFunction(global, "readFile", ReadFileCallback);
 
