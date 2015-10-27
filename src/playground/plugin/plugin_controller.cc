@@ -12,6 +12,7 @@
 #include "plugin/sdk/plugincommon.h"
 
 extern logprintf_t g_logprintf;
+extern DidRunTests_t g_did_run_tests;
 
 namespace plugin {
 
@@ -47,6 +48,10 @@ PluginController::PluginController(const base::FilePath& path) {
   // Initialize the plugin delegate, which is the PlaygroundController.
   plugin_delegate_.reset(new playground::PlaygroundController(this));
   plugin_delegate_->OnCallbacksAvailable(callback_parser_->callbacks());
+
+  // If the test runner is driving this invocation, announce availability of the gamemode.
+  if (!pAMXFunctions)
+    plugin_delegate_->OnGamemodeLoaded();
 }
 
 PluginController::~PluginController() {}
@@ -65,6 +70,11 @@ int PluginController::CallFunction(const std::string& function_name, const char*
 
 void PluginController::OnServerFrame() {
   plugin_delegate_->OnServerFrame();
+}
+
+void PluginController::DidRunTests(unsigned int total_tests, unsigned int failed_tests) {
+  if (!pAMXFunctions)
+    g_did_run_tests(total_tests, failed_tests);
 }
 
 void PluginController::OnGamemodeChanged(AMX* gamemode) {

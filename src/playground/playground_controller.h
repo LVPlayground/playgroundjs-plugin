@@ -39,6 +39,7 @@ class PlaygroundController : public plugin::PluginDelegate,
   // bindings::Runtime::Delegate implementation.
   void OnScriptOutput(const std::string& message) override;
   void OnScriptError(const std::string& filename, size_t line_number, const std::string& message) override;
+  void OnScriptTestsDone(unsigned int total_tests, unsigned int failed_tests) override;
 
  private:
   // Weak, owns us. Allows communication with the SA-MP server and Pawn runtime.

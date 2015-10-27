@@ -13,6 +13,9 @@
 // Logging handler exported by the SA-MP server.
 logprintf_t g_logprintf = nullptr;
 
+// For announcing that the JavaScript tests have finished executing.
+DidRunTests_t g_did_run_tests = nullptr;
+
 namespace {
 
 // Global instance of the PluginController class, which will be kept alive for the duration of this
@@ -40,6 +43,7 @@ PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports() {
 PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
   g_logprintf = (logprintf_t) ppData[PLUGIN_DATA_LOGPRINTF];
+  g_did_run_tests = (DidRunTests_t) ppData[PLUGIN_DATA_DID_RUN_TESTS];
 
   base::FilePath::Initialize();
 

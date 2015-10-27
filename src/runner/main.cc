@@ -2,9 +2,11 @@
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
+#include <chrono>
 #include <malloc.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <thread>
 
 #include "playground/base/logging.h"
 #include "playground/plugin/sdk/amx.h"
@@ -19,6 +21,15 @@ PLUGIN_EXPORT void PLUGIN_CALL ProcessTick();
 
 namespace {
 
+// Frames per second the test runner should immitate the server is doing.
+const size_t kServerFrameRate = 100;
+
+// Boolean indicating whether the test runner has finished.
+bool g_finished = false;
+
+// Whether all tests have passed. Will only be used when |g_finished| is set to true.
+bool g_all_tests_pass = false;
+
 // Local implementation of the logprintf() function exported by the SA-MP server. Does not log the
 // issued statements to a file (not even to server_log.txt).
 void logprintf(char* format, ...) {
@@ -28,6 +39,15 @@ void logprintf(char* format, ...) {
   va_end(arguments);
 
   putc('\n', stdout);
+}
+
+// Called when the JavaScript tests have finished executing.
+void DidRunTests(unsigned int total_tests, unsigned int failed_tests) {
+  LOG(INFO) << "Ran " << total_tests << " tests (" << (total_tests - failed_tests) << " passed, "
+            << failed_tests << " failed).";
+
+  g_all_tests_pass = !failed_tests;
+  g_finished = true;
 }
 
 // The CallPublicFilterScript and CallPublicGameMode functions are not provided by this test
@@ -54,15 +74,17 @@ int main(int argc, char** argv) {
     void* plugin_data[20] = { nullptr };
 
     plugin_data[PLUGIN_DATA_LOGPRINTF] = logprintf;
+    plugin_data[PLUGIN_DATA_DID_RUN_TESTS] = DidRunTests;
     plugin_data[PLUGIN_DATA_AMX_EXPORTS] = nullptr;
     plugin_data[PLUGIN_DATA_CALLPUBLIC_FS] = UnimplementedCallPublicFunction;
     plugin_data[PLUGIN_DATA_CALLPUBLIC_GM] = UnimplementedCallPublicFunction;
 
     Load(plugin_data);
 
-    // TODO(Russell): Fire the OnGameModeInit event so that PlaygroundJS initializes itself.
-    // TODO(Russell): Call ProcessTick() every few ms so that timers in PlaygroundJS work, as well
-    //                as internal functionality that depends on it.
+    while (!g_finished) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000 / kServerFrameRate));
+      ProcessTick();
+    }
 
     Unload();
   }

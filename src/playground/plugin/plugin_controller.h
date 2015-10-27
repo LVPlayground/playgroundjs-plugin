@@ -45,6 +45,10 @@ class PluginController : public CallbackHook::Delegate {
   // Called when the SA-MP server starts delivering a frame on the main thread.
   void OnServerFrame();
 
+  // To be called when tests have finished executing in the JavaScript gamemode. The test runner
+  // is only interested in running the tests, not the rest of the script.
+  void DidRunTests(unsigned int total_tests, unsigned int failed_tests);
+
   // CallbackHook::Delegate implementation.
   void OnGamemodeChanged(AMX* gamemode) override;
   bool OnCallbackIntercepted(const std::string& callback,

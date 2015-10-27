@@ -113,4 +113,8 @@ void PlaygroundController::OnScriptError(const std::string& filename, size_t lin
   plugin_controller_->Output(output_message.c_str());
 }
 
+void PlaygroundController::OnScriptTestsDone(unsigned int total_tests, unsigned int failed_tests) {
+  plugin_controller_->DidRunTests(total_tests, failed_tests);
+}
+
 }  // namespace playground

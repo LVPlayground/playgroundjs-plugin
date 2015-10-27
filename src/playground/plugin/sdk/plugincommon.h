@@ -44,6 +44,7 @@
 //----------------------------------------------------------
 
 typedef void(*logprintf_t)(char *format, ...);
+typedef void(*DidRunTests_t)(unsigned int total_tests, unsigned int failed_tests);
 
 extern void *pAMXFunctions;
 
@@ -63,6 +64,9 @@ enum PLUGIN_DATA_TYPE
 {
   // For some debugging
   PLUGIN_DATA_LOGPRINTF    = 0x00,  // void (*logprintf)(char* format, ...)
+
+  // Las Venturas Playground: reports tests as having finished running.
+  PLUGIN_DATA_DID_RUN_TESTS = 0x01,  // void (*DidRunTests)(unsigned int test_count)
 
   // AMX
   PLUGIN_DATA_AMX_EXPORTS    = 0x10,  // void* AmxFunctionTable[]    (see PLUGIN_AMX_EXPORT)

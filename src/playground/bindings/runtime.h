@@ -33,6 +33,7 @@ class Runtime {
    public:
     virtual void OnScriptOutput(const std::string& message) = 0;
     virtual void OnScriptError(const std::string& filename, size_t line_number, const std::string& message) = 0;
+    virtual void OnScriptTestsDone(unsigned int total_tests, unsigned int failed_tests) = 0;
 
    protected:
     virtual ~Delegate() {}
