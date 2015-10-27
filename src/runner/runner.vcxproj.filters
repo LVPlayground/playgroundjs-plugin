@@ -21,5 +21,16 @@
     <ClCompile Include="logging.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pawn\amx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pawn\amx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pawn\osdefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

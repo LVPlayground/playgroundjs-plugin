@@ -141,6 +141,11 @@
   <ItemGroup>
     <ClCompile Include="logging.cc" />
     <ClCompile Include="main.cc" />
+    <ClCompile Include="pawn\amx.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pawn\amx.h" />
+    <ClInclude Include="pawn\osdefs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
