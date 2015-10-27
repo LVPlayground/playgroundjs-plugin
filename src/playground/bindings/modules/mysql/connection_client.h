@@ -15,11 +15,11 @@
 
 namespace mysql {
 
-class ConnectionClient : public Thread, protected ConnectionMessages {
+class ConnectionClient : public Thread {
   friend class ConnectionHost;
 
   struct ConnectionStatus {
-    ConnectionInformation information;
+    ConnectionMessages::ConnectionInformation information;
     bool has_connection_information;
     bool is_connected;
     int last_attempt, last_ping;

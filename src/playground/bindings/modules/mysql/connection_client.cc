@@ -4,6 +4,11 @@
 
 #include "playground/bindings/modules/mysql/connection_client.h"
 
+#ifndef WIN32
+#undef max(a, b)
+#undef min(a, b)
+#endif
+
 #include <memory>
 
 #include "base/logging.h"
