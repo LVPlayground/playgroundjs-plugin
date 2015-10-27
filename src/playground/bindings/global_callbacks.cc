@@ -141,7 +141,7 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   }
 
   unsigned int total_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
-  unsigned int failed_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
+  unsigned int failed_tests = static_cast<unsigned int>(arguments[1]->ToNumber()->IntegerValue());
 
   Runtime::Delegate* runtime_delegate = Runtime::FromIsolate(arguments.GetIsolate())->delegate();
   if (runtime_delegate)
