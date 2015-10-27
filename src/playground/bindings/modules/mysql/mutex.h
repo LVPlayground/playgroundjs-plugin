@@ -19,14 +19,14 @@ typedef pthread_mutex_t Mutex_t;
 
 class Mutex {
  public:
-	Mutex();
-	~Mutex();
+  Mutex();
+  ~Mutex();
 
-	void lock();
-	void unlock();
+  void lock();
+  void unlock();
 
  private:
-	Mutex_t mutex_;
+  Mutex_t mutex_;
 };
 
 class ScopedMutex {

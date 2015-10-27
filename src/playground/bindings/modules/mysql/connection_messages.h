@@ -14,35 +14,35 @@ namespace mysql {
 
 class ConnectionMessages {
  protected:
-	// Definitions for the messages we can pass between the host and client threads.
-	struct ConnectionInformation {
+  // Definitions for the messages we can pass between the host and client threads.
+  struct ConnectionInformation {
     unsigned int id;
-		std::string hostname, username, password, database;
-		unsigned int port;
-	};
+    std::string hostname, username, password, database;
+    unsigned int port;
+  };
 
-	struct QueryInformation {
+  struct QueryInformation {
     unsigned int id;
     std::string query;
-	};
+  };
 
-	struct ConnectionAttemptResult {
+  struct ConnectionAttemptResult {
     unsigned int id;
-		bool succeeded;
-		int error_number;
+    bool succeeded;
+    int error_number;
     std::string error_message;
-	};
+  };
 
-	struct FailedQueryResult {
+  struct FailedQueryResult {
     unsigned int id;
     int error_number;
     std::string error_message;
-	};
+  };
 
-	struct SucceededQueryResult {
+  struct SucceededQueryResult {
     unsigned int id;
     std::shared_ptr<ResultEntry> result_entry;
-	};
+  };
 };
 
 }  // namespace mysql

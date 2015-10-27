@@ -16,65 +16,65 @@
 namespace mysql {
 
 class ConnectionClient : public Thread, protected ConnectionMessages {
-	friend class ConnectionHost;
+  friend class ConnectionHost;
 
-	struct ConnectionStatus {
-		ConnectionInformation information;
-		bool has_connection_information;
-		bool is_connected;
-		int last_attempt, last_ping;
+  struct ConnectionStatus {
+    ConnectionInformation information;
+    bool has_connection_information;
+    bool is_connected;
+    int last_attempt, last_ping;
 
-		ConnectionStatus()
-		  : information()
-		  , has_connection_information(false)
-		  , is_connected(false)
-		  , last_attempt(0)
-		  , last_ping(0)
-		{
-		}
-	};
+    ConnectionStatus()
+      : information()
+      , has_connection_information(false)
+      , is_connected(false)
+      , last_attempt(0)
+      , last_ping(0)
+    {
+    }
+  };
 
-	enum ExecutionType {
-		NormalExecution,
-		SilentExecution
-	};
+  enum ExecutionType {
+    NormalExecution,
+    SilentExecution
+  };
 
  public:
-	// -------------------------------------------------------------------------
-	// Host-thread methods.
+  // -------------------------------------------------------------------------
+  // Host-thread methods.
 
-	ConnectionClient() {
-		mysql_init(&connection_);
-	}
+  ConnectionClient() {
+    mysql_init(&connection_);
+  }
 
  protected:
-	// -------------------------------------------------------------------------
-	// Client-thread methods.
+  // -------------------------------------------------------------------------
+  // Client-thread methods.
 
-	virtual void run();
+  virtual void run();
 
-	void doConnect();
-	void doClose();
+  void doConnect();
+  void doClose();
 
-	void doPing();
+  void doPing();
 
-	void doQuery(unsigned int request_id, const std::string& query, ExecutionType execution_type);
+  void doQuery(unsigned int request_id, const std::string& query, ExecutionType execution_type);
 
  private:
-	// The following queues may be pushed to by the host, popped from by the client.
-	ThreadSafeQueue<ConnectionMessages::ConnectionInformation> connection_queue_;
-	ThreadSafeQueue<ConnectionMessages::QueryInformation> query_queue_;
-	
-	// The following queues may be pushed to by the client, popped from by the host.
-	ThreadSafeQueue<ConnectionMessages::ConnectionAttemptResult> connection_attempt_queue_;
-	ThreadSafeQueue<ConnectionMessages::FailedQueryResult> failed_query_queue_;
-	ThreadSafeQueue<ConnectionMessages::SucceededQueryResult> succeeded_query_queue_;
+  // The following queues may be pushed to by the host, popped from by the client.
+  ThreadSafeQueue<ConnectionMessages::ConnectionInformation> connection_queue_;
+  ThreadSafeQueue<ConnectionMessages::QueryInformation> query_queue_;
+  
+  // The following queues may be pushed to by the client, popped from by the host.
+  ThreadSafeQueue<ConnectionMessages::ConnectionAttemptResult> connection_attempt_queue_;
+  ThreadSafeQueue<ConnectionMessages::FailedQueryResult> failed_query_queue_;
+  ThreadSafeQueue<ConnectionMessages::SucceededQueryResult> succeeded_query_queue_;
 
-	// The following members are only to be used by the host thread.
-	ConnectionStatus connection_status_;
+  // The following members are only to be used by the host thread.
+  ConnectionStatus connection_status_;
 
-	// The actual connection to MySQL.
-	MYSQL connection_;
+  // The actual connection to MySQL.
+  MYSQL connection_;
 };
 
 }  // namespace mysql

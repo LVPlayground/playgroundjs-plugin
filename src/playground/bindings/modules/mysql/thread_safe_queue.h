@@ -14,26 +14,26 @@ namespace mysql {
 template <typename Type>
 class ThreadSafeQueue {
  public:
-	ThreadSafeQueue()	{}
+  ThreadSafeQueue()  {}
 
-	void push(const Type& data) {
-		ScopedMutex mutex(&mutex_);
-		queue_.push(data);
-	}
+  void push(const Type& data) {
+    ScopedMutex mutex(&mutex_);
+    queue_.push(data);
+  }
 
-	void pop(Type& data) {
-		ScopedMutex mutex(&mutex_);
+  void pop(Type& data) {
+    ScopedMutex mutex(&mutex_);
     data = queue_.front();
-		queue_.pop();
-	}
+    queue_.pop();
+  }
 
-	unsigned int size() {
-		return queue_.size();
-	}
+  unsigned int size() {
+    return queue_.size();
+  }
 
  private:
-	std::queue<Type> queue_;
-	Mutex mutex_;
+  std::queue<Type> queue_;
+  Mutex mutex_;
 };
 
 }  // namespace mysql
