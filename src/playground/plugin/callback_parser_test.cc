@@ -132,7 +132,10 @@ TEST(CallbackParserTest, Iterable) {
   std::unique_ptr<CallbackParser> parser(CallbackParser::FromString(callback_content));
   ASSERT_TRUE(parser != nullptr);
 
-  std::set<std::string> remaining_callbacks({ "OnMyCallback", "OnMySecondCallback" });
+  std::set<std::string> remaining_callbacks;
+  remaining_callbacks.insert("OnMyCallback");
+  remaining_callbacks.insert("OnMySecondCallback");
+
   ASSERT_EQ(remaining_callbacks.size(), parser->size());
 
   for (auto& callback : *parser)

@@ -10,17 +10,33 @@ V8LIBS=v8/out/ia32.release/obj.target/tools/gyp
 
 C=clang
 CC=clang++
-CFLAGS=-c -m32 -fPIC -O3 -std=gnu++0x -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8
+CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8
+CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
 OUTFILE=playgroundjs-plugin.so
 
 # Target: /
-all: playground move link test_runner
+all: tp_gtest playground move link test_runner
 
-# Target: /playground
-playground: playground_base playground_bindings playground_plugin playground_third_party
+# Target: /gtest/
+tp_gtest:
+	$(CC) $(CFLAGS) gtest/gtest.cc -o out/obj/gtest_gtest.o
+	$(CC) $(CFLAGS) gtest/gtest-death-test.cc -o out/obj/gtest_gtest_death_test.o
+	$(CC) $(CFLAGS) gtest/gtest-filepath.cc -o out/obj/gtest_gtest_filepath.o
+	$(CC) $(CFLAGS) gtest/gtest-port.cc -o out/obj/gtest_gtest_port.o
+	$(CC) $(CFLAGS) gtest/gtest-printers.cc -o out/obj/gtest_gtest_printers.o
+	$(CC) $(CFLAGS) gtest/gtest-test-part.cc -o out/obj/gtest_gtest_test_part.o
+	$(CC) $(CFLAGS) gtest/gtest-typed-test.cc -o out/obj/gtest_gtest_typed_test.o
+
+# Target: /playground/
+playground: playground_base playground_bindings playground_plugin playground_third_party playground_test
 	$(CC) $(CFLAGS) playground/playground_controller.cc -o out/obj/playground_playground_controller.o
+	$(CC) $(CFLAGS) playground/test_runner.cc -o out/obj/playground_test_runner.o
+
+# Target: /playground/*_test.cc
+playground_test:
+	$(CC) $(CFLAGS) playground/plugin/callback_parser_test.cc -o out/obj/playground_plugin_callback_parser_test.o
 
 # Target: /playground/base/
 playground_base:
@@ -45,6 +61,7 @@ playground_bindings: playground_bindings_mysql
 	$(CC) $(CFLAGS) playground/bindings/global_callbacks.cc -o out/obj/playground_bindings_global_callbacks.o
 	$(CC) $(CFLAGS) playground/bindings/global_scope.cc -o out/obj/playground_bindings_global_scope.o
 	$(CC) $(CFLAGS) playground/bindings/pawn_invoke.cc -o out/obj/playground_bindings_pawn_invoke.o
+	$(CC) $(CFLAGS) playground/bindings/promise.cc -o out/obj/playground_bindings_promise.o
 	$(CC) $(CFLAGS) playground/bindings/runtime.cc -o out/obj/playground_bindings_runtime.o
 	$(CC) $(CFLAGS) playground/bindings/runtime_operations.cc -o out/obj/playground_bindings_runtime_operations.o
 	$(CC) $(CFLAGS) playground/bindings/script_prologue.cc -o out/obj/playground_bindings_script_prologue.o
@@ -80,7 +97,7 @@ link:
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
 		$(V8LIBS)/libv8_nosnapshot.a \
-		out/libv8.so
+		out/libv8.so -lmysqlclient
 
 # Move libv8.so
 move:
@@ -89,11 +106,11 @@ move:
 
 # Target: test_runner
 test_runner:
-	$(CC) $(CFLAGS) runner/logging.cc -o out/obj.test_runner/runner_logging.o
-	$(CC) $(CFLAGS) runner/main.cc -o out/obj.test_runner/runner_main.o
-	$(CC) -O2 -m32 -fshort-wchar -o out/test_runner \
-		out/obj.test_runner/*.o \
-		out/$(OUTFILE)
+	$(CC) $(CFLAGSBASE) runner/logging.cc -o out/obj.test_runner/runner_logging.o
+	$(CC) $(CFLAGSBASE) runner/main.cc -o out/obj.test_runner/runner_main.o
+	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner \
+		obj.test_runner/*.o \
+		$(OUTFILE)
 
 # Clean
 clean:
