@@ -65,6 +65,8 @@ class RowInfo {
 		columns_.swap(other.columns_);
 	}
 
+  RowInfo& operator=(const RowInfo& other) = default;
+
 	~RowInfo() {
 		std::vector<FieldValue>::iterator iter;
 		for (iter = columns_.begin(); iter != columns_.end(); ++iter) {
@@ -88,7 +90,7 @@ class RowInfo {
 		case ColumnInfo::StringColumnType:
 			fieldMemory = static_cast<char*>(calloc(1, length + 1));
       if (value)
-        strncpy_s(fieldMemory, length + 1, value, length);
+        strncpy(fieldMemory, value, length);
 
 			columns_.push_back(FieldValue(fieldMemory));
 			break;
@@ -126,7 +128,7 @@ public:
 
 	// Add a new row to the entry. Only to be used by the Connection Client.
 	RowInfo* createRow() {
-		rows_.push_back(RowInfo());
+		rows_.emplace_back();
 		return &rows_.back();
 	}
 

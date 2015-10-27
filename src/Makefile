@@ -4,6 +4,7 @@
 
 $(shell [ -d "out" ] || mkdir -p out)
 $(shell [ -d "out/obj/" ] || mkdir -p out/obj)
+$(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 
 V8LIBS=v8/out/ia32.release/obj.target/tools/gyp
 
@@ -15,7 +16,7 @@ FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 OUTFILE=playgroundjs-plugin.so
 
 # Target: /
-all: playground move link
+all: playground move link test_runner
 
 # Target: /playground
 playground: playground_base playground_bindings playground_plugin playground_third_party
@@ -28,8 +29,16 @@ playground_base:
 	$(CC) $(CFLAGS) playground/base/string_piece.cc -o out/obj/playground_base_string_piece.o
 	$(CC) $(CFLAGS) playground/base/time.cc -o out/obj/playground_base_time.o
 
+# Target: /playground/bindings/modules/mysql/
+playground_bindings_mysql:
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql_module.cc -o out/obj/playground_bindings_modules_mysql_module.o
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql/connection_client.cc -o out/obj/playground_bindings_modules_mysql_connection_client.o
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql/connection_host.cc -o out/obj/playground_bindings_modules_mysql_connection_host.o
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql/mutex.cc -o out/obj/playground_bindings_modules_mysql_mutex.o
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql/thread.cc -o out/obj/playground_bindings_modules_mysql_thread.o
+
 # Target: /playground/bindings/
-playground_bindings:
+playground_bindings: playground_bindings_mysql
 	$(CC) $(CFLAGS) playground/bindings/console.cc -o out/obj/playground_bindings_console.o
 	$(CC) $(CFLAGS) playground/bindings/event.cc -o out/obj/playground_bindings_event.o
 	$(CC) $(CFLAGS) playground/bindings/exception_handler.cc -o out/obj/playground_bindings_exception_handler.o
@@ -77,6 +86,14 @@ link:
 move:
 	cp v8/out/ia32.release/lib.target/libv8.so out/libv8.so
 	strip out/libv8.so
+
+# Target: test_runner
+test_runner:
+	$(CC) $(CFLAGS) runner/logging.cc -o out/obj.test_runner/runner_logging.o
+	$(CC) $(CFLAGS) runner/main.cc -o out/obj.test_runner/runner_main.o
+	$(CC) -O2 -m32 -fshort-wchar -o out/test_runner \
+		out/obj.test_runner/*.o \
+		out/$(OUTFILE)
 
 # Clean
 clean:

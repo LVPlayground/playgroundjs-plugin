@@ -73,11 +73,11 @@ int main(int argc, char** argv) {
   {
     void* plugin_data[20] = { nullptr };
 
-    plugin_data[PLUGIN_DATA_LOGPRINTF] = logprintf;
-    plugin_data[PLUGIN_DATA_DID_RUN_TESTS] = DidRunTests;
+    plugin_data[PLUGIN_DATA_LOGPRINTF] = (void*)&logprintf;
+    plugin_data[PLUGIN_DATA_DID_RUN_TESTS] = (void*)&DidRunTests;
     plugin_data[PLUGIN_DATA_AMX_EXPORTS] = nullptr;
-    plugin_data[PLUGIN_DATA_CALLPUBLIC_FS] = UnimplementedCallPublicFunction;
-    plugin_data[PLUGIN_DATA_CALLPUBLIC_GM] = UnimplementedCallPublicFunction;
+    plugin_data[PLUGIN_DATA_CALLPUBLIC_FS] = (void*)&UnimplementedCallPublicFunction;
+    plugin_data[PLUGIN_DATA_CALLPUBLIC_GM] = (void*)&UnimplementedCallPublicFunction;
 
     Load(plugin_data);
 

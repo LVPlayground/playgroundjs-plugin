@@ -198,7 +198,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
