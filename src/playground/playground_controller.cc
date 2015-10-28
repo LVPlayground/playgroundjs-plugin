@@ -103,6 +103,9 @@ void PlaygroundController::OnServerFrame() {
 }
 
 void PlaygroundController::OnScriptOutput(const std::string& message) {
+  if (!message.length())
+    return;
+
   plugin_controller_->Output(message.c_str());
 }
 

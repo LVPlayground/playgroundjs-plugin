@@ -8,6 +8,7 @@
 #include <sstream>
 
 #include "base/logging.h"
+#include "bindings/exception_handler.h"
 #include "bindings/global_scope.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
@@ -26,6 +27,13 @@ std::string ValueToString(v8::Local<v8::Value> value, size_t indent) {
   DCHECK(!value.IsEmpty());
   if (value->IsNull()) {
     return "[NULL]";
+
+  } else if (value->IsNativeError()) {
+    v8::Local<v8::Message> message = v8::Exception::CreateMessage(value);
+    if (!message.IsEmpty()) {
+      Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()->OnMessage(message, value);
+      return std::string();
+    }
 
   } else if (value->IsArray()) {
     std::stringstream output;
