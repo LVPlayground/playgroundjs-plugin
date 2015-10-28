@@ -31,10 +31,11 @@ std::string ValueToString(v8::Local<v8::Value> value, size_t indent) {
   } else if (value->IsNativeError()) {
     v8::Local<v8::Message> message = v8::Exception::CreateMessage(value);
     if (!message.IsEmpty()) {
-      Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()->OnMessage(message, value);
+      Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()->OnMessage(
+          message, value, ExceptionHandler::MessageSource::kScript);
+
       return std::string();
     }
-
   } else if (value->IsArray()) {
     std::stringstream output;
     output << "[\n";

@@ -24,9 +24,15 @@ class ExceptionHandler {
   explicit ExceptionHandler(Runtime::Delegate* runtime_delegate);
   ~ExceptionHandler();
 
+  enum class MessageSource {
+    kScript,
+    kInvocation,
+    kRejectedPromise
+  };
+
   // Called when the v8 runtime generates a message. It may also be called manually by any code
   // that maintains a v8::TryCatch before doing an operation on the engine.
-  void OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error);
+  void OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source);
 
   // Called when a non-recoverable error occurs within the runtime.
   void OnFatalError(const char* location, const char* message);

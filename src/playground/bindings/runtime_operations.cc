@@ -32,7 +32,8 @@ v8::Local<v8::Value> Call(v8::Isolate* isolate,
   if (try_catch.HasCaught()) {
     std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
     if (runtime)
-      runtime->GetExceptionHandler()->OnMessage(try_catch.Message(), try_catch.Exception());
+      runtime->GetExceptionHandler()->OnMessage(
+          try_catch.Message(), try_catch.Exception(), ExceptionHandler::MessageSource::kInvocation);
   }
 
   if (result.IsEmpty())

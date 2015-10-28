@@ -39,13 +39,17 @@ ExceptionHandler::ExceptionHandler(Runtime::Delegate* runtime_delegate)
 
 ExceptionHandler::~ExceptionHandler() {}
 
-void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
+void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   if (isolate->IsExecutionTerminating())
     isolate->CancelTerminateExecution();
 
   runtime_delegate_->OnScriptOutput("=========================");
-  runtime_delegate_->OnScriptOutput(toString(error));
+
+  const char* message_prefix = source == MessageSource::kRejectedPromise ? "Uncaught promise rejection: "
+                                                                         : "";
+
+  runtime_delegate_->OnScriptOutput(message_prefix + toString(error));
 
   v8::Local<v8::StackTrace> stack_trace = message->GetStackTrace();
   for (int frame = 0; frame < stack_trace->GetFrameCount(); ++frame) {

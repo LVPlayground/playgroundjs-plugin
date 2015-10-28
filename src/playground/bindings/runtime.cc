@@ -56,7 +56,8 @@ std::string RemoveLineBreaks(std::string line) {
 void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
   if (runtime)
-    runtime->GetExceptionHandler()->OnMessage(message, error);
+    runtime->GetExceptionHandler()->OnMessage(
+        message, error, ExceptionHandler::MessageSource::kScript);
 }
 
 // Callback for the v8 fatal error handler. Forward the call to the exception handler.
@@ -64,6 +65,23 @@ void FatalErrorCallback(const char* location, const char* message) {
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
   if (runtime)
     runtime->GetExceptionHandler()->OnFatalError(location, message);
+}
+
+// Callback for uncaught promise rejection events. Output the exception message to the console
+// after all, so that developers can pick up on the error and deal with it.
+void PromiseRejectCallback(PromiseRejectMessage message) {
+  // TODO(Russell): Should we ignore when message.GetEvent()==kPromiseHandlerAddedAfterReject?
+
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+  if (!runtime)
+    return;
+
+  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(message.GetValue());
+  if (error_message.IsEmpty())
+    return;
+
+  runtime->GetExceptionHandler()->OnMessage(
+      error_message, message.GetValue(), ExceptionHandler::MessageSource::kRejectedPromise);
 }
 
 }  // namespace
@@ -113,6 +131,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_->SetCaptureStackTraceForUncaughtExceptions(true, 15);
   isolate_->AddMessageListener(MessageCallback);
   isolate_->SetFatalErrorHandler(FatalErrorCallback);
+  isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 
   // TODO: This should be set by some sort of Configuration object.
   script_directory_ = base::FilePath("javascript");
