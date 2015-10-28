@@ -76,12 +76,16 @@ void PromiseRejectCallback(PromiseRejectMessage message) {
   if (!runtime)
     return;
 
-  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(message.GetValue());
+  v8::Local<v8::Value> value = message.GetValue();
+  if (value.IsEmpty() || !value->IsNativeError())
+    return;
+
+  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(value);
   if (error_message.IsEmpty())
     return;
 
   runtime->GetExceptionHandler()->OnMessage(
-      error_message, message.GetValue(), ExceptionHandler::MessageSource::kRejectedPromise);
+      error_message, value, ExceptionHandler::MessageSource::kRejectedPromise);
 }
 
 }  // namespace
