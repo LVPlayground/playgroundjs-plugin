@@ -184,10 +184,11 @@ class MySQL : public mysql::ConnectionDelegate,
       v8::HandleScope handle_scope(runtime->isolate());
       v8::Context::Scope context_scope(runtime->context());
 
-      v8::Local<v8::Object> error = v8::Object::New(runtime->isolate());
-      error->Set(v8String("error"), v8::Integer::New(runtime->isolate(), error_number));
-      error->Set(v8String("message"), v8::String::NewFromUtf8(runtime->isolate(), error_message.c_str()));
+      std::string message = "MySQL error (" + std::to_string(error_number) + "): " + error_message;
 
+      v8::Local<v8::Value> error = v8::Exception::Error(v8String(message));
+
+      // TODO: Figure out some way to carry the stack trace past promise rejections.
       queries_[request_id]->Reject(error);
     }
 
