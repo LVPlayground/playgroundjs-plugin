@@ -13,7 +13,7 @@
 #include "playground/bindings/frame_observer.h"
 #include "playground/bindings/modules/mysql/connection_delegate.h"
 #include "playground/bindings/modules/mysql/connection_host.h"
-#include "playground/bindings/modules/mysql/result_entry.h"
+#include "playground/bindings/modules/mysql/query_result.h"
 #include "playground/bindings/promise.h"
 #include "playground/bindings/utilities.h"
 
@@ -81,7 +81,7 @@ class MySQL : public mysql::ConnectionDelegate,
     connection_->Close();
   }
 
-  void DidQuery(unsigned int request_id, std::shared_ptr<mysql::ResultEntry> result) override {
+  void DidQuery(unsigned int request_id, std::shared_ptr<mysql::QueryResult> result) override {
     if (!queries_.count(request_id)) {
       LOG(ERROR) << "Received an unexpected response for request " << request_id;
       return;

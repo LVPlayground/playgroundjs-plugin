@@ -117,6 +117,9 @@
     <ClCompile Include="bindings\promise.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\modules\mysql\query_result.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -227,9 +230,6 @@
     <ClInclude Include="bindings\modules\mysql\thread_safe_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\modules\mysql\result_entry.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bindings\modules\mysql\connection_messages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -249,6 +249,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\frame_observer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\mysql\query_result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

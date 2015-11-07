@@ -62,7 +62,7 @@ void ConnectionHost::ProcessUpdates() {
     ConnectionMessages::SucceededQueryResult result;
     client_->succeeded_query_queue_.pop(result);
 
-    connection_delegate_->DidQuery(result.id, result.result_entry);
+    connection_delegate_->DidQuery(result.id, result.result);
   }
 
   if (client_->failed_query_queue_.size() > 0) {

@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "base/logging.h"
-#include "playground/bindings/modules/mysql/result_entry.h"
+#include "playground/bindings/modules/mysql/query_result.h"
 
 namespace mysql {
 
@@ -20,26 +20,6 @@ const int ConnectionRetryIntervalMs = 5000;
 const int ServerPingIntervalMs = 5000;
 
 const my_bool my_Enable = 1;
-
-static ColumnInfo::ColumnType toColumnType(enum_field_types type) {
-  switch (type) {
-  case MYSQL_TYPE_DECIMAL:
-  case MYSQL_TYPE_FLOAT:
-  case MYSQL_TYPE_DOUBLE:
-    return ColumnInfo::FloatColumnType;
-
-  case MYSQL_TYPE_TINY:
-  case MYSQL_TYPE_SHORT:
-  case MYSQL_TYPE_LONG:
-  case MYSQL_TYPE_BIT:
-  case MYSQL_TYPE_LONGLONG:
-  case MYSQL_TYPE_INT24:
-  case MYSQL_TYPE_YEAR:
-    return ColumnInfo::IntegerColumnType;
-  }
-
-  return ColumnInfo::StringColumnType;
-}
 
 // -----------------------------------------------------------------------------
 // Client-thread methods.
@@ -81,47 +61,28 @@ void ConnectionClient::doPing() {
 void ConnectionClient::doQuery(unsigned int request_id, const std::string& query, ExecutionType execution_type) {
   if (mysql_real_query(&connection_, query.c_str(), query.size()) == 0) {
     MYSQL_RES* query_result = mysql_store_result(&connection_);
-    std::shared_ptr<ResultEntry> result(new ResultEntry);
-
     // In some cases we might not want any feedback at all.
     if (execution_type == SilentExecution)
       return;
 
+    std::shared_ptr<QueryResult> result(new QueryResult());
     if (query_result != 0) {
-      // This was a SELECT query that returned rows.
-      int field_count = static_cast<int>(mysql_num_fields(query_result));
-      int row_count = static_cast<int>(mysql_num_rows(query_result));
+      // This was a SELECT query that was executed successfully, and may have returned rows.
+      result->set_result(query_result);
 
-      if (row_count > 0) {
-        MYSQL_FIELD* fields = mysql_fetch_fields(query_result);
-        for (int fieldId = 0; fieldId < field_count; ++fieldId)
-          result->addColumn(fields[fieldId].name, toColumnType(fields[fieldId].type));
-
-        while (MYSQL_ROW resultRow = mysql_fetch_row(query_result)) {
-          unsigned long* fieldLengths = mysql_fetch_lengths(query_result);
-          RowInfo* row = result->createRow();
-
-          for (int fieldId = 0; fieldId < field_count; ++fieldId)
-            row->pushField(resultRow[fieldId], fieldLengths[fieldId], toColumnType(fields[fieldId].type));
-        }
-      }
-
-      mysql_free_result(query_result);
+    } else if (mysql_field_count(&connection_) == 0) {
+      // This was an INSERT, UPDATE or DELETE query that was executed successfully.
+      result->set_affected_rows(mysql_affected_rows(&connection_));
+      result->set_insert_id(mysql_insert_id(&connection_));
 
     } else {
-      if (mysql_field_count(&connection_) != 0) {
-        // This was an INSERT, UPDATE or DELETE query that shouldn't return rows.
-      }
-      else {
-        // No data-retrieval errors occurred, continue with filling the result.
-        result->affected_rows_ = static_cast<int>(mysql_affected_rows(&connection_));
-        result->insert_id_ = static_cast<int>(mysql_insert_id(&connection_));
-      }
+      // Something went very wrong while executing this query. This shouldn't be hit.
+      LOG(ERROR) << "Unable to execute query due to unknown error: " << query;
     }
 
     ConnectionMessages::SucceededQueryResult success_result;
     success_result.id = request_id;
-    success_result.result_entry = result;
+    success_result.result = result;
 
     succeeded_query_queue_.push(success_result);
     return;

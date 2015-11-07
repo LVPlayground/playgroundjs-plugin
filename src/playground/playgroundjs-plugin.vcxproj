@@ -31,6 +31,7 @@
     <ClCompile Include="bindings\modules\mysql\connection_client.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_host.cc" />
     <ClCompile Include="bindings\modules\mysql\mutex.cc" />
+    <ClCompile Include="bindings\modules\mysql\query_result.cc" />
     <ClCompile Include="bindings\modules\mysql\thread.cc" />
     <ClCompile Include="bindings\modules\mysql_module.cc" />
     <ClCompile Include="bindings\pawn_invoke.cc" />
@@ -72,7 +73,7 @@
     <ClInclude Include="bindings\modules\mysql\connection_host.h" />
     <ClInclude Include="bindings\modules\mysql\connection_messages.h" />
     <ClInclude Include="bindings\modules\mysql\mutex.h" />
-    <ClInclude Include="bindings\modules\mysql\result_entry.h" />
+    <ClInclude Include="bindings\modules\mysql\query_result.h" />
     <ClInclude Include="bindings\modules\mysql\thread_safe_queue.h" />
     <ClInclude Include="bindings\modules\mysql\thread.h" />
     <ClInclude Include="bindings\modules\mysql_module.h" />

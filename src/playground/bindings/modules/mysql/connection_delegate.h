@@ -10,7 +10,7 @@
 
 namespace mysql {
 
-class ResultEntry;
+class QueryResult;
 
 // Delegate that will be informed of results of the ConnectionHost class.
 class ConnectionDelegate {
@@ -21,7 +21,7 @@ class ConnectionDelegate {
 
   // Called when a query has been executed successfully. The |result| will contain a result entry
   // when the query returns information, e.g. a SELECT or an INSERT/UPDATE query.
-  virtual void DidQuery(unsigned int request_id, std::shared_ptr<ResultEntry> result) = 0;
+  virtual void DidQuery(unsigned int request_id, std::shared_ptr<QueryResult> result) = 0;
   
   // Called when a query has failed to execute. The |error_number| and |error_message| contain the
   // cause of the failure.

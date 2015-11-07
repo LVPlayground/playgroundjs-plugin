@@ -8,9 +8,9 @@
 #include <memory>
 #include <string>
 
-#include "playground/bindings/modules/mysql/result_entry.h"
-
 namespace mysql {
+
+class QueryResult;
 
 class ConnectionMessages {
  public:
@@ -41,7 +41,7 @@ class ConnectionMessages {
 
   struct SucceededQueryResult {
     unsigned int id;
-    std::shared_ptr<ResultEntry> result_entry;
+    std::shared_ptr<QueryResult> result;
   };
 };
 
