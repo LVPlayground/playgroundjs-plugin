@@ -28,6 +28,8 @@ namespace {
 // Converts the |data| (of |length|) to a v8 type appropriate for the |type|.
 v8::Local<v8::Value> toValue(char* data, unsigned long length, enum_field_types type) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  if (!data)
+    return v8::Null(isolate);
 
   switch (type) {
   case MYSQL_TYPE_TINY:
@@ -47,7 +49,7 @@ v8::Local<v8::Value> toValue(char* data, unsigned long length, enum_field_types 
     return v8::Null(isolate);
 
   default:
-    return v8String(data, length);
+    return v8String(data);
   }
 
   // We should never hit this case.
