@@ -8,6 +8,10 @@
 #include <string>
 #include <unordered_map>
 
+#include <my_global.h>
+#include <my_sys.h>
+#include <mysql.h>
+
 #include "base/logging.h"
 #include "base/macros.h"
 #include "playground/bindings/frame_observer.h"
@@ -20,6 +24,35 @@
 namespace bindings {
 
 namespace {
+
+// Converts the |data| (of |length|) to a v8 type appropriate for the |type|.
+v8::Local<v8::Value> toValue(char* data, unsigned long length, enum_field_types type) {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+  switch (type) {
+  case MYSQL_TYPE_TINY:
+  case MYSQL_TYPE_SHORT:
+  case MYSQL_TYPE_LONG:
+  case MYSQL_TYPE_LONGLONG:
+  case MYSQL_TYPE_INT24:
+  case MYSQL_TYPE_BIT:
+    return v8Number(atoll(data));
+
+  case MYSQL_TYPE_DECIMAL:
+  case MYSQL_TYPE_FLOAT:
+  case MYSQL_TYPE_DOUBLE:
+    return v8Number(atof(data));
+  
+  case MYSQL_TYPE_NULL:
+    return v8::Null(isolate);
+
+  default:
+    return v8String(data, length);
+  }
+
+  // We should never hit this case.
+  return v8::Undefined(isolate);
+}
 
 // The MySQL class encapsulates a single connection to a MySQL server with a given set of
 // information. The connection may be used for any number of queries, and will continue to try
@@ -87,13 +120,54 @@ class MySQL : public mysql::ConnectionDelegate,
       return;
     }
 
-    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
     {
-      v8::HandleScope handle_scope(runtime->isolate());
+      v8::HandleScope handle_scope(isolate);
       v8::Context::Scope context_scope(runtime->context());
 
-      // TODO(Russell): Convert |result| to a JavaScript object.
-      queries_[request_id]->Resolve(true);
+      v8::Local<v8::Value> affected_rows, insert_id;
+      if (result->has_affected_rows())
+        affected_rows = v8Number(result->affected_rows());
+      else
+        affected_rows = v8Null();
+
+      if (result->has_insert_id())
+        insert_id = v8Number(result->insert_id());
+      else
+        insert_id = v8Null();
+
+      v8::Local<v8::Array> rows = v8::Array::New(isolate);
+      if (result->has_result()) {
+        MYSQL_RES* mysql_result = result->result();
+
+        unsigned int column_count = mysql_num_fields(mysql_result);
+        my_ulonglong row_count = mysql_num_rows(mysql_result);
+
+        MYSQL_FIELD* columns = mysql_fetch_fields(mysql_result);
+        unsigned long* column_lenghts = mysql_fetch_lengths(mysql_result);
+
+        std::vector<v8::Local<v8::String>> column_names(column_count);
+        for (size_t i = 0; i < column_count; ++i)
+          column_names[i] = v8String(columns[i].name);
+
+        int current_row_index = 0;
+        while (auto row = mysql_fetch_row(mysql_result)) {
+          v8::Local<v8::Object> js_row = v8::Object::New(isolate);
+          for (size_t i = 0; i < column_count; ++i)
+            js_row->Set(column_names[i], toValue(row[i], column_lenghts[i], columns[i].type));
+
+          rows->Set(current_row_index++, js_row);
+        }
+      }
+
+      v8::Local<v8::Object> js_result = v8::Object::New(isolate);
+      js_result->Set(v8String("affectedRows"), affected_rows);
+      js_result->Set(v8String("insertId"), insert_id);
+      js_result->Set(v8String("rows"), rows);
+
+      queries_[request_id]->Resolve(js_result);
     }
 
     queries_.erase(request_id);
