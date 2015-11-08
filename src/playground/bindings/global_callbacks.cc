@@ -167,4 +167,22 @@ void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   arguments.GetReturnValue().Set(global->RequireImpl(runtime.get(), toString(arguments[0])));
 }
 
+// Promise<void> wait(unsigned long time);
+void WaitCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
+  GlobalScope* global = runtime->GetGlobalScope();
+
+  if (arguments.Length() == 0) {
+    ThrowException("unable to execute wait(): 1 argument required, but only 0 provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsNumber()) {
+    ThrowException("unable to execute wait(): expected a number for argument 1.");
+    return;
+  }
+
+  arguments.GetReturnValue().Set(global->Wait(runtime.get(), arguments[0]->ToNumber()->IntegerValue()));
+}
+
 }  // namespace bindings

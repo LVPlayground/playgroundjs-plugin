@@ -20,6 +20,7 @@
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
 #include "bindings/script_prologue.h"
+#include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 
 using namespace v8;
@@ -137,6 +138,8 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_->SetFatalErrorHandler(FatalErrorCallback);
   isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 
+  timer_queue_.reset(new TimerQueue(this));
+
   // TODO: This should be set by some sort of Configuration object.
   script_directory_ = base::FilePath("javascript");
 }
@@ -180,6 +183,9 @@ void Runtime::Initialize() {
 void Runtime::OnFrame() {
   for (FrameObserver* observer : frame_observers_)
     observer->OnFrame();
+
+  timer_queue_->Run();
+  isolate_->RunMicrotasks();
 }
 
 void Runtime::AddFrameObserver(FrameObserver* observer) {

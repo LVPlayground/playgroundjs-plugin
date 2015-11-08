@@ -14,15 +14,19 @@ Promise::Promise()
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
   v8::MaybeLocal<v8::Promise::Resolver> maybe_resolver = v8::Promise::Resolver::New(context);
-  if (maybe_resolver.IsEmpty()) {
+  v8::Local<v8::Promise::Resolver> resolver;
+
+  if (!maybe_resolver.ToLocal(&resolver)) {
     LOG(ERROR) << "Unable to create a new promise: Resolver::New() failed.";
     return;
   }
 
-  resolver_.Reset(isolate, maybe_resolver.ToLocalChecked());
+  resolver_.Reset(isolate, resolver);
 }
 
-Promise::~Promise() {}
+Promise::~Promise() {
+  resolver_.Reset();
+}
 
 v8::Local<v8::Promise> Promise::GetPromise() const {
   DCHECK(!resolver_.IsEmpty());
@@ -37,7 +41,7 @@ bool Promise::ResolveInternal(v8::Local<v8::Value> value) {
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
   v8::Maybe<bool> result = resolver_.Get(isolate)->Resolve(context, value);
-  if (result.IsNothing())
+  if (result.IsNothing() || !result.FromJust())
     LOG(ERROR) << "Resolving the promise has failed.";
 
   return has_settled_ = true;

@@ -16,13 +16,6 @@
 
 namespace playground {
 
-namespace {
-
-// Event type of the "frame" event, which should be run for every server frame.
-const std::string g_frame_event_type = "frame";
-
-}  // namespace
-
 PlaygroundController::PlaygroundController(plugin::PluginController* plugin_controller)
     : plugin_controller_(plugin_controller),
       runtime_(bindings::Runtime::Create(this, plugin_controller)) {}
@@ -76,30 +69,8 @@ void PlaygroundController::OnGamemodeLoaded() {
   }
 }
 
-void PlaygroundController::OnGamemodeUnloaded() {
-  
-}
-
 void PlaygroundController::OnServerFrame() {
   runtime_->OnFrame();
-
-  bindings::GlobalScope* global = runtime_->GetGlobalScope();
-
-  // Bail out immediately if there are no listeners for the frame callback.
-  if (!global->HasEventListeners(g_frame_event_type))
-    return;
-  
-  v8::HandleScope handle_scope(runtime_->isolate());
-  v8::Context::Scope context_scope(runtime_->context());
-
-  v8::Local<v8::Object> event = v8::Object::New(runtime_->isolate());
-
-  // The "frame" event has a "now" property on the event object which refers to the monotonically
-  // increasing time, allowing timers to be based on the implementation.
-  event->Set(bindings::v8String("now"),
-             v8::Number::New(runtime_->isolate(), base::monotonicallyIncreasingTime()));
-
-  global->DispatchEvent(g_frame_event_type, event);
 }
 
 void PlaygroundController::OnScriptOutput(const std::string& message) {

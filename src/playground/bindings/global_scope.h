@@ -5,6 +5,7 @@
 #ifndef PLAYGROUND_BINDINGS_GLOBAL_SCOPE_H_
 #define PLAYGROUND_BINDINGS_GLOBAL_SCOPE_H_
 
+#include <stdint.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -89,6 +90,9 @@ class GlobalScope {
   // Implementation of the requireImpl() global function, which loads and executes |filename| with
   // a CommonJS-esque module boilerplate in the current global scope and returns the result.
   v8::Local<v8::Value> RequireImpl(Runtime* runtime, const std::string& filename) const;
+
+  // Returns a promise that will be resolved after |time| milliseconds.
+  v8::Local<v8::Promise> Wait(Runtime* runtime, int64_t time);
 
  private:
   // Installs the function named |name| on the |global| template, for which the v8 engine will

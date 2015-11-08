@@ -86,11 +86,8 @@ void PluginController::DidRunTests(unsigned int total_tests, unsigned int failed
 
 void PluginController::OnGamemodeChanged(AMX* gamemode) {
   callback_manager_->OnGamemodeChanged(gamemode);
-
   if (gamemode)
     plugin_delegate_->OnGamemodeLoaded();
-  else
-    plugin_delegate_->OnGamemodeUnloaded();
 }
 
 bool PluginController::OnCallbackIntercepted(const std::string& callback,

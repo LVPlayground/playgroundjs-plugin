@@ -15,8 +15,10 @@
 #include "bindings/global_callbacks.h"
 #include "bindings/modules/mysql_module.h"
 #include "bindings/pawn_invoke.h"
+#include "bindings/promise.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_operations.h"
+#include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 
 namespace bindings {
@@ -44,6 +46,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
+  InstallFunction(global, "wait", WaitCallback);
 
   // Used for telling the test runner (if it's enabled) that the JavaScript tests have finished.
   InstallFunction(global, "reportTestsFinished", ReportTestsFinishedCallback);
@@ -161,6 +164,14 @@ v8::Local<v8::Value> GlobalScope::RequireImpl(Runtime* runtime, const std::strin
     ThrowException("unable to execute require(): cannot evaluate " + filename + ".");
 
   return result;
+}
+
+v8::Local<v8::Promise> GlobalScope::Wait(Runtime* runtime, int64_t time) {
+  std::shared_ptr<Promise> promise(new Promise);
+
+  runtime->GetTimerQueue()->Add(promise, time);
+
+  return promise->GetPromise();
 }
 
 void GlobalScope::InstallFunction(v8::Local<v8::ObjectTemplate> global,

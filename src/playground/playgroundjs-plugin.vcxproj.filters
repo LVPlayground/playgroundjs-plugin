@@ -123,6 +123,9 @@
     <ClCompile Include="plugin\callback_manager.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\timer_queue.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -258,6 +261,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="plugin\callback_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\timer_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

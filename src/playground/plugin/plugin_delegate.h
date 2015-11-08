@@ -30,10 +30,6 @@ class PluginDelegate {
   // runtime, as callbacks will start to be invoked shortly after this.
   virtual void OnGamemodeLoaded() = 0;
 
-  // Called when the gamemode is being unloaded. This is the appropriate time to shut down the
-  // v8 runtime to avoid losing unsaved data.
-  virtual void OnGamemodeUnloaded() = 0;
-
   // Called when the server begins a new frame on the main thread. Beyond intercepted callbacks,
   // this is the only time where it's OK to invoke native functions.
   virtual void OnServerFrame() = 0;

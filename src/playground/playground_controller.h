@@ -33,7 +33,6 @@ class PlaygroundController : public plugin::PluginDelegate,
   bool OnCallbackIntercepted(const std::string& callback,
                              const plugin::Arguments& arguments) override;
   void OnGamemodeLoaded() override;
-  void OnGamemodeUnloaded() override;
   void OnServerFrame() override;
 
   // bindings::Runtime::Delegate implementation.

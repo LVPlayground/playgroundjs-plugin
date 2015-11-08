@@ -9,6 +9,8 @@
 
 #include <include/v8.h>
 
+#include "base/macros.h"
+
 namespace bindings {
 
 // Encapsulates functionality for a v8 Promise. Keep a reference to the Promise instance around
@@ -38,8 +40,10 @@ class Promise {
   bool ResolveInternal(v8::Local<v8::Value> value);
   bool RejectInternal(v8::Local<v8::Value> value);
 
-  v8::Global<v8::Promise::Resolver> resolver_;
+  v8::Persistent<v8::Promise::Resolver> resolver_;
   bool has_settled_;
+
+  DISALLOW_COPY_AND_ASSIGN(Promise);
 };
 
 template<> inline bool Promise::Resolve(v8::Local<v8::Value> value) { return ResolveInternal(value); }
