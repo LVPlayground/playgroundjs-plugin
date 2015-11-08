@@ -84,7 +84,8 @@ void GlobalScope::AddEventListener(const std::string& type, v8::Local<v8::Functi
 
 bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> event) const {
   auto event_list_iter = event_listeners_.find(type);
-  CHECK(event_list_iter != event_listeners_.end());
+  if (event_list_iter == event_listeners_.end())
+    return false;  // this can happen for developer-defined callbacks.
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
@@ -106,7 +107,11 @@ bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> ev
 }
 
 bool GlobalScope::HasEventListeners(const std::string& type) const {
-  return event_listeners_.find(type) != event_listeners_.end();
+  auto event_list_iter = event_listeners_.find(type);
+  if (event_list_iter == event_listeners_.end())
+    return false;
+
+  return event_list_iter->second.size() > 0;
 }
 
 double GlobalScope::HighResolutionTime() const {
