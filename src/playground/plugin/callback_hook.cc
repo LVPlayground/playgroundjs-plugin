@@ -19,6 +19,9 @@ namespace {
 // Type definition of the amx_Exec function that the CallbackHook will hook.
 typedef int AMXAPI(*amx_Exec_t)(AMX* amx, cell* retval, int index);
 
+// Depth of scoped ignore directives for the callback hook.
+size_t g_ignore_depth = 0;
+
 // Global instance of the CallbackHook instance, should only be accessed by amx_exec_Hook().
 CallbackHook* g_callback_hook = nullptr;
 
@@ -27,6 +30,14 @@ int amx_Exec_hook(AMX* amx, int* retval, int index) {
 }
 
 }  // namespace
+
+CallbackHook::ScopedIgnore::ScopedIgnore() {
+  ++g_ignore_depth;
+}
+
+CallbackHook::ScopedIgnore::~ScopedIgnore() {
+  --g_ignore_depth;
+}
 
 CallbackHook::CallbackHook(Delegate* delegate, const std::shared_ptr<CallbackParser>& callback_parser)
     : delegate_(delegate),
@@ -59,9 +70,11 @@ bool CallbackHook::Install() {
 }
 
 int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
-  if (index == AMX_EXEC_MAIN) {
+  if (g_ignore_depth > 0) {
+    // Ignore the callback altogether, as part of the plugin relies on this.
+  } else if (index == AMX_EXEC_MAIN) {
     OnGamemodeLoaded(amx);
-  }  else if (gamemode_ == amx) {
+  } else if (gamemode_ == amx) {
     auto interceptor_iter = intercept_indices_.find(index);
     if (interceptor_iter != intercept_indices_.end()) {
       if (DoIntercept(amx, retval, *interceptor_iter->second))

@@ -120,6 +120,9 @@
     <ClCompile Include="bindings\modules\mysql\query_result.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="plugin\callback_manager.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -252,6 +255,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\mysql\query_result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin\callback_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

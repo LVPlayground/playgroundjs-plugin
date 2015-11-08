@@ -41,6 +41,7 @@
     <ClCompile Include="playground_controller.cc" />
     <ClCompile Include="plugin\arguments.cc" />
     <ClCompile Include="plugin\callback_hook.cc" />
+    <ClCompile Include="plugin\callback_manager.cc" />
     <ClCompile Include="plugin\callback_parser.cc" />
     <ClCompile Include="plugin\callback_parser_test.cc" />
     <ClCompile Include="plugin\fake_amx.cc" />
@@ -87,6 +88,7 @@
     <ClInclude Include="plugin\arguments.h" />
     <ClInclude Include="plugin\callback.h" />
     <ClInclude Include="plugin\callback_hook.h" />
+    <ClInclude Include="plugin\callback_manager.h" />
     <ClInclude Include="plugin\callback_parser.h" />
     <ClInclude Include="plugin\fake_amx.h" />
     <ClInclude Include="plugin\native_function_manager.h" />

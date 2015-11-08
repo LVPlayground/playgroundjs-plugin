@@ -17,6 +17,7 @@ namespace plugin {
 
 class Arguments;
 struct Callback;
+class CallbackManager;
 class CallbackParser;
 class NativeFunctionManager;
 class PluginDelegate;
@@ -61,6 +62,9 @@ class PluginController : public CallbackHook::Delegate {
 
   // The parser responsible for identifying the callbacks supported by the plugin.
   std::shared_ptr<CallbackParser> callback_parser_;
+
+  // The callback manager enables JavaScript to call callbacks in the Pawn mode.
+  std::unique_ptr<CallbackManager> callback_manager_;
 
   // The native function manager is responsible for keeping track of available native functions
   // in the gamemode, as well as providing the ability to invoke them when necessary.

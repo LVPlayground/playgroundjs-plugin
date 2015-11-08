@@ -38,6 +38,13 @@ class CallbackHook {
     virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments) = 0;
   };
 
+  // Place this on the stack to ignore interceptable callbacks until it goes out of scope.
+  class ScopedIgnore {
+   public:
+    ScopedIgnore();
+    ~ScopedIgnore();
+  };
+
   CallbackHook(Delegate* delegate, const std::shared_ptr<CallbackParser>& callback_parser);
   ~CallbackHook();
 

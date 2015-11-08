@@ -6,6 +6,7 @@
 
 #include "base/file_path.h"
 #include "playground_controller.h"
+#include "plugin/callback_manager.h"
 #include "plugin/callback_parser.h"
 #include "plugin/native_function_manager.h"
 #include "plugin/plugin_delegate.h"
@@ -45,6 +46,9 @@ PluginController::PluginController(const base::FilePath& path) {
     return;
   }
 
+  // Initialize the callback manager, which can call public functions in all available AMX files.
+  callback_manager_.reset(new CallbackManager);
+
   // Initialize the plugin delegate, which is the PlaygroundController.
   plugin_delegate_.reset(new playground::PlaygroundController(this));
   plugin_delegate_->OnCallbacksAvailable(callback_parser_->callbacks());
@@ -65,6 +69,9 @@ bool PluginController::FunctionExists(const std::string& function_name) const {
 }
 
 int PluginController::CallFunction(const std::string& function_name, const char* format, void** arguments) {
+  if (function_name.size() > 2 && function_name[0] == 'O' && function_name[1] == 'n')
+    return callback_manager_->CallPublic(function_name, format, arguments);
+
   return native_function_manager_->CallFunction(function_name, format, arguments);
 }
 
@@ -78,6 +85,8 @@ void PluginController::DidRunTests(unsigned int total_tests, unsigned int failed
 }
 
 void PluginController::OnGamemodeChanged(AMX* gamemode) {
+  callback_manager_->OnGamemodeChanged(gamemode);
+
   if (gamemode)
     plugin_delegate_->OnGamemodeLoaded();
   else
