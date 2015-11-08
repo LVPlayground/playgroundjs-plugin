@@ -7,6 +7,9 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
+
+#define max max
 
 #include <my_global.h>
 #include <my_sys.h>
@@ -106,11 +109,9 @@ class MySQL : public mysql::ConnectionDelegate,
     // which we can reject the Promise, so that the JavaScript code knows as well.
     LOG(ERROR) << "MySQL (#" << error_number << "): " << error_message;
 
-    v8::Local<v8::Object> error = v8::Object::New(runtime->isolate());
-    error->Set(v8String("error"), v8::Integer::New(runtime->isolate(), error_number));
-    error->Set(v8String("message"), v8::String::NewFromUtf8(runtime->isolate(), error_message.c_str()));
+    std::string message = "MySQL error (" + std::to_string(error_number) + "): " + error_message;
 
-    ready_->Reject(error);
+    ready_->Reject(v8::Exception::Error(v8String(message)));
 
     // Close the connection. We require the first connection attempt to succeed.
     connection_->Close();

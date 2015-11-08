@@ -51,6 +51,7 @@ playground_bindings_mysql:
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/connection_client.cc -o out/obj/playground_bindings_modules_mysql_connection_client.o
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/connection_host.cc -o out/obj/playground_bindings_modules_mysql_connection_host.o
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/mutex.cc -o out/obj/playground_bindings_modules_mysql_mutex.o
+	$(CC) $(CFLAGS) playground/bindings/modules/mysql/query_result.cc -o out/obj/playground_bindings_modules_mysql_query_result.o
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/thread.cc -o out/obj/playground_bindings_modules_mysql_thread.o
 
 # Target: /playground/bindings/
@@ -65,6 +66,7 @@ playground_bindings: playground_bindings_mysql
 	$(CC) $(CFLAGS) playground/bindings/runtime.cc -o out/obj/playground_bindings_runtime.o
 	$(CC) $(CFLAGS) playground/bindings/runtime_operations.cc -o out/obj/playground_bindings_runtime_operations.o
 	$(CC) $(CFLAGS) playground/bindings/script_prologue.cc -o out/obj/playground_bindings_script_prologue.o
+	$(CC) $(CFLAGS) playground/bindings/timer_queue.cc -o out/obj/playground_bindings_timer_queue.o
 
 # Target: /playground/plugin/sdk/
 playground_plugin_sdk:
@@ -74,6 +76,7 @@ playground_plugin_sdk:
 playground_plugin: playground_plugin_sdk
 	$(CC) $(CFLAGS) playground/plugin/arguments.cc -o out/obj/playground_plugin_arguments.o
 	$(CC) $(CFLAGS) playground/plugin/callback_hook.cc -o out/obj/playground_plugin_callback_hook.o
+	$(CC) $(CFLAGS) playground/plugin/callback_manager.cc -o out/obj/playground_plugin_callback_manager.o
 	$(CC) $(CFLAGS) playground/plugin/callback_parser.cc -o out/obj/playground_plugin_callback_parser.o
 	$(CC) $(CFLAGS) playground/plugin/fake_amx.cc -o out/obj/playground_plugin_fake_amx.o
 	$(CC) $(CFLAGS) playground/plugin/native_function_manager.cc -o out/obj/playground_plugin_native_function_manager.o

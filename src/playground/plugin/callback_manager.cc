@@ -4,6 +4,9 @@
 
 #include "playground/plugin/callback_manager.h"
 
+#include <string.h>
+#include <vector>
+
 #include "base/logging.h"
 #include "plugin/callback_hook.h"
 #include "plugin/sdk/amx.h"
