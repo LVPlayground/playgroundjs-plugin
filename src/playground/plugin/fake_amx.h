@@ -30,7 +30,7 @@ class FakeAMX {
 
     cell PushCell(cell value);
     cell PushString(char* string);
-    cell PushArray(size_t size);
+    cell PushArray(cell* data, size_t size);
 
     void ReadCell(cell address, cell* dest);
     void ReadArray(cell address, char* data, size_t size);

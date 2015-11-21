@@ -70,8 +70,15 @@ cell FakeAMX::ScopedStackModifier::PushString(char* string) {
   return address;
 }
 
-cell FakeAMX::ScopedStackModifier::PushArray(size_t size) {
-  return Allocate(size);
+cell FakeAMX::ScopedStackModifier::PushArray(cell* data, size_t size) {
+  DCHECK(data);
+
+  cell address = Allocate(size);
+
+  cell* dest = reinterpret_cast<cell*>(fake_amx_->amx_heap_.get()) + address / sizeof(cell);
+  memcpy(dest, data, size * sizeof(cell));
+ 
+  return address;
 }
 
 void FakeAMX::ScopedStackModifier::ReadCell(cell address, cell* dest) {

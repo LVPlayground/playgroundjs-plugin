@@ -17,6 +17,7 @@ namespace {
 // Types of arguments that can be parsed from the signature passed to the pawnInvoke() function,
 // see the class-level comment above the PawnInvoke class for more information.
 enum SignatureType {
+  SIGNATURE_TYPE_ARRAY,
   SIGNATURE_TYPE_FLOAT,
   SIGNATURE_TYPE_FLOAT_REFERENCE,
   SIGNATURE_TYPE_INT,
@@ -46,6 +47,12 @@ struct PawnInvoke::StaticBuffer {
   static const size_t kMaxStringLength = 2048;
 
   char string_values[PawnInvoke::kMaxArgumentCount][kMaxStringLength];
+
+  // Maximum number of entries in an array. The total memory required for this buffer is
+  // kMaxArgumentCount (24) * kMaxArrayLength (144) * sizeof(int) = 13.5 KiB.
+  static const size_t kMaxArrayLength = 144;
+
+  int array_values[PawnInvoke::kMaxArgumentCount][kMaxArrayLength];
 };
 
 PawnInvoke::PawnInvoke(plugin::PluginController* plugin_controller)
@@ -101,6 +108,8 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
   size_t argument_offset = 0;
 
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
   // Iterate over each of the arguments to verify their types and to set pointers accordingly.
   for (size_t signature_index = 0; signature_index < signature_length; ++signature_index) {
     size_t argument = signature_index + argument_offset;
@@ -108,6 +117,40 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
     bool type_mismatch = false;
     switch (static_buffer_->signature[argument]) {
+    case SIGNATURE_TYPE_ARRAY:
+      if (type_mismatch = !arguments[index]->IsArray())
+        break;
+
+      {
+        int* array_data = static_buffer_->array_values[argument];
+        size_t array_length = 0;
+
+        v8::Local<v8::Array> js_array = v8::Local<v8::Array>::Cast(arguments[index]);
+        uint32_t js_length = js_array->Length();
+
+        for (uint32_t index = 0; index < js_length; ++index) {
+          v8::MaybeLocal<v8::Value> maybe_entry = js_array->Get(context, index);
+          if (maybe_entry.IsEmpty())
+            continue;
+
+          v8::Local<v8::Value> entry = maybe_entry.ToLocalChecked();
+          if (type_mismatch = !entry->IsNumber())
+            break;
+
+          if (array_length >= PawnInvoke::StaticBuffer::kMaxArrayLength) {
+            ThrowException("unable to execute pawnInvoke(): too many array values for argument " +
+                           std::to_string(index));
+          }
+
+          array_data[array_length++] = entry->Int32Value();
+        }
+
+        static_buffer_->arguments[argument] = array_data;
+        static_buffer_->arguments_format[argument] = 'a';
+      }
+
+      break;
+
     case SIGNATURE_TYPE_FLOAT:
       if (type_mismatch = !arguments[index]->IsNumber())
         break;
@@ -279,6 +322,10 @@ bool PawnInvoke::ParseSignature(v8::Local<v8::Value> signature,
     found_reference |= is_reference;
 
     switch (type) {
+    case 'a':
+      static_buffer_->signature[index] = SignatureType::SIGNATURE_TYPE_ARRAY;
+      *argument_count += 1;
+      break;
     case 'f':
       static_buffer_->signature[index] = SignatureType::SIGNATURE_TYPE_FLOAT;
       *argument_count += 1;

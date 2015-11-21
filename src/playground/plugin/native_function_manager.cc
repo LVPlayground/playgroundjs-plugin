@@ -100,6 +100,13 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
   if (!param_count)
     return function_iter->second(amx, params_.data());
 
+  size_t arraySizeParamOffset = 1;
+
+  // The CreateDynamicObjectEx method unfortunately follows a non-sensical parameter order, which
+  // makes it different from every other method that accepts an array (or a string). Thank you.
+  if (param_count == 15 && function_name == "CreateDynamicObjectEx")
+    arraySizeParamOffset = 3;
+
   auto amx_stack = fake_amx_->GetScopedStackModifier();
   DCHECK(arguments);
 
@@ -119,19 +126,22 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
       params_[i + 1] = amx_stack.PushString(reinterpret_cast<char*>(arguments[i]));
       break;
     case 'a':
-      if (format[i + 1] != 'i' /* |format| is zero-terminated */) {
+      if (format[i + arraySizeParamOffset] != 'i') {
         LOG(WARNING) << "Cannot invoke " << function_name << ": 'a' parameter must be followed by a 'i'.";
         return -1;
       }
 
       {
-        int32_t size = *reinterpret_cast<int32_t*>(arguments[i + 1]);
+        int32_t size = *reinterpret_cast<int32_t*>(arguments[i + arraySizeParamOffset]);
 
-        params_[i + 1] = amx_stack.PushArray(size);
-        params_[i + 2] = size;
+        params_[i + 1] = amx_stack.PushArray(reinterpret_cast<cell*>(arguments[i]), size);
+        if (arraySizeParamOffset == 1)
+          params_[i + 1 + arraySizeParamOffset] = size;
       }
 
-      ++i;
+      if (arraySizeParamOffset == 1)
+        ++i;
+
       break;
     }
   }
@@ -147,7 +157,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
     case 'a':
       {
         char* data = reinterpret_cast<char*>(arguments[i]);
-        int32_t size = *reinterpret_cast<int32_t*>(arguments[i + 1]);
+        int32_t size = *reinterpret_cast<int32_t*>(arguments[i + arraySizeParamOffset]);
 
         amx_stack.ReadArray(params_[i + 1], data, size);
       }
