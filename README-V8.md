@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    b436635ac4f81f0248eefea4bc83e7cb0f5c3e21
-    "Update to ES2015 == semantics for Symbol/SIMD wrappers"
-    Tuesday, October 27th, 2015
+    d756c65382e3bfa1db6b5e6005d085456e6301f9
+    "Revert of Move --harmony-destructuring-bind to shipping"
+    Tuesday, November 24th, 2015
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -25,6 +25,7 @@ The following preparatory steps have to be executed on all platforms. They check
 ## Building on Windows
 On Windows, run the following command to create the MSVC project files:
 
+    $ set DEPOT_TOOLS_WIN_TOOLCHAIN=0
     $ python build/gyp_v8 -Dtarget_arch=ia32 -Dcomponent=shared_library -Dv8_use_snapshot=0 -Dv8_use_external_startup_data=0 -Dv8_enable_i18n_support=0
 
 Then open `src\v8\build\all.sln` in the Visual Studio version you're using to build the plugin, and build the `all` target in release mode for x86.

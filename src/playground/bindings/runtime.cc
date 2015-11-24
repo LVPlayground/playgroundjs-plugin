@@ -37,8 +37,12 @@ std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 const char kRuntimeFlags[] =
     "--use_strict "
     "--harmony "
-    "--harmony_destructuring "
     "--harmony_default_parameters "
+    "--harmony_destructuring "
+    "--harmony_destructuring_bind "
+    "--harmony_do_expressions "
+    "--harmony_reflect "
+    "--harmony_regexp_lookbehind "
     "--harmony_spread_calls "
     "--harmony_spread_arrays";
 
