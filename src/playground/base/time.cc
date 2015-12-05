@@ -15,8 +15,6 @@
 
 namespace base {
 
-const double kDivisor = 10000.0;
-
 #if defined(WIN32)
 
 // Difference between January 1st, 1601 and January 1st, 1970 in nanoseconds, to convert from
@@ -47,7 +45,7 @@ double monotonicallyIncreasingTime() {
     begin_time = time;
   }
 
-  return static_cast<double>(time - begin_time) / kDivisor;
+  return static_cast<double>(time - begin_time) / 10000.0;
 }
 
 #elif defined(LINUX)
@@ -66,7 +64,7 @@ double monotonicallyIncreasingTime() {
     begin_time = time;
   }
 
-  return static_cast<double>(time - begin_time) / kDivisor;
+  return static_cast<double>(time - begin_time) / 1000000.0;
 }
 
 #else
