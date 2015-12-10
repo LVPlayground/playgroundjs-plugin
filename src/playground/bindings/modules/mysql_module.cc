@@ -182,6 +182,9 @@ class MySQL : public mysql::ConnectionDelegate,
       return;
     }
 
+    // Always output the error to the console so that the log files capture the problem.
+    LOG(ERROR) << "MySQL (#" << error_number << "): " << error_message;
+
     std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
     {
       v8::HandleScope handle_scope(runtime->isolate());
