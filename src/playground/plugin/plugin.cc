@@ -10,6 +10,10 @@
 #include "plugin/sdk/amx.h"
 #include "plugin/sdk/plugincommon.h"
 
+#if defined(LINUX)
+#include <sys/resource.h>
+#endif
+
 // Logging handler exported by the SA-MP server.
 logprintf_t g_logprintf = nullptr;
 
@@ -46,6 +50,16 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   g_did_run_tests = (DidRunTests_t) ppData[PLUGIN_DATA_DID_RUN_TESTS];
 
   base::FilePath::Initialize();
+
+  // Make sure that the core limit is set to unlimited when running the plugin on Linux. This
+  // will enable the operating system from creating core dump in case of crashes.
+#if defined(LINUX)
+  struct rlimit core_limits;
+  core_limits.rlim_cur = RLIM_INFINITY;
+  core_limits.rlim_max = RLIM_INFINITY;
+
+  setrlimit(RLIMIT_CORE, &core_limits);
+#endif
 
   // Override the destination for LOG() messages throughout this plugin's source.
   logging::LogMessage::SetLogHandler(std::unique_ptr<SAMPLogHandler>(new SAMPLogHandler));
