@@ -95,7 +95,7 @@ playground_third_party: playground_third_party_subhook
 
 # Link playground.so
 link:
-	$(CC) -O2 -m32 -fshort-wchar -shared -o out/$(OUTFILE) \
+	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
 		out/obj/*.o \
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
