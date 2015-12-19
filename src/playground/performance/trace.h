@@ -20,6 +20,7 @@ enum TraceType {
   MYSQL_QUERY_START = 5,                    // time taken for starting a MySQL query
   MYSQL_QUERY_RESOLVE = 6,                  // time taken for resolving a successful MySQL query
   MYSQL_QUERY_REJECT = 7,                   // time taken for rejecting a failed MySQL query
+  PAWN_NATIVE_FUNCTION_CALL = 8,            // time taken to call a native Pawn function
 };
 
 // Structure containing the information for a captured trace.

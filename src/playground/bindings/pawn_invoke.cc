@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "bindings/utilities.h"
+#include "performance/scoped_trace.h"
 #include "plugin/plugin_controller.h"
 
 namespace bindings {
@@ -74,6 +75,8 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     ThrowException("unable to execute pawnInvoke(): the function name must not be empty.");
     return v8::Local<v8::Value>();
   }
+
+  performance::ScopedTrace trace(performance::PAWN_NATIVE_FUNCTION_CALL, function);
 
   // Fast-path for functions that don't take any arguments at all. Immediately invoke the native on
   // the SA-MP server and return whatever it returned to us.
