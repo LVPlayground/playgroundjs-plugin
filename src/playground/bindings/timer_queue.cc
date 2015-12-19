@@ -12,8 +12,7 @@
 #include "bindings/exception_handler.h"
 #include "bindings/promise.h"
 #include "bindings/runtime.h"
-
-#include "bindings/utilities.h"
+#include "performance/scoped_trace.h"
 
 namespace bindings {
 
@@ -52,6 +51,8 @@ void TimerQueue::Run() {
 
   if (!execution_list.size())
     return;
+
+  performance::ScopedTrace trace(performance::TIMER_EXECUTION_TOTAL);
 
   ScopedExceptionSource source("server frame");
   {

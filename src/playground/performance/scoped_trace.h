@@ -24,8 +24,12 @@ namespace performance {
 // to its captured state (i.e. capturing traces, or writing he state to a file).
 class ScopedTrace {
  public:
+  explicit ScopedTrace(TraceType type);
   ScopedTrace(TraceType type, const std::string& details);
   ScopedTrace(TraceType type, const std::string& details, const v8::ScriptOrigin& origin, int line_number);
+  ScopedTrace(TraceType type, unsigned int id);
+  ScopedTrace(TraceType type, unsigned int id, const std::string& details);  // normalizes |details|
+
   ~ScopedTrace();
 
  private:

@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
-#include "playground/bindings/modules/mysql_module.h"
+#include "bindings/modules/mysql_module.h"
 
 #include <memory>
 #include <string>
@@ -17,12 +17,13 @@
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "playground/bindings/frame_observer.h"
-#include "playground/bindings/modules/mysql/connection_delegate.h"
-#include "playground/bindings/modules/mysql/connection_host.h"
-#include "playground/bindings/modules/mysql/query_result.h"
-#include "playground/bindings/promise.h"
-#include "playground/bindings/utilities.h"
+#include "bindings/frame_observer.h"
+#include "bindings/modules/mysql/connection_delegate.h"
+#include "bindings/modules/mysql/connection_host.h"
+#include "bindings/modules/mysql/query_result.h"
+#include "bindings/promise.h"
+#include "bindings/utilities.h"
+#include "performance/scoped_trace.h"
 
 namespace bindings {
 
@@ -118,6 +119,8 @@ class MySQL : public mysql::ConnectionDelegate,
   }
 
   void DidQuery(unsigned int request_id, std::shared_ptr<mysql::QueryResult> result) override {
+    performance::ScopedTrace trace(performance::MYSQL_QUERY_RESOLVE, request_id);
+
     if (!queries_.count(request_id)) {
       LOG(ERROR) << "Received an unexpected response for request " << request_id;
       return;
@@ -177,6 +180,8 @@ class MySQL : public mysql::ConnectionDelegate,
   }
 
   void DidQueryFail(unsigned int request_id, int error_number, const std::string& error_message) override {
+    performance::ScopedTrace trace(performance::MYSQL_QUERY_REJECT, request_id);
+
     if (!queries_.count(request_id)) {
       LOG(ERROR) << "Received an unexpected response for request " << request_id;
       return;
@@ -212,6 +217,8 @@ class MySQL : public mysql::ConnectionDelegate,
     ++total_query_count_;
 
     unsigned int request_id = connection_->Query(query);
+
+    performance::ScopedTrace trace(performance::MYSQL_QUERY_START, request_id, query);
 
     std::shared_ptr<Promise> promise = std::make_shared<Promise>();
     queries_[request_id] = promise;
