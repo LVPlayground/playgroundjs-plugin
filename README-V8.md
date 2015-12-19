@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    21b331e3ff9f4da302d31627db7ca265adf1a767
-    "MIPS: Use BOVC/BNVC for overflow checking on r6."
-    Saturday, December 5th, 2015
+    8e60df2a7bc580998698e856e0b0d21913e86b03
+    "Update V8 DEPS."
+    Saturday, December 19th, 2015
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
