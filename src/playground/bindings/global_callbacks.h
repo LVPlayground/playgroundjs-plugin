@@ -14,6 +14,7 @@ namespace bindings {
 
 void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

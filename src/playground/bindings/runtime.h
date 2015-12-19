@@ -53,6 +53,10 @@ class Runtime {
   // been fully initialized prior to this call.
   void Initialize();
 
+  // Returns the average number of frames per second since the last call to this method. The
+  // information will be written to |*duration| and |*average_fps|, which must be given.
+  void GetAndResetFrameCounter(double* duration, double* average_fps);
+
   // To be called once per server frame. Will call listening frame delegates of features that need
   // to be informed every frame in order to work correctly (e.g. for asynchronous work).
   void OnFrame();
@@ -147,6 +151,10 @@ class Runtime {
 
   // The exception handler for handling unhandled exceptions.
   std::unique_ptr<ExceptionHandler> exception_handler_;
+
+  // Very simple frame counter for the runtime, allowing further inspection of performance.
+  double frame_counter_start_;
+  int64_t frame_counter_;
 };
 
 }  // namespace

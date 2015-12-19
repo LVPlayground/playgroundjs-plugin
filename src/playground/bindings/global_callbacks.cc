@@ -62,6 +62,20 @@ void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
     global->DispatchEvent(type, v8::Null(arguments.GetIsolate()));
 }
 
+// object { duration, fps } frameCounter();
+void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  double duration, average_fps;
+  runtime->GetAndResetFrameCounter(&duration, &average_fps);
+
+  v8::Local<v8::Object> object = v8::Object::New(runtime->isolate());
+  object->Set(v8String("duration"), v8::Number::New(runtime->isolate(), duration));
+  object->Set(v8String("fps"), v8::Number::New(runtime->isolate(), average_fps));
+
+  arguments.GetReturnValue().Set(object);
+}
+
 // boolean hasEventListeners(string type);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();

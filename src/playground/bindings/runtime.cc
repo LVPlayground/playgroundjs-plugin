@@ -115,7 +115,9 @@ std::shared_ptr<Runtime> Runtime::Create(Delegate* runtime_delegate,
 Runtime::Runtime(Delegate* runtime_delegate,
                  plugin::PluginController* plugin_controller)
     : global_scope_(new GlobalScope(plugin_controller)),
-      runtime_delegate_(runtime_delegate) {
+      runtime_delegate_(runtime_delegate),
+      frame_counter_start_(base::monotonicallyIncreasingTime()),
+      frame_counter_(0) {
   V8::InitializeICU();
 
   platform_.reset(platform::CreateDefaultPlatform());
@@ -180,7 +182,21 @@ void Runtime::Initialize() {
     LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
 }
 
+void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {
+  DCHECK(duration && average_fps);
+
+  double current = base::monotonicallyIncreasingTime();
+
+  *duration = current - frame_counter_start_;
+  *average_fps = frame_counter_ / (*duration / 1000);
+
+  frame_counter_start_ = current;
+  frame_counter_ = 0;
+}
+
 void Runtime::OnFrame() {
+  ++frame_counter_;
+
   for (FrameObserver* observer : frame_observers_)
     observer->OnFrame();
 
