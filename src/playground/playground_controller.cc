@@ -37,6 +37,7 @@ bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
   // Convert the |callback| name to the associated idiomatic JavaScript event type.
   const std::string& type = bindings::Event::ToEventType(callback);
 
+  performance::ScopedTrace trace(performance::INTERCEPTED_CALLBACK_TOTAL, type);
   bindings::GlobalScope* global = runtime_->GetGlobalScope();
 
   // Bail out immediately if there are no listeners for this callback.
@@ -58,7 +59,7 @@ void PlaygroundController::OnGamemodeLoaded() {
   runtime_->Initialize();
 
   {
-    performance::ScopedTrace(performance::LOAD_JAVASCRIPT_TRACE, "main.js");
+    performance::ScopedTrace trace(performance::LOAD_JAVASCRIPT_TRACE, "main.js");
     v8::HandleScope scope(runtime_->isolate());
 
     const bool result =

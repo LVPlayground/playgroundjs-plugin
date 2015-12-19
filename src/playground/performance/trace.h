@@ -13,13 +13,19 @@ namespace performance {
 // the bottom of this enumeration (visualization tools will rely on the values).
 enum TraceType {
   // Trace capturing the time taken for loading a JavaScript file.
-  LOAD_JAVASCRIPT_TRACE
+  LOAD_JAVASCRIPT_TRACE = 0,
+
+  // Trace capturing the total time to handle an intercepted Pawn callback.
+  INTERCEPTED_CALLBACK_TOTAL = 1,
+
+  // Trace capturing the time taken to handle a specific event handler for an intercepted callback.
+  INTERCEPTED_CALLBACK_EVENT_HANDLER = 2,
 };
 
 // Structure containing the information for a captured trace.
 struct Trace {
   TraceType type;
-  std::string details;
+  std::string details[2];
   double start, end;
 };
 

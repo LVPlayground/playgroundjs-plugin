@@ -106,7 +106,12 @@ bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> ev
     // (which may be done if the listener removes itself from the event target).
     v8::Local<v8::Function> function = v8::Local<v8::Function>::New(isolate, persistent_function);
 
-    Call(isolate, function, arguments, 1u);
+    {
+      performance::ScopedTrace trace(performance::INTERCEPTED_CALLBACK_EVENT_HANDLER,
+                                     type, function->GetScriptOrigin(), function->GetScriptLineNumber());
+
+      Call(isolate, function, arguments, 1u);
+    }
   }
 
   return Event::DefaultPrevented(event);
@@ -162,7 +167,7 @@ std::string GlobalScope::ReadFile(const std::string& filename) const {
 }
 
 v8::Local<v8::Value> GlobalScope::RequireImpl(Runtime* runtime, const std::string& filename) const {
-  performance::ScopedTrace(performance::LOAD_JAVASCRIPT_TRACE, filename);
+  performance::ScopedTrace trace(performance::LOAD_JAVASCRIPT_TRACE, filename);
 
   v8::Local<v8::Value> result;
   if (!runtime->ExecuteFile(base::FilePath(filename), Runtime::EXECUTION_TYPE_MODULE, &result))

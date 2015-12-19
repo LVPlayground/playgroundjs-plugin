@@ -10,6 +10,10 @@
 #include "base/macros.h"
 #include "performance/trace.h"
 
+namespace v8 {
+class ScriptOrigin;
+}
+
 namespace performance {
 
 // Scoped traces will automatically measure the time taken by starting the trace in the constructor,
@@ -21,6 +25,7 @@ namespace performance {
 class ScopedTrace {
  public:
   ScopedTrace(TraceType type, const std::string& details);
+  ScopedTrace(TraceType type, const std::string& details, const v8::ScriptOrigin& origin, int line_number);
   ~ScopedTrace();
 
  private:

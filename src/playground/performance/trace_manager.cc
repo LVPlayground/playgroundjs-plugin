@@ -63,7 +63,7 @@ void TraceManager::Write(const base::FilePath& file, bool clear_traces) {
     stream << trace.type << "|"
            << std::fixed << std::setprecision(4) << trace.start << "|"
            << std::fixed << std::setprecision(4) << trace.end << "|"
-           << trace.details << std::endl;
+           << trace.details[0] << "|" << trace.details[1] << std::endl;
   }
 
   stream.close();
