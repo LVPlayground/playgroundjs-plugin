@@ -20,6 +20,7 @@
 #include "bindings/runtime_operations.h"
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
+#include "performance/scoped_trace.h"
 
 namespace bindings {
 
@@ -46,6 +47,8 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
+  InstallFunction(global, "startTrace", StartTraceCallback);
+  InstallFunction(global, "stopTrace", StopTraceCallback);
   InstallFunction(global, "wait", WaitCallback);
 
   // Used for telling the test runner (if it's enabled) that the JavaScript tests have finished.
@@ -159,6 +162,8 @@ std::string GlobalScope::ReadFile(const std::string& filename) const {
 }
 
 v8::Local<v8::Value> GlobalScope::RequireImpl(Runtime* runtime, const std::string& filename) const {
+  performance::ScopedTrace(performance::LOAD_JAVASCRIPT_TRACE, filename);
+
   v8::Local<v8::Value> result;
   if (!runtime->ExecuteFile(base::FilePath(filename), Runtime::EXECUTION_TYPE_MODULE, &result))
     ThrowException("unable to execute require(): cannot evaluate " + filename + ".");

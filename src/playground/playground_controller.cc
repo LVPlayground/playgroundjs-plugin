@@ -11,6 +11,7 @@
 #include "bindings/global_scope.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
+#include "performance/scoped_trace.h"
 #include "plugin/callback.h"
 #include "plugin/plugin_controller.h"
 
@@ -57,6 +58,7 @@ void PlaygroundController::OnGamemodeLoaded() {
   runtime_->Initialize();
 
   {
+    performance::ScopedTrace(performance::LOAD_JAVASCRIPT_TRACE, "main.js");
     v8::HandleScope scope(runtime_->isolate());
 
     const bool result =

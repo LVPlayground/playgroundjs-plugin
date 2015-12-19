@@ -53,21 +53,21 @@ unsigned int ConnectionHost::Query(const std::string& query) {
 void ConnectionHost::ProcessUpdates() {
   if (client_->connection_attempt_queue_.size() > 0) {
     ConnectionMessages::ConnectionAttemptResult result;
-    client_->connection_attempt_queue_.pop(result);
+    client_->connection_attempt_queue_.pop(&result);
 
     connection_delegate_->DidConnect(result.id, result.succeeded, result.error_number, result.error_message);
   }
 
   if (client_->succeeded_query_queue_.size() > 0) {
     ConnectionMessages::SucceededQueryResult result;
-    client_->succeeded_query_queue_.pop(result);
+    client_->succeeded_query_queue_.pop(&result);
 
     connection_delegate_->DidQuery(result.id, result.result);
   }
 
   if (client_->failed_query_queue_.size() > 0) {
     ConnectionMessages::FailedQueryResult result;
-    client_->failed_query_queue_.pop(result);
+    client_->failed_query_queue_.pop(&result);
 
     connection_delegate_->DidQueryFail(result.id, result.error_number, result.error_message);
   }

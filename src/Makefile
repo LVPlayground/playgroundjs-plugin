@@ -30,7 +30,7 @@ tp_gtest:
 	$(CC) $(CFLAGS) gtest/gtest-typed-test.cc -o out/obj/gtest_gtest_typed_test.o
 
 # Target: /playground/
-playground: playground_base playground_bindings playground_plugin playground_third_party playground_test
+playground: playground_base playground_bindings playground_performance playground_plugin playground_third_party playground_test
 	$(CC) $(CFLAGS) playground/playground_controller.cc -o out/obj/playground_playground_controller.o
 	$(CC) $(CFLAGS) playground/test_runner.cc -o out/obj/playground_test_runner.o
 
@@ -67,6 +67,11 @@ playground_bindings: playground_bindings_mysql
 	$(CC) $(CFLAGS) playground/bindings/runtime_operations.cc -o out/obj/playground_bindings_runtime_operations.o
 	$(CC) $(CFLAGS) playground/bindings/script_prologue.cc -o out/obj/playground_bindings_script_prologue.o
 	$(CC) $(CFLAGS) playground/bindings/timer_queue.cc -o out/obj/playground_bindings_timer_queue.o
+
+# Target: /playground/performance/
+playground_performance:
+	$(CC) $(CFLAGS) playground/performance/scoped_trace.cc -o out/obj/playground_performance_scoped_trace.o
+	$(CC) $(CFLAGS) playground/performance/trace_manager.cc -o out/obj/playground_performance_trace_manager.o
 
 # Target: /playground/plugin/sdk/
 playground_plugin_sdk:

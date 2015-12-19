@@ -21,9 +21,9 @@ class ThreadSafeQueue {
     queue_.push(data);
   }
 
-  void pop(Type& data) {
+  void pop(Type* data) {
     ScopedMutex mutex(&mutex_);
-    data = queue_.front();
+    *data = queue_.front();
     queue_.pop();
   }
 

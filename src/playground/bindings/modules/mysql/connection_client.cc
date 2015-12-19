@@ -106,7 +106,7 @@ void ConnectionClient::run() {
     if (connection_status_.has_connection_information == false) {
       if (connection_queue_.size() > 0) {
         // We received connection information for this connection client.
-        connection_queue_.pop(connection_status_.information);
+        connection_queue_.pop(&connection_status_.information);
         connection_status_.has_connection_information = true;
         continue;
       }
@@ -134,7 +134,7 @@ void ConnectionClient::run() {
 
     if (query_queue_.size() > 0) {
       ConnectionMessages::QueryInformation information;
-      query_queue_.pop(information);
+      query_queue_.pop(&information);
 
       // Process this query. The results will be send back separately.
       doQuery(information.id, information.query, NormalExecution);
@@ -149,7 +149,7 @@ void ConnectionClient::run() {
   unsigned int executedQueries = 0;
   while (connection_status_.is_connected && query_queue_.size() > 0 && executedQueries++ < 50) {
     ConnectionMessages::QueryInformation information;
-    query_queue_.pop(information);
+    query_queue_.pop(&information);
 
     // Process the query. No information will be relayed to the gamemode anymore.
     doQuery(information.id, information.query, SilentExecution);

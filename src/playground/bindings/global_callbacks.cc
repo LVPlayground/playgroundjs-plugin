@@ -4,10 +4,13 @@
 
 #include "bindings/global_callbacks.h"
 
+#include "base/file_path.h"
+#include "base/logging.h"
 #include "bindings/global_scope.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
+#include "performance/trace_manager.h"
 
 #include <include/v8.h>
 #include <string>
@@ -165,6 +168,37 @@ void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   }
 
   arguments.GetReturnValue().Set(global->RequireImpl(runtime.get(), toString(arguments[0])));
+}
+
+// void startTrace();
+void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  LOG(INFO) << "[TraceManager] Started capturing traces.";
+  performance::TraceManager::GetInstance()->set_enabled(true);
+}
+
+// void stopTrace(optional string filename);
+void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  LOG(INFO) << "[TraceManager] Stopped capturing traces.";
+  performance::TraceManager::GetInstance()->set_enabled(false);
+
+  if (arguments.Length() == 0)
+    return;
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute stopTrace(): expected a string for argument 1.");
+    return;
+  }
+
+  const std::string filename = toString(arguments[0]);
+  if (!filename.size()) {
+    ThrowException("unable to execute stopTrace(): expected a non-empty string for argument 1.");
+    return;
+  }
+  
+  const base::FilePath file = base::FilePath::CurrentDirectory().Append(filename);
+
+  // Write the captured traces to the |path|, clear state afterwards.
+  performance::TraceManager::GetInstance()->Write(file, true /* clear_traces */);
 }
 
 // Promise<void> wait(unsigned long time);

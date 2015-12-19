@@ -126,6 +126,12 @@
     <ClCompile Include="bindings\timer_queue.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="performance\scoped_trace.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="performance\trace_manager.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -264,6 +270,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\timer_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="performance\scoped_trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="performance\trace_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="performance\trace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

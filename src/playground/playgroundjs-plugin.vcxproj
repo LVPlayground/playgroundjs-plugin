@@ -39,6 +39,8 @@
     <ClCompile Include="bindings\runtime_operations.cc" />
     <ClCompile Include="bindings\script_prologue.cc" />
     <ClCompile Include="bindings\timer_queue.cc" />
+    <ClCompile Include="performance\scoped_trace.cc" />
+    <ClCompile Include="performance\trace_manager.cc" />
     <ClCompile Include="playground_controller.cc" />
     <ClCompile Include="plugin\arguments.cc" />
     <ClCompile Include="plugin\callback_hook.cc" />
@@ -85,6 +87,9 @@
     <ClInclude Include="bindings\script_prologue.h" />
     <ClInclude Include="bindings\timer_queue.h" />
     <ClInclude Include="bindings\utilities.h" />
+    <ClInclude Include="performance\scoped_trace.h" />
+    <ClInclude Include="performance\trace.h" />
+    <ClInclude Include="performance\trace_manager.h" />
     <ClInclude Include="playground_controller.h" />
     <ClInclude Include="bindings\allocator.h" />
     <ClInclude Include="plugin\arguments.h" />

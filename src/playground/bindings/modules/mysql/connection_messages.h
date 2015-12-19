@@ -16,17 +16,23 @@ class ConnectionMessages {
  public:
   // Definitions for the messages we can pass between the host and client threads.
   struct ConnectionInformation {
+    ConnectionInformation() : id(0), port(0) {}
+
     unsigned int id;
     std::string hostname, username, password, database;
     unsigned int port;
   };
 
   struct QueryInformation {
+    QueryInformation() : id(0) {}
+
     unsigned int id;
     std::string query;
   };
 
   struct ConnectionAttemptResult {
+    ConnectionAttemptResult() : id(0), succeeded(false), error_number(0) {}
+
     unsigned int id;
     bool succeeded;
     int error_number;
@@ -34,12 +40,16 @@ class ConnectionMessages {
   };
 
   struct FailedQueryResult {
+    FailedQueryResult() : id(0), error_number(0) {}
+
     unsigned int id;
     int error_number;
     std::string error_message;
   };
 
   struct SucceededQueryResult {
+    SucceededQueryResult() : id(0) {}
+
     unsigned int id;
     std::shared_ptr<QueryResult> result;
   };
