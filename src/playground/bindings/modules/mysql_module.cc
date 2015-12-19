@@ -121,6 +121,8 @@ class MySQL : public mysql::ConnectionDelegate,
   void DidQuery(unsigned int request_id, std::shared_ptr<mysql::QueryResult> result) override {
     performance::ScopedTrace trace(performance::MYSQL_QUERY_RESOLVE, request_id);
 
+    LOG(INFO) << "MySQL::DidQuery(" << request_id << ")";
+
     if (!queries_.count(request_id)) {
       LOG(ERROR) << "Received an unexpected response for request " << request_id;
       return;
@@ -168,6 +170,8 @@ class MySQL : public mysql::ConnectionDelegate,
         }
       }
 
+      LOG(INFO) << "MySQL::DidQuery(" << request_id << ") - resolving promise";
+
       v8::Local<v8::Object> js_result = v8::Object::New(isolate);
       js_result->Set(v8String("affectedRows"), affected_rows);
       js_result->Set(v8String("insertId"), insert_id);
@@ -198,6 +202,8 @@ class MySQL : public mysql::ConnectionDelegate,
       std::string message = "MySQL error (" + std::to_string(error_number) + "): " + error_message;
 
       v8::Local<v8::Value> error = v8::Exception::Error(v8String(message));
+
+      LOG(INFO) << "MySQL::DidQueryFail(" << request_id << ") - rejecting promise";
 
       // TODO: Figure out some way to carry the stack trace past promise rejections.
       queries_[request_id]->Reject(error);
