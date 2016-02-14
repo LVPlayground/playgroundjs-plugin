@@ -19,80 +19,100 @@ namespace bindings {
 
 namespace {
 
-// Indentation size for array and object printing.
-const size_t kIndentSize = 4;
+class ValueStringBuilder {
+ public:
+  ValueStringBuilder() {}
+  ~ValueStringBuilder() {}
 
-// TODO: Proper detection of recursive calls.
-std::string ValueToString(v8::Local<v8::Value> value, size_t indent) {
-  DCHECK(!value.IsEmpty());
-  if (value->IsNull()) {
-    return "[NULL]";
+  const size_t kIndentStep = 2;
 
-  } else if (value->IsNativeError()) {
+  void Write(v8::Local<v8::Value> value, size_t indent = 0) {
+    DCHECK(!value.IsEmpty());
+
+    if (value->IsNull())
+      WriteNull();
+    else if (value->IsNativeError())
+      WriteError(value);
+    else if (value->IsArray())
+      WriteArray(value, indent);
+    else if (value->IsObject())
+      WriteObject(value, indent);
+    else
+      WriteGeneric(value);
+  }
+
+  void WriteNull() {
+    stream_ << "[NULL]";
+  }
+
+  void WriteError(v8::Local<v8::Value> value) {
     v8::Local<v8::Message> message = v8::Exception::CreateMessage(value);
-    if (!message.IsEmpty()) {
-      Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()->OnMessage(
-          message, value, ExceptionHandler::MessageSource::kScript);
+    if (message.IsEmpty())
+      return;
 
-      return std::string();
-    }
-  } else if (value->IsArray()) {
-    std::stringstream output;
-    output << "[\n";
-    
+    Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()->OnMessage(
+        message, value, ExceptionHandler::MessageSource::kScript);
+  }
+
+  void WriteArray(v8::Local<v8::Value> value, size_t indent) {
     v8::Local<v8::Array> array_value = v8::Local<v8::Array>::Cast(value);
-    DCHECK(!array_value.IsEmpty());
-
-    const size_t new_indent = indent + kIndentSize;
 
     const std::string prefix(indent, ' ');
-    const std::string new_prefix(new_indent, ' ');
+    const std::string new_prefix(indent + kIndentStep, ' ');
 
-    for (size_t index = 0; index < array_value->Length(); ++index)
-      output << new_prefix << ValueToString(array_value->Get(index), new_indent) << ",\n";
+    stream_ << "[\n";
+    for (size_t index = 0; index < array_value->Length(); ++index) {
+      stream_ << new_prefix;
+      Write(array_value->Get(index), indent + kIndentStep);
+      stream_ << ",\n";
+    }
 
-    output << prefix << "]";
+    stream_ << prefix << "]";
+  }
 
-    return output.str();
-
-  } else if (value->IsObject()) {
-    std::stringstream output;
-    output << "{\n";
-    
+  void WriteObject(v8::Local<v8::Value> value, size_t indent) {
     v8::Local<v8::Object> object_value = v8::Local<v8::Object>::Cast(value);
-    DCHECK(!object_value.IsEmpty());
-
-    const size_t new_indent = indent + kIndentSize;
 
     const std::string prefix(indent, ' ');
-    const std::string new_prefix(new_indent, ' ');
+    const std::string new_prefix(indent + kIndentStep, ' ');
 
-    v8::Local<v8::Array> local_properties = object_value->GetOwnPropertyNames();
-    for (size_t index = 0; index < local_properties->Length(); ++index) {
-      v8::Local<v8::Value> member_key = local_properties->Get(index);
+    stream_ << "{\n";
+
+    v8::Local<v8::Array> properties = object_value->GetOwnPropertyNames();
+    for (size_t index = 0; index < properties->Length(); ++index) {
+      v8::Local<v8::Value> member_key = properties->Get(index);
       v8::Local<v8::Value> member_value = object_value->Get(member_key);
 
       if (member_value->StrictEquals(value) || !member_key->IsString())
-        continue;
+        continue;  // TODO: Implement printing of non-string values. Symbols?
 
-      output << new_prefix << ValueToString(member_key, 0) << " => ";
-      output << ValueToString(member_value, new_indent) << ",\n";
+      stream_ << new_prefix;
+      Write(member_key, 0);
+      stream_ << " => ";
+      Write(member_value, indent + kIndentStep);
+      stream_ << ",\n";
     }
 
-    output << prefix << "}";
-
-    return output.str();
+    stream_ << prefix << "}";
   }
 
-  v8::String::Utf8Value string(value);
-  if (*string == nullptr)
-    return "[unknown]";
+  void WriteGeneric(v8::Local<v8::Value> value) {
+    v8::String::Utf8Value string(value);
+    if (*string == nullptr) {
+      stream_ << "[unknown]";
+      return;
+    }
 
-  if (value->IsString())
-    return "\"" + std::string(*string, string.length()) + "\"";
-  
-  return std::string(*string, string.length());
-}
+    if (value->IsString()) stream_ << "\"";
+    stream_ << std::string(*string, string.length());
+    if (value->IsString()) stream_ << "\"";
+  }
+
+  std::string str() { return stream_.str(); }
+
+ private:
+  std::stringstream stream_;
+};
 
 // Iterates over all callbacks passed to the console.log() function and forward the call to the
 // Console instance, where creation and output of the representations will be handled.
@@ -131,10 +151,15 @@ void Console::OutputValue(v8::Local<v8::Value> value) const {
     return;
 
   // Fast-path for string-only values, which won't get surrounded in quotes this way.
-  if (value->IsString())
+  if (value->IsString()) {
     runtime->delegate()->OnScriptOutput(toString(value));
-  else
-    runtime->delegate()->OnScriptOutput(ValueToString(value, 0 /** indent **/));
+    return;
+  }
+
+  ValueStringBuilder builder;
+  builder.Write(value);
+
+  runtime->delegate()->OnScriptOutput(builder.str());
 }
 
 }  // namespace

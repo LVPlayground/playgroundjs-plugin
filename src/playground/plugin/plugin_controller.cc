@@ -22,6 +22,9 @@ namespace {
 // File in which the list of to-be-forwarded callbacks are listed.
 const char kCallbackFile[] = "callbacks.txt";
 
+// Maximum number of bytes to send in a single logprintf() call.
+const size_t kLogLimit = 2048;
+
 }  // namespace
 
 PluginController::PluginController(const base::FilePath& path) {
@@ -60,8 +63,18 @@ PluginController::PluginController(const base::FilePath& path) {
 
 PluginController::~PluginController() {}
 
-void PluginController::Output(const char* message) const {
-  g_logprintf("%s", message);
+void PluginController::Output(const std::string& message) const {
+  // The SA-MP server exposes the logprintf(), but does not document that the maximum length of a
+  // string is 2048 bytes. As such, split up the message in 2048 chunks if it's larger, and issue
+  // multiple calls to the logprintf() function to avoid this limitation.
+  if (message.size() < kLogLimit) {
+    g_logprintf("%s", message.c_str());
+    return;
+  }
+
+  size_t offset = 0;
+  for (size_t offset = 0; offset < message.size(); offset += kLogLimit)
+    g_logprintf("%s", message.substr(offset, kLogLimit).c_str());
 }
 
 bool PluginController::FunctionExists(const std::string& function_name) const {

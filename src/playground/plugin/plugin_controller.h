@@ -31,7 +31,7 @@ class PluginController : public CallbackHook::Delegate {
   ~PluginController() override;
 
   // Output |message| as a raw string to the console, and record it in the log.
-  void Output(const char* message) const;
+  void Output(const std::string& message) const;
 
   // Returns whether a function named |function_name| exists in the Pawn runtime.
   bool FunctionExists(const std::string& function_name) const;

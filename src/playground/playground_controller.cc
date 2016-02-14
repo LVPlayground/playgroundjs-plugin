@@ -80,7 +80,7 @@ void PlaygroundController::OnScriptOutput(const std::string& message) {
   if (!message.length())
     return;
 
-  plugin_controller_->Output(message.c_str());
+  plugin_controller_->Output(message);
 }
 
 void PlaygroundController::OnScriptError(const std::string& filename, size_t line_number, const std::string& message) {
