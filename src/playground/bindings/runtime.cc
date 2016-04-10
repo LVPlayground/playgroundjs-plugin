@@ -37,12 +37,9 @@ std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 const char kRuntimeFlags[] =
     "--use_strict "
     "--harmony "
-    "--harmony_regexp_lookbehind "
-    "--harmony_object_values_entries "
-    "--harmony_species "
-    "--harmony_regexp_subclass "
     "--harmony_do_expressions "
-    "--harmony_unicode_regexps";
+    "--harmony_function_sent "
+    "--harmony_string_padding";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {
@@ -203,6 +200,7 @@ void Runtime::OnFrame() {
     observer->OnFrame();
 
   timer_queue_->Run();
+
   isolate_->RunMicrotasks();
 }
 
