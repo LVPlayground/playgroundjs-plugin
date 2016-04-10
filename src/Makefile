@@ -10,7 +10,7 @@ V8LIBS=v8/out/ia32.release/obj.target/tools/gyp
 
 C=clang
 CC=clang++
-CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -I/usr/include/mysql
+CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -Iv8/include -I/usr/include/mysql
 CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
