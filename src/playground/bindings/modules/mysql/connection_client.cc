@@ -59,8 +59,6 @@ void ConnectionClient::doPing() {
 }
 
 void ConnectionClient::doQuery(unsigned int request_id, const std::string& query, ExecutionType execution_type) {
-  LOG(INFO) << "[MySQL] Executing MySQL query: " << query;
-
   if (mysql_real_query(&connection_, query.c_str(), query.size()) == 0) {
     MYSQL_RES* query_result = mysql_store_result(&connection_);
     // In some cases we might not want any feedback at all.
