@@ -121,8 +121,6 @@ class MySQL : public mysql::ConnectionDelegate,
   void DidQuery(unsigned int request_id, std::shared_ptr<mysql::QueryResult> result) override {
     performance::ScopedTrace trace(performance::MYSQL_QUERY_RESOLVE, request_id);
 
-    LOG(INFO) << "MySQL::DidQuery(" << request_id << ")";
-
     if (!queries_.count(request_id)) {
       LOG(ERROR) << "Received an unexpected response for request " << request_id;
       return;
@@ -169,8 +167,6 @@ class MySQL : public mysql::ConnectionDelegate,
           rows->Set(current_row_index++, js_row);
         }
       }
-
-      LOG(INFO) << "MySQL::DidQuery(" << request_id << ") - resolving promise";
 
       v8::Local<v8::Object> js_result = v8::Object::New(isolate);
       js_result->Set(v8String("affectedRows"), affected_rows);
