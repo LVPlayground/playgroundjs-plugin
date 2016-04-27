@@ -35,6 +35,7 @@ std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 // String of the v8 flags that should apply to this virtual machine. See flag-definitions.h in
 // the v8 source code for a list of all supported command line flags.
 const char kRuntimeFlags[] =
+    "--expose_gc "
     "--use_strict "
     "--harmony "
     "--harmony_do_expressions "
