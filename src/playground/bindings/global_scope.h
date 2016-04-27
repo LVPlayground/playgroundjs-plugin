@@ -55,6 +55,9 @@ class GlobalScope {
   // associated with these objects must have been registered during InstallPrototypes().
   void InstallObjects(v8::Local<v8::Object> global);
 
+  // Finalizes the Global Scope, i.e. marks the pawn function repository as read-only.
+  void Finalize();
+
   // Accessor providing access to the instances of created event types.
   Event* GetEvent(const std::string& type);
 
@@ -66,6 +69,10 @@ class GlobalScope {
   // Implementation of the addEventListener() function, which registers |listener| as a handler
   // for events of type |type|. A persistent reference to |listener| will be created.
   void AddEventListener(const std::string& type, v8::Local<v8::Function> listener);
+
+  // Creates a Pawn function named |name| accepting arguments according to |prototype|. The
+  // |callback| will be invoked whenever Pawn calls this method.
+  bool CreatePawnFunction(const std::string& name, const std::string& prototype, v8::Local<v8::Function> callback);
 
   // Implementation of the dispatchEvent() function, which will invoke all listeners registered for
   // events of type |type|. The |event| value will be re-used for each invocation.
@@ -99,6 +106,9 @@ class GlobalScope {
   // invoke |callback| upon calls made to the function in JavaScript.
   void InstallFunction(v8::Local<v8::ObjectTemplate> global,
                        const std::string& name, v8::FunctionCallback callback);
+
+  // Whether the global scope has been finalized.
+  bool finalized_;
 
   // The Console object, which provides debugging abilities to authors.
   std::unique_ptr<Console> console_;

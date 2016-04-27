@@ -25,7 +25,8 @@
 namespace bindings {
 
 GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
-    : console_(new Console),
+    : finalized_(false),
+      console_(new Console),
       pawn_invoke_(new PawnInvoke(plugin_controller)),
       mysql_module_(new MySQLModule) {}
 
@@ -76,6 +77,10 @@ void GlobalScope::InstallObjects(v8::Local<v8::Object> global) {
   console_->InstallObjects(global);
 }
 
+void GlobalScope::Finalize() {
+  finalized_ = true;
+}
+
 Event* GlobalScope::GetEvent(const std::string& type) {
   const auto event_iter = events_.find(type);
   if (event_iter == events_.end())
@@ -87,6 +92,14 @@ Event* GlobalScope::GetEvent(const std::string& type) {
 void GlobalScope::AddEventListener(const std::string& type, v8::Local<v8::Function> listener) {
   event_listeners_[type].push_back(
       v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));
+}
+
+bool GlobalScope::CreatePawnFunction(const std::string& name, const std::string& prototype, v8::Local<v8::Function> callback) {
+  if (finalized_)
+    return false;
+
+  // TODO: Implement the CreatePawnFunction method.
+  return true;
 }
 
 bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> event) const {

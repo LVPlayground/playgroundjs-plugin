@@ -69,6 +69,8 @@ void PlaygroundController::OnGamemodeLoaded() {
 
     if (!result)
       LOG(ERROR) << "Unable to load the main JavaScript file.";
+
+    runtime_->GetGlobalScope()->Finalize();
   }
 }
 
