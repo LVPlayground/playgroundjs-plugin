@@ -88,6 +88,7 @@ playground_plugin: playground_plugin_sdk
 	$(CC) $(CFLAGS) playground/plugin/pawn_helpers.cc -o out/obj/playground_plugin_pawn_helpers.o
 	$(CC) $(CFLAGS) playground/plugin/plugin.cc -o out/obj/playground_plugin_plugin.o
 	$(CC) $(CFLAGS) playground/plugin/plugin_controller.cc -o out/obj/playground_plugin_plugin_controller.o
+	$(CC) $(CFLAGS) playground/plugin/scoped_reentrancy_lock.cc -o out/obj/playground_plugin_scoped_reentrancy_lock.o
 
 # Target: /playground/third_party/subhook/
 playground_third_party_subhook:

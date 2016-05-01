@@ -9,6 +9,7 @@
 
 #include "base/logging.h"
 #include "plugin/callback_hook.h"
+#include "plugin/scoped_reentrancy_lock.h"
 #include "plugin/sdk/amx.h"
 
 namespace plugin {
@@ -26,6 +27,9 @@ void CallbackManager::OnGamemodeChanged(AMX* gamemode) {
 int CallbackManager::CallPublic(const std::string& function_name, const char* format, void** arguments) {
   if (!gamemode_)
     return -1;
+
+  if (ScopedReentrancyLock::IsReentrant())
+    LOG(WARNING) << "Warning: Re-entrant call to public function " << function_name;
 
   int callback_index = -1;
   

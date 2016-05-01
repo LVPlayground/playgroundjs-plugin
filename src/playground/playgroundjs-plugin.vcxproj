@@ -52,6 +52,7 @@
     <ClCompile Include="plugin\pawn_helpers.cc" />
     <ClCompile Include="plugin\plugin.cc" />
     <ClCompile Include="plugin\plugin_controller.cc" />
+    <ClCompile Include="plugin\scoped_reentrancy_lock.cc" />
     <ClCompile Include="plugin\sdk\amxplugin.cpp" />
     <ClCompile Include="test_runner.cc" />
     <ClCompile Include="bindings\runtime.cc" />
@@ -102,6 +103,7 @@
     <ClInclude Include="plugin\pawn_helpers.h" />
     <ClInclude Include="plugin\plugin_controller.h" />
     <ClInclude Include="plugin\plugin_delegate.h" />
+    <ClInclude Include="plugin\scoped_reentrancy_lock.h" />
     <ClInclude Include="plugin\sdk\amx.h" />
     <ClInclude Include="plugin\sdk\plugincommon.h" />
     <ClInclude Include="third_party\subhook\subhook.h" />

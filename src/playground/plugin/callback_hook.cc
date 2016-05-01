@@ -8,6 +8,7 @@
 #include "plugin/arguments.h"
 #include "plugin/callback_parser.h"
 #include "plugin/pawn_helpers.h"
+#include "plugin/scoped_reentrancy_lock.h"
 #include "plugin/sdk/amx.h"
 #include "plugin/sdk/plugincommon.h"
 #include "third_party/subhook/subhook.h"
@@ -77,6 +78,7 @@ int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
   } else if (gamemode_ == amx) {
     auto interceptor_iter = intercept_indices_.find(index);
     if (interceptor_iter != intercept_indices_.end()) {
+      ScopedReentrancyLock reentrancy_lock;
       if (DoIntercept(amx, retval, *interceptor_iter->second))
         return AMX_ERR_NONE;
     }

@@ -132,6 +132,9 @@
     <ClCompile Include="performance\trace_manager.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="plugin\scoped_reentrancy_lock.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -279,6 +282,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="performance\trace.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin\scoped_reentrancy_lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
