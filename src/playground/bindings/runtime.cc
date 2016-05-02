@@ -180,6 +180,8 @@ void Runtime::Initialize() {
   ScriptSource global_prologue(kScriptPrologue);
   if (!Execute(global_prologue, nullptr /** result **/))
     LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
+
+  isolate_->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
 }
 
 void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {
