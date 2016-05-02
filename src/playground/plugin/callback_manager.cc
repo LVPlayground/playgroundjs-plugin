@@ -108,8 +108,10 @@ int CallbackManager::CallPublic(const std::string& function_name, const char* fo
   // callback object is created to prevent infinite loops.
   {
     CallbackHook::ScopedIgnore scoped_ignore;
-    if (amx_Exec(gamemode_, &return_value, callback_index) != AMX_ERR_NONE)
-      LOG(WARNING) << "Unable to invoke " << function_name << ": AMX error occurred.";
+
+    int result = amx_Exec(gamemode_, &return_value, callback_index);
+    if (result != AMX_ERR_NONE)
+      LOG(WARNING) << "Unable to invoke " << function_name << ": AMX error occurred: " << result;
   }
 
 cleanup:
