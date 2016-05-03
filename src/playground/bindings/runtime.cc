@@ -295,11 +295,17 @@ void Runtime::DisplayException(const TryCatch& try_catch) {
   String::Utf8Value exception(try_catch.Exception());
   std::string exception_string(*exception, exception.length());
 
-  // Extract the filename of the script from the try-catch block.
-  String::Utf8Value resource_name(message->GetScriptOrigin().ResourceName());
-  std::string filename(*resource_name, resource_name.length());
+  std::string filename = "unknown";
+  size_t line_number = 0;
 
-  size_t line_number = message->GetLineNumber();
+  if (message.IsEmpty()) {
+    LOG(WARNING) << "[v8] Empty message received in " << __FUNCTION__;
+  } else {
+    String::Utf8Value resource_name(message->GetScriptOrigin().ResourceName());
+    filename.assign(*resource_name, resource_name.length());
+
+    line_number = message->GetLineNumber();
+  }
 
   runtime_delegate_->OnScriptError(filename, line_number, exception_string);
 }
