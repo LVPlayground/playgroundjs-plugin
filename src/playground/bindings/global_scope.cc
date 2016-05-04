@@ -116,13 +116,22 @@ bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> ev
   ScopedExceptionSource source("dispatched event `" + type + "`");
 
   for (const auto& persistent_function : event_list_iter->second) {
+    if (persistent_function.IsEmpty()) {
+      LOG(WARNING) << "[v8] Empty function found for event " << type;
+      continue;
+    }
+
     // Convert the persistent function to a local one again, without losing the persistent reference
     // (which may be done if the listener removes itself from the event target).
     v8::Local<v8::Function> function = v8::Local<v8::Function>::New(isolate, persistent_function);
 
-    {
-      performance::ScopedTrace trace(performance::INTERCEPTED_CALLBACK_EVENT_HANDLER,
-                                     type, function->GetScriptOrigin(), function->GetScriptLineNumber());
+    if (function.IsEmpty()) {
+      LOG(WARNING) << "[v8] Unable to coerce the persistent funtion to a local for event " << type;
+      continue;
+
+    } else {
+      //performance::ScopedTrace trace(performance::INTERCEPTED_CALLBACK_EVENT_HANDLER,
+      //                               type, function->GetScriptOrigin(), function->GetScriptLineNumber());
 
       Call(isolate, function, arguments, 1u);
     }
