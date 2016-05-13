@@ -104,8 +104,8 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
 
   // The CreateDynamicObjectEx method unfortunately follows a non-sensical parameter order, which
   // makes it different from every other method that accepts an array (or a string). Thank you.
-  if (param_count == 15 && function_name == "CreateDynamicObjectEx")
-    arraySizeParamOffset = 3;
+  if (param_count == 17 && function_name == "CreateDynamicObjectEx")
+    arraySizeParamOffset = 4;
 
   auto amx_stack = fake_amx_->GetScopedStackModifier();
   DCHECK(arguments);
