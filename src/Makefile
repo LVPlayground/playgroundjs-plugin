@@ -6,7 +6,7 @@ $(shell [ -d "out" ] || mkdir -p out)
 $(shell [ -d "out/obj/" ] || mkdir -p out/obj)
 $(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 
-V8LIBS=v8/out/ia32.release/obj.target/tools/gyp
+V8LIBS=v8/out/ia32.release/obj.target/src
 
 C=clang
 CC=clang++
