@@ -38,9 +38,9 @@ const char kRuntimeFlags[] =
     "--expose_gc "
     "--use_strict "
     "--harmony "
+    "--harmony_async_await "
     "--harmony_do_expressions "
-    "--harmony_function_sent "
-    "--harmony_string_padding";
+    "--harmony_function_sent";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {

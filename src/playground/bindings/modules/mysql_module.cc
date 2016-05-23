@@ -258,14 +258,14 @@ class MySQL : public mysql::ConnectionDelegate,
   // A callback will be used to determine when it has been collected, so we can free up resources.
   void WeakBind(v8::Isolate* isolate, v8::Local<v8::Object> object) {
     object_.Reset(isolate, object);
-    object_.SetWeak(this, OnGarbageCollected);
+    object_.SetWeak(this, OnGarbageCollected, v8::WeakCallbackType::kParameter);
   }
 
  private:
   // Called when a MySQL instance has been garbage collected by the v8 engine. While this mechanism
   // for keeping track of collections is not guaranteed to work, it works now and it solves the
   // lifetime issues we were otherwise facing.
-  static void OnGarbageCollected(const v8::WeakCallbackData<v8::Object, MySQL>& data) {
+  static void OnGarbageCollected(const v8::WeakCallbackInfo<MySQL>& data) {
     MySQL* instance = data.GetParameter();
 
     instance->object_.Reset();
