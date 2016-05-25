@@ -135,6 +135,12 @@
     <ClCompile Include="plugin\scoped_reentrancy_lock.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\provided_natives.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin\native_parameters.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -285,6 +291,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="plugin\scoped_reentrancy_lock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\provided_natives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin\native_parameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

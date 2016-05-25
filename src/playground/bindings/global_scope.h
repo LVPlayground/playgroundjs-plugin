@@ -14,6 +14,7 @@
 #include <include/v8.h>
 
 #include "base/macros.h"
+#include "bindings/provided_natives.h"
 
 namespace plugin {
 class PluginController;
@@ -62,6 +63,7 @@ class GlobalScope {
   Event* GetEvent(const std::string& type);
 
   // Accessors providing access to global object instances.
+  ProvidedNatives* GetProvidedNatives() { return &natives_;  }
   Console* GetConsole() { return console_.get(); }
   PawnInvoke* GetPawnInvoke() { return pawn_invoke_.get(); }
 
@@ -69,10 +71,6 @@ class GlobalScope {
   // Implementation of the addEventListener() function, which registers |listener| as a handler
   // for events of type |type|. A persistent reference to |listener| will be created.
   void AddEventListener(const std::string& type, v8::Local<v8::Function> listener);
-
-  // Creates a Pawn function named |name| accepting arguments according to |prototype|. The
-  // |callback| will be invoked whenever Pawn calls this method.
-  bool CreatePawnFunction(const std::string& name, const std::string& prototype, v8::Local<v8::Function> callback);
 
   // Implementation of the dispatchEvent() function, which will invoke all listeners registered for
   // events of type |type|. The |event| value will be re-used for each invocation.
@@ -109,6 +107,9 @@ class GlobalScope {
 
   // Whether the global scope has been finalized.
   bool finalized_;
+
+  // Natives that the JavaScript code provides to Pawn.
+  ProvidedNatives natives_;
 
   // The Console object, which provides debugging abilities to authors.
   std::unique_ptr<Console> console_;

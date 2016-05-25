@@ -13,12 +13,12 @@ class Value;
 namespace bindings {
 
 void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
-void CreatePawnFunctionCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

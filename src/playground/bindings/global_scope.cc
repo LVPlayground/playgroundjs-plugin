@@ -48,6 +48,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "frameCounter", FrameCounterCallback);
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
+  InstallFunction(global, "provideNative", ProvideNativeCallback);
   InstallFunction(global, "requireImpl", RequireImplCallback);
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
@@ -92,14 +93,6 @@ Event* GlobalScope::GetEvent(const std::string& type) {
 void GlobalScope::AddEventListener(const std::string& type, v8::Local<v8::Function> listener) {
   event_listeners_[type].push_back(
       v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));
-}
-
-bool GlobalScope::CreatePawnFunction(const std::string& name, const std::string& prototype, v8::Local<v8::Function> callback) {
-  if (finalized_)
-    return false;
-
-  // TODO: Implement the CreatePawnFunction method.
-  return true;
 }
 
 bool GlobalScope::DispatchEvent(const std::string& type, v8::Local<v8::Value> event) const {

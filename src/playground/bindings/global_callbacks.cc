@@ -40,37 +40,6 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   global->AddEventListener(toString(arguments[0]), v8::Local<v8::Function>::Cast(arguments[1]));
 }
 
-// void createPawnFunction(string name, string prototype, function callback);
-void CreatePawnFunctionCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
-
-  if (arguments.Length() < 2) {
-    ThrowException("unable to execute createPawnFunction(): 3 arguments required, but only " +
-      std::to_string(arguments.Length()) + " provided.");
-    return;
-  }
-
-  if (!arguments[0]->IsString()) {
-    ThrowException("unable to execute createPawnFunction(): expected a string for argument 1.");
-    return;
-  }
-
-  if (!arguments[1]->IsString()) {
-    ThrowException("unable to execute createPawnFunction(): expected a string for argument 2.");
-    return;
-  }
-
-  if (!arguments[2]->IsFunction()) {
-    ThrowException("unable to execute createPawnFunction(): expected a function for argument 3.");
-    return;
-  }
-
-  if (!global->CreatePawnFunction(toString(arguments[0]), toString(arguments[1]),
-                                  v8::Local<v8::Function>::Cast(arguments[2]))) {
-    ThrowException("unable to execute createPawnFunction(): the global scope has already been finalized.");
-  }
-}
-
 // boolean dispatchEvent(string type[, object event]);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
@@ -140,6 +109,38 @@ void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   }
 
   arguments.GetReturnValue().Set(global->GetPawnInvoke()->Call(arguments));
+}
+
+// void provideNative(string name, string parameters, function handler);
+void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+
+  if (arguments.Length() != 3) {
+    ThrowException("unable to execute provideNative(): 3 argument required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute provideNative(): expected a string for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute provideNative(): expected a string for argument 2.");
+    return;
+  }
+
+  if (!arguments[2]->IsFunction()) {
+    ThrowException("unable to execute provideNative(): expected a function for argument 3.");
+    return;
+  }
+
+  const std::string name = toString(arguments[0]);
+  const std::string parameters = toString(arguments[1]);
+
+  if (!global->GetProvidedNatives()->Register(name, parameters, v8::Local<v8::Function>::Cast(arguments[2])))
+    ThrowException("unable to execute provideNative(): the native could not be registered.");
 }
 
 // string readFile(string filename);
