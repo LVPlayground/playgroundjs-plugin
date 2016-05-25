@@ -19,6 +19,12 @@ class NativeParameters {
   NativeParameters(AMX* amx, int32_t* params);
   ~NativeParameters();
 
+  // Gets the number of arguments passed to the function call.
+  size_t count() const;
+
+  int32_t GetInteger(size_t index) const;
+  float GetFloat(size_t index) const;
+
  private:
   AMX* amx_;
   int32_t* params_;

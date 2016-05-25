@@ -5,9 +5,11 @@
 #ifndef PLAYGROUND_BINDINGS_PROVIDED_NATIVES_H_
 #define PLAYGROUND_BINDINGS_PROVIDED_NATIVES_H_
 
-#include <include/v8.h>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
+
+#include <include/v8.h>
 
 #include "base/macros.h"
 #include "plugin/native_parameters.h"
@@ -31,7 +33,7 @@ public:
 
   // Registers the |fn| as handling the native called |name|. Returns whether it could be registered
   // successfully- the Function value associated with |name| will be found automatically.
-  bool Register(const std::string& name, const std::string& parameters, v8::Local<v8::Function> fn);
+  bool Register(const std::string& name, const std::string& signature, v8::Local<v8::Function> fn);
 
   // Calls the |fn| in JavaScript given the |parameters|.
   int32_t Call(Function fn, plugin::NativeParameters& params);
@@ -43,7 +45,8 @@ private:
   std::unordered_map<std::string, Function> natives_;
 
   struct StoredNative {
-    std::string name, parameters;
+    int32_t param_count, retval_count;
+    std::string name, signature;
     v8PersistentFunctionReference reference;
   };
 

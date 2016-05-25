@@ -17,4 +17,18 @@ NativeParameters::NativeParameters(AMX* amx, int32_t* params)
 
 NativeParameters::~NativeParameters() {}
 
+size_t NativeParameters::count() const {
+  return params_[0] / 4;
+}
+
+int32_t NativeParameters::GetInteger(size_t index) const {
+  CHECK(index < count());
+  return params_[index + 1];
+}
+
+float NativeParameters::GetFloat(size_t index) const {
+  CHECK(index < count());
+  return *(float*)&params_[index + 1];
+}
+
 }  // namespace plugin

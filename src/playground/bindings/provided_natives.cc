@@ -32,14 +32,28 @@ ProvidedNatives* ProvidedNatives::GetInstance() {
   return g_provided_natives;
 }
 
-bool ProvidedNatives::Register(const std::string& name, const std::string& parameters, v8::Local<v8::Function> fn) {
+bool ProvidedNatives::Register(const std::string& name, const std::string& signature, v8::Local<v8::Function> fn) {
   auto native_iter = natives_.find(name);
   if (native_iter == natives_.end())
     return false;  // the native named |name| is not known.
 
   StoredNative native;
+  native.param_count = 0;
+  native.retval_count = 0;
+
+  for (size_t i = 0; i < signature.size(); ++i) {
+    switch (signature[i]) {
+    case 'i':
+    case 'f':
+      native.param_count++;
+      break;
+    default:
+      return false;  // unrecognized character in the signature.
+    }
+  }
+
   native.name = name;
-  native.parameters = parameters;
+  native.signature = signature;
   native.reference = v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), fn);
 
   native_handlers_.insert_or_assign(native_iter->second, native);
@@ -54,12 +68,25 @@ int32_t ProvidedNatives::Call(Function fn, plugin::NativeParameters& params) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
   const StoredNative& native = native_iter->second;
-  const size_t argument_count = 1;
+  if (params.count() != native.param_count)
+    return 0;
 
-  v8::Local<v8::Value> arguments[argument_count];
-  arguments[0] = v8::Undefined(isolate);
+  std::vector<v8::Local<v8::Value>> arguments(native.param_count);
 
-  // TODO(Russell): Handle |params| and |native.parameters|.
+  size_t param_index = 0;
+
+  for (size_t i = 0; i < native.signature.size(); ++i) {
+    switch (native.signature[i]) {
+    case 'i':
+      arguments[param_index++] = v8::Number::New(isolate, static_cast<double>(params.GetInteger(i)));
+      break;
+    case 'f':
+      arguments[param_index++] = v8::Number::New(isolate, static_cast<double>(params.GetFloat(i)));
+      break;
+    }
+  }
+
+  CHECK(param_index == native.param_count);
 
   int return_value = 1;
   {
@@ -74,7 +101,7 @@ int32_t ProvidedNatives::Call(Function fn, plugin::NativeParameters& params) {
       return 0;
     }
 
-    v8::Local<v8::Value> value = bindings::Call(isolate, function, arguments, argument_count);
+    v8::Local<v8::Value> value = bindings::Call(isolate, function, arguments.data(), arguments.size());
     if (value->IsInt32())
       return_value = value->Int32Value();
   }
