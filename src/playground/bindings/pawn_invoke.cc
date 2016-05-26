@@ -76,7 +76,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     return v8::Local<v8::Value>();
   }
 
-  performance::ScopedTrace trace(performance::PAWN_NATIVE_FUNCTION_CALL, function);
+  //performance::ScopedTrace trace(performance::PAWN_NATIVE_FUNCTION_CALL, function);
 
   // Fast-path for functions that don't take any arguments at all. Immediately invoke the native on
   // the SA-MP server and return whatever it returned to us.
@@ -245,7 +245,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
                                                 static_buffer_->arguments);
 
   // If there are no explicit return values, simply return the |result|.
-  if (!return_count)
+  if (!return_count || result == -1 /** internal error code **/)
     return v8::Number::New(isolate, static_cast<double>(result));
 
   // We want to eagerly return a value immediately if there is only one return value. In all other

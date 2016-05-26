@@ -27,6 +27,9 @@ class NativeParameters {
   float GetFloat(size_t index) const;
   const std::string& GetString(size_t index, std::string* buffer) const;
 
+  void SetInteger(size_t index, int32_t value);
+  void SetFloat(size_t index, float value);
+
  private:
   AMX* amx_;
   int32_t* params_;

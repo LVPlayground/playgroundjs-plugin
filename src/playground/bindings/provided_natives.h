@@ -48,7 +48,7 @@ private:
   std::unordered_map<std::string, Function> natives_;
 
   struct StoredNative {
-    int32_t param_count, retval_count;
+    size_t param_count, retval_count;
     std::string name, signature;
     v8PersistentFunctionReference reference;
   };

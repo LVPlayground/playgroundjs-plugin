@@ -30,7 +30,7 @@ int32_t NativeParameters::GetInteger(size_t index) const {
 
 float NativeParameters::GetFloat(size_t index) const {
   CHECK(index < count());
-  return *(float*)&params_[index + 1];
+  return amx_ctof(params_[index + 1]);
 }
 
 const std::string& NativeParameters::GetString(size_t index, std::string* buffer) const {
@@ -38,6 +38,22 @@ const std::string& NativeParameters::GetString(size_t index, std::string* buffer
   CHECK(buffer);
 
   return ReadStringFromAmx(amx_, params_[index + 1], buffer);
+}
+
+void NativeParameters::SetInteger(size_t index, int32_t value) {
+  CHECK(index < count());
+
+  cell* address;
+  if (amx_GetAddr(amx_, params_[index + 1], &address) == AMX_ERR_NONE)
+    *address = value;
+}
+
+void NativeParameters::SetFloat(size_t index, float value) {
+  CHECK(index < count());
+
+  cell* address;
+  if (amx_GetAddr(amx_, params_[index + 1], &address) == AMX_ERR_NONE)
+    *address = amx_ftoc(value);
 }
 
 }  // namespace plugin
