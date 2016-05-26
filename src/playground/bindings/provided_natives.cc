@@ -51,6 +51,7 @@ bool ProvidedNatives::Register(const std::string& name, const std::string& signa
       break;
     case 'F':
     case 'I':
+    case 'S':
       native.retval_count++;
       break;
     default:
@@ -123,22 +124,33 @@ int32_t ProvidedNatives::Call(Function fn, plugin::NativeParameters& params) {
 
       size_t retval_index = 0;
       for (size_t i = 0; i < native.signature.size(); ++i) {
-        if (native.signature[i] != 'I' && native.signature[i] != 'F')
+        if (native.signature[i] != 'I' && native.signature[i] != 'F' && native.signature[i] != 'S')
           continue;
 
         v8::Local<v8::Value> retval = arr->Get(retval_index++);
         switch (native.signature[i]) {
+        case 'F':
+          if (retval->IsNumber())
+            params.SetFloat(i, static_cast<float>(retval->NumberValue()));
+          else
+            params.SetFloat(i, -1);
+          break;
         case 'I':
           if (retval->IsInt32())
             params.SetInteger(i, retval->Int32Value());
           else
             params.SetInteger(i, -1);
           break;
-        case 'F':
-          if (retval->IsNumber())
-            params.SetFloat(i, static_cast<float>(retval->NumberValue()));
-          else
-            params.SetFloat(i, -1);
+        case 'S':
+          if (retval->IsString()) {
+            v8::String::Utf8Value text_value(retval);
+            if (text_value.length()) {
+              params.SetString(i, *text_value, text_value.length() + 1);
+              break;
+            }
+          }
+
+          params.SetString(i, "", 1);  // the empty string
           break;
         }
       }

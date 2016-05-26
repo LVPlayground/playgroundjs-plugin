@@ -29,6 +29,7 @@ class NativeParameters {
 
   void SetInteger(size_t index, int32_t value);
   void SetFloat(size_t index, float value);
+  void SetString(size_t index, const char* value, size_t length);
 
  private:
   AMX* amx_;

@@ -56,4 +56,12 @@ void NativeParameters::SetFloat(size_t index, float value) {
     *address = amx_ftoc(value);
 }
 
+void NativeParameters::SetString(size_t index, const char* value, size_t length) {
+  CHECK(index < count());
+
+  cell* address;
+  if (amx_GetAddr(amx_, params_[index + 1], &address) == AMX_ERR_NONE)
+    amx_SetString(address, value, 0, 0, length);
+}
+
 }  // namespace plugin
