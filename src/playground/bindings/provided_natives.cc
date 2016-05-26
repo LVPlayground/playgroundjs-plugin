@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "bindings/runtime_operations.h"
+#include "bindings/utilities.h"
 
 namespace bindings {
 namespace {
@@ -43,8 +44,9 @@ bool ProvidedNatives::Register(const std::string& name, const std::string& signa
 
   for (size_t i = 0; i < signature.size(); ++i) {
     switch (signature[i]) {
-    case 'i':
     case 'f':
+    case 'i':
+    case 's':
       native.param_count++;
       break;
     default:
@@ -74,14 +76,16 @@ int32_t ProvidedNatives::Call(Function fn, plugin::NativeParameters& params) {
   std::vector<v8::Local<v8::Value>> arguments(native.param_count);
 
   size_t param_index = 0;
-
   for (size_t i = 0; i < native.signature.size(); ++i) {
     switch (native.signature[i]) {
+    case 'f':
+      arguments[param_index++] = v8::Number::New(isolate, static_cast<double>(params.GetFloat(i)));
+      break;
     case 'i':
       arguments[param_index++] = v8::Number::New(isolate, static_cast<double>(params.GetInteger(i)));
       break;
-    case 'f':
-      arguments[param_index++] = v8::Number::New(isolate, static_cast<double>(params.GetFloat(i)));
+    case 's':
+      arguments[param_index++] = v8String(params.GetString(i, &text_buffer_));
       break;
     }
   }

@@ -113,7 +113,10 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
       arguments.AddFloat(argument.first, ReadFloatFromStack(amx, index));
       break;
     case ARGUMENT_TYPE_STRING:
-      arguments.AddString(argument.first, ReadStringFromStack(amx, index));
+      {
+        int string_index = ReadIntFromStack(amx, index);
+        arguments.AddString(argument.first, ReadStringFromAmx(amx, string_index, &text_buffer_));
+      }
       break;
     }
 

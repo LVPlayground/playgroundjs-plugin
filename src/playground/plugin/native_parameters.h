@@ -6,6 +6,7 @@
 #define PLAYGROUND_PLUGIN_NATIVE_PARAMETERS_H_
 
 #include <stdint.h>
+#include <string>
 
 #include "base/macros.h"
 
@@ -24,6 +25,7 @@ class NativeParameters {
 
   int32_t GetInteger(size_t index) const;
   float GetFloat(size_t index) const;
+  const std::string& GetString(size_t index, std::string* buffer) const;
 
  private:
   AMX* amx_;

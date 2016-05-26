@@ -76,6 +76,8 @@ class CallbackHook {
   // Mapping of function indices to the callback format that is to be intercepted.
   std::unordered_map<int, const Callback*> intercept_indices_;
 
+  std::string text_buffer_;
+
   AMX* gamemode_;
 };
 

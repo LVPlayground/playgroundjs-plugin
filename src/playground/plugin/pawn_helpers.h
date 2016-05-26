@@ -17,9 +17,9 @@ int ReadIntFromStack(AMX* amx, int index);
 // Reads a float from the Pawn stack at |index| of runtime |amx|.
 float ReadFloatFromStack(AMX* amx, int index);
 
-// Reads a string from the Pawn stack at |index| of runtime |amx|, also accessing the Pawn
+// Reads a string from the Pawn stack at |string_index| of runtime |amx|, also accessing the Pawn
 // heap as that's where strings are stored.
-std::string ReadStringFromStack(AMX* amx, int index);
+const std::string& ReadStringFromAmx(AMX* amx, int string_index, std::string* buffer);
 
 }  // namespace
 

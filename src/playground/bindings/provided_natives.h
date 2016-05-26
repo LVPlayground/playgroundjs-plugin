@@ -41,6 +41,9 @@ public:
 private:
   using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
 
+  // Buffer to be used for converting Pawn string to JavaScript strings.
+  std::string text_buffer_;
+
   // Mapping of [name] to the [native ID] of the natives known to this class.
   std::unordered_map<std::string, Function> natives_;
 

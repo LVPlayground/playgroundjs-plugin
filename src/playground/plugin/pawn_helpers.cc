@@ -33,32 +33,34 @@ float ReadFloatFromStack(AMX* amx, int index) {
   return ReadValueFromStack<float>(amx, index);
 }
 
-std::string ReadStringFromStack(AMX* amx, int index) {
-  cell string_index = ReadValueFromStack<cell>(amx, index);
+const std::string& ReadStringFromAmx(AMX* amx, int string_index, std::string* buffer) {
+  buffer->resize(0);
+
   cell* string_address = nullptr;
 
   if (amx_GetAddr(amx, string_index, &string_address) != AMX_ERR_NONE) {
     LOG(ERROR) << "Unable to read the address of a string argument.";
-    return std::string();
+    return *buffer;
   }
 
   int string_length = 0;
   if (amx_StrLen(string_address, &string_length) != AMX_ERR_NONE) {
     LOG(ERROR) << "Unable to read the length of a string argument.";
-    return std::string();
+    return *buffer;
   }
 
   if (!string_length)
-    return std::string();
+    return *buffer;
 
-  std::string string(string_length + 1, '\0');
-  if (amx_GetString(&*string.begin(), string_address, 0, string_length + 1) != AMX_ERR_NONE) {
+  buffer->resize(string_length + 1, '\0');
+
+  if (amx_GetString(&*buffer->begin(), string_address, 0, string_length + 1) != AMX_ERR_NONE) {
     LOG(ERROR) << "Unable to copy the string from the Pawn runtime.";
-    return std::string();
+    return *buffer;
   }
 
-  string.resize(string_length);
-  return string;
+  buffer->resize(string_length);
+  return *buffer;
 }
 
 }  // namespace

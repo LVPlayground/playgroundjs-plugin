@@ -5,6 +5,8 @@
 #include "plugin/native_parameters.h"
 
 #include "base/logging.h"
+#include "plugin/pawn_helpers.h"
+#include "plugin/sdk/amx.h"
 
 namespace plugin {
 
@@ -29,6 +31,13 @@ int32_t NativeParameters::GetInteger(size_t index) const {
 float NativeParameters::GetFloat(size_t index) const {
   CHECK(index < count());
   return *(float*)&params_[index + 1];
+}
+
+const std::string& NativeParameters::GetString(size_t index, std::string* buffer) const {
+  CHECK(index < count());
+  CHECK(buffer);
+
+  return ReadStringFromAmx(amx_, params_[index + 1], buffer);
 }
 
 }  // namespace plugin
