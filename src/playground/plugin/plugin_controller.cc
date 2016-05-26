@@ -21,10 +21,10 @@ namespace plugin {
 namespace {
 
 // File in which the list of to-be-forwarded callbacks are listed.
-const char kCallbackFile[] = "callbacks.txt";
+const char kCallbackFile[] = "data/server/callbacks.txt";
 
 // File in which the list of provided native functions are listed.
-const char kNativesFile[] = "natives.txt";
+const char kNativesFile[] = "data/server/natives.txt";
 
 // Maximum number of bytes to send in a single logprintf() call.
 const size_t kLogLimit = 2048;
