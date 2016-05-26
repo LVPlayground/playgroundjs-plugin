@@ -18,10 +18,6 @@ ProvidedNatives* g_provided_natives = nullptr;
 ProvidedNatives::ProvidedNatives() {
   DCHECK(!g_provided_natives);
   g_provided_natives = this;
-
-  natives_ = {
-    {"TestFunction", Function::TestFunction}
-  };
 }
 
 ProvidedNatives::~ProvidedNatives() {
@@ -33,9 +29,13 @@ ProvidedNatives* ProvidedNatives::GetInstance() {
   return g_provided_natives;
 }
 
+void ProvidedNatives::SetNatives(const std::vector<std::string>& natives) {
+  for (const std::string& native : natives)
+    known_natives_.insert(native);
+}
+
 bool ProvidedNatives::Register(const std::string& name, const std::string& signature, v8::Local<v8::Function> fn) {
-  auto native_iter = natives_.find(name);
-  if (native_iter == natives_.end())
+  if (known_natives_.find(name) == known_natives_.end())
     return false;  // the native named |name| is not known.
 
   StoredNative native;
@@ -63,12 +63,12 @@ bool ProvidedNatives::Register(const std::string& name, const std::string& signa
   native.signature = signature;
   native.reference = v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), fn);
 
-  native_handlers_.insert_or_assign(native_iter->second, native);
+  native_handlers_.insert_or_assign(name, native);
   return true;
 }
 
-int32_t ProvidedNatives::Call(Function fn, plugin::NativeParameters& params) {
-  auto native_iter = native_handlers_.find(fn);
+int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters& params) {
+  auto native_iter = native_handlers_.find(name);
   if (native_iter == native_handlers_.end())
     return 0;  // the native for |fn| is not being listened to.
 

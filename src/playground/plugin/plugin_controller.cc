@@ -9,6 +9,7 @@
 #include "plugin/callback_manager.h"
 #include "plugin/callback_parser.h"
 #include "plugin/native_function_manager.h"
+#include "plugin/native_parser.h"
 #include "plugin/plugin_delegate.h"
 #include "plugin/sdk/plugincommon.h"
 
@@ -21,6 +22,9 @@ namespace {
 
 // File in which the list of to-be-forwarded callbacks are listed.
 const char kCallbackFile[] = "callbacks.txt";
+
+// File in which the list of provided native functions are listed.
+const char kNativesFile[] = "natives.txt";
 
 // Maximum number of bytes to send in a single logprintf() call.
 const size_t kLogLimit = 2048;
@@ -56,12 +60,24 @@ PluginController::PluginController(const base::FilePath& path) {
   plugin_delegate_.reset(new playground::PlaygroundController(this));
   plugin_delegate_->OnCallbacksAvailable(callback_parser_->callbacks());
 
+  // Initialize the native functions that are to be provided by the plugin.
+  native_parser_ = NativeParser::FromFile(path.Append(kNativesFile));
+  if (!native_parser_) {
+    LOG(FATAL) << "Unable to initialize the native parser. Does " << kNativesFile << " exist?";
+    return;
+  }
+
   // If the test runner is driving this invocation, announce availability of the gamemode.
   if (!pAMXFunctions)
     plugin_delegate_->OnGamemodeLoaded();
 }
 
 PluginController::~PluginController() {}
+
+// Gets the table of native AMX functions to be shared with the SA-MP server.
+AMX_NATIVE_INFO* PluginController::GetNativeTable() {
+  return native_parser_->GetNativeTable();
+}
 
 void PluginController::Output(const std::string& message) const {
   // The SA-MP server exposes the logprintf(), but does not document that the maximum length of a

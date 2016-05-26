@@ -9,6 +9,8 @@
 
 #include "plugin/callback_hook.h"
 
+typedef struct tagAMX_NATIVE_INFO AMX_NATIVE_INFO;
+
 namespace base {
 class FilePath;
 }
@@ -20,6 +22,7 @@ struct Callback;
 class CallbackManager;
 class CallbackParser;
 class NativeFunctionManager;
+class NativeParser;
 class PluginDelegate;
 
 // The plugin controller is responsible for any communication with the SA-MP server and the
@@ -29,6 +32,9 @@ class PluginController : public CallbackHook::Delegate {
  public:
   explicit PluginController(const base::FilePath& path);
   ~PluginController() override;
+
+  // Gets the table of native AMX functions to be shared with the SA-MP server.
+  AMX_NATIVE_INFO* GetNativeTable();
 
   // Output |message| as a raw string to the console, and record it in the log.
   void Output(const std::string& message) const;
@@ -69,6 +75,9 @@ class PluginController : public CallbackHook::Delegate {
   // The native function manager is responsible for keeping track of available native functions
   // in the gamemode, as well as providing the ability to invoke them when necessary.
   std::unique_ptr<NativeFunctionManager> native_function_manager_;
+
+  // The native function parser that loads the file of functions supported by the plugin.
+  std::unique_ptr<NativeParser> native_parser_;
 
   // The plugin delegate is the higher-level interface for which we translate SA-MP specific
   // concepts to much more generic ones. No traces of the Pawn runtime should be exposed at

@@ -16,14 +16,6 @@
 #include <sys/resource.h>
 #endif
 
-// -------------------------------------------------------------------------------------------------
-#define DECLARE_NATIVE(name) { #name, n_##name }
-#define DEFINE_NATIVE(name) \
-  cell AMX_NATIVE_CALL n_##name(AMX* amx, cell* params) { \
-    return ProvidedNatives::GetInstance()->Call(ProvidedNatives::Function::##name, plugin::NativeParameters(amx, params)); \
-  }
-// -------------------------------------------------------------------------------------------------
-
 // Logging handler exported by the SA-MP server.
 logprintf_t g_logprintf = nullptr;
 
@@ -49,15 +41,6 @@ class SAMPLogHandler : public logging::LogMessage::LogHandler {
     g_logprintf("[%s][%s:%d] %s", severity, file, line, message);
   }
 };
-
-// Proxy functions towards the ProvidedNatives in JavaScript.
-DEFINE_NATIVE(TestFunction);
-
-AMX_NATIVE_INFO pluginNativeFunctions[] = {
-  DECLARE_NATIVE(TestFunction),
-  { 0, 0 }
-};
-
 
 }  // namespace
 
@@ -97,7 +80,8 @@ PLUGIN_EXPORT void PLUGIN_CALL Unload() {
 }
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx) {
-  return amx_Register(amx, pluginNativeFunctions, -1);
+  DCHECK(g_plugin_controller);
+  return amx_Register(amx, g_plugin_controller->GetNativeTable(), -1);
 }
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX *amx) {

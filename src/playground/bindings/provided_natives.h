@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include <include/v8.h>
 
@@ -20,23 +22,21 @@ namespace bindings {
 // this class. It will maintain references to the JavaScript functions implementing the natives.
 class ProvidedNatives {
 public:
-  // Enumeration containing all the natives that are exposed to Pawn from JavaScript.
-  enum class Function {
-    TestFunction
-  };
-
   ProvidedNatives();
   ~ProvidedNatives();
 
   // Gets the current instance of the ProvidedNatives class.
   static ProvidedNatives* GetInstance();
 
+  // Sets the natives identified by the `natives.txt` file that may be handled by this class.
+  void SetNatives(const std::vector<std::string>& natives);
+
   // Registers the |fn| as handling the native called |name|. Returns whether it could be registered
   // successfully- the Function value associated with |name| will be found automatically.
   bool Register(const std::string& name, const std::string& signature, v8::Local<v8::Function> fn);
 
   // Calls the |fn| in JavaScript given the |parameters|.
-  int32_t Call(Function fn, plugin::NativeParameters& params);
+  int32_t Call(const std::string& name, plugin::NativeParameters& params);
 
 private:
   using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
@@ -44,17 +44,17 @@ private:
   // Buffer to be used for converting Pawn string to JavaScript strings.
   std::string text_buffer_;
 
-  // Mapping of [name] to the [native ID] of the natives known to this class.
-  std::unordered_map<std::string, Function> natives_;
-
+  // Set of the natives which are known to this class.
+  std::unordered_set<std::string> known_natives_;
+  
   struct StoredNative {
     size_t param_count, retval_count;
     std::string name, signature;
     v8PersistentFunctionReference reference;
   };
 
-  // Mapping of [native ID] to the JavaScript function handling the native.
-  std::unordered_map<Function, StoredNative> native_handlers_;
+  // Mapping of function name to the JavaScript function handling the native.
+  std::unordered_map<std::string, StoredNative> native_handlers_;
 
   DISALLOW_COPY_AND_ASSIGN(ProvidedNatives);
 };

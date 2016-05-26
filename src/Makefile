@@ -87,6 +87,7 @@ playground_plugin: playground_plugin_sdk
 	$(CC) $(CFLAGS) playground/plugin/fake_amx.cc -o out/obj/playground_plugin_fake_amx.o
 	$(CC) $(CFLAGS) playground/plugin/native_function_manager.cc -o out/obj/playground_plugin_native_function_manager.o
 	$(CC) $(CFLAGS) playground/plugin/native_parameters.cc -o out/obj/playground_plugin_native_parameters.o
+	$(CC) $(CFLAGS) playground/plugin/native_parser.cc -o out/obj/playground_plugin_native_parser.o
 	$(CC) $(CFLAGS) playground/plugin/pawn_helpers.cc -o out/obj/playground_plugin_pawn_helpers.o
 	$(CC) $(CFLAGS) playground/plugin/plugin.cc -o out/obj/playground_plugin_plugin.o
 	$(CC) $(CFLAGS) playground/plugin/plugin_controller.cc -o out/obj/playground_plugin_plugin_controller.o

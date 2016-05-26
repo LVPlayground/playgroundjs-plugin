@@ -51,6 +51,7 @@
     <ClCompile Include="plugin\fake_amx.cc" />
     <ClCompile Include="plugin\native_function_manager.cc" />
     <ClCompile Include="plugin\native_parameters.cc" />
+    <ClCompile Include="plugin\native_parser.cc" />
     <ClCompile Include="plugin\pawn_helpers.cc" />
     <ClCompile Include="plugin\plugin.cc" />
     <ClCompile Include="plugin\plugin_controller.cc" />
@@ -104,6 +105,7 @@
     <ClInclude Include="plugin\fake_amx.h" />
     <ClInclude Include="plugin\native_function_manager.h" />
     <ClInclude Include="plugin\native_parameters.h" />
+    <ClInclude Include="plugin\native_parser.h" />
     <ClInclude Include="plugin\pawn_helpers.h" />
     <ClInclude Include="plugin\plugin_controller.h" />
     <ClInclude Include="plugin\plugin_delegate.h" />
