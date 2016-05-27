@@ -63,7 +63,7 @@ bool ProvidedNatives::Register(const std::string& name, const std::string& signa
   native.signature = signature;
   native.reference = v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), fn);
 
-  native_handlers_.insert_or_assign(name, native);
+  native_handlers_[name] = native;
   return true;
 }
 
