@@ -69,14 +69,18 @@ bool ProvidedNatives::Register(const std::string& name, const std::string& signa
 
 int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters& params) {
   auto native_iter = native_handlers_.find(name);
-  if (native_iter == native_handlers_.end())
-    return 0;  // the native for |fn| is not being listened to.
+  if (native_iter == native_handlers_.end()) {
+    LOG(WARNING) << "No JavaScript listener has been defined for the " << name << " native.";
+    return 0;
+  }
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
   const StoredNative& native = native_iter->second;
   if (params.count() < native.param_count)
     return 0;  // not enough parameters.
+
+  v8::HandleScope scope(isolate);
 
   std::vector<v8::Local<v8::Value>> arguments(native.param_count);
 

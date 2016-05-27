@@ -56,6 +56,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   // Used for telling the test runner (if it's enabled) that the JavaScript tests have finished.
   InstallFunction(global, "reportTestsFinished", ReportTestsFinishedCallback);
+  InstallFunction(global, "notifyReady", NotifyReadyCallback);
 
   // TODO(Russell): Provide some kind of filesystem module.
   InstallFunction(global, "readFile", ReadFileCallback);

@@ -5,10 +5,12 @@
 #include "bindings/runtime.h"
 
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <sstream>
 #include <streambuf>
 #include <string.h>
+#include <thread>
 #include <unordered_map>
 
 #include <include/libplatform/libplatform.h>
@@ -116,6 +118,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
                  plugin::PluginController* plugin_controller)
     : global_scope_(new GlobalScope(plugin_controller)),
       runtime_delegate_(runtime_delegate),
+      is_ready_(false),
       frame_counter_start_(base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
   V8::InitializeICU();
@@ -182,6 +185,19 @@ void Runtime::Initialize() {
     LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
 
   isolate_->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
+}
+
+void Runtime::SpinUntilReady() {
+  using namespace std::chrono_literals;
+
+  while (!is_ready_) {
+    std::this_thread::sleep_for(500us);
+    OnFrame();
+  }
+}
+
+void Runtime::SetReady() {
+  is_ready_ = true;
 }
 
 void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {

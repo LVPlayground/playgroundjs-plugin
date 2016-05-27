@@ -99,6 +99,11 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
   arguments.GetReturnValue().Set(global->HighResolutionTime());
 }
 
+// void notifyReady();
+void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  Runtime::FromIsolate(arguments.GetIsolate())->SetReady();
+}
+
 // any pawnInvoke(string name[, string signature[, ...]]);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
