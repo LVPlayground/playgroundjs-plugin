@@ -4,9 +4,11 @@
 
 #include "playground/plugin/native_parser.h"
 
+#include <algorithm>
 #include <fstream>
 #include <set>
 #include <streambuf>
+#include <string.h>
 
 #include "base/file_path.h"
 #include "base/logging.h"
@@ -14,6 +16,10 @@
 #include "bindings/provided_natives.h"
 #include "plugin/native_parameters.h"
 #include "plugin/sdk/amx.h"
+
+#if defined(LINUX)
+#define _strdup strdup
+#endif
 
 namespace plugin {
 namespace {
@@ -65,7 +71,9 @@ template <size_t N> struct NativeRegistrar {
     DCHECK(g_native_parser);
 
     constexpr size_t native_index = NativeParser::kMaxNatives - N;
-    return bindings::ProvidedNatives::GetInstance()->Call(g_native_parser->at(native_index), NativeParameters(amx, params));
+
+    NativeParameters parameters(amx, params);
+    return bindings::ProvidedNatives::GetInstance()->Call(g_native_parser->at(native_index), parameters);
   }
 };
 

@@ -188,10 +188,8 @@ void Runtime::Initialize() {
 }
 
 void Runtime::SpinUntilReady() {
-  using namespace std::chrono_literals;
-
   while (!is_ready_) {
-    std::this_thread::sleep_for(500us);
+    std::this_thread::sleep_for(std::chrono::microseconds(500));
     OnFrame();
   }
 }
