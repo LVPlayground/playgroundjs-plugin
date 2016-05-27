@@ -31,6 +31,11 @@ public:
   // Sets the natives identified by the `natives.txt` file that may be handled by this class.
   void SetNatives(const std::vector<std::string>& natives);
 
+  // Returns whether the native |name| has been provided by the JavaScript code.
+  bool IsProvided(const std::string& name) const {
+    return !!known_natives_.count(name);
+  }
+
   // Registers the |fn| as handling the native called |name|. Returns whether it could be registered
   // successfully- the Function value associated with |name| will be found automatically.
   bool Register(const std::string& name, const std::string& signature, v8::Local<v8::Function> fn);

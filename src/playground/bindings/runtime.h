@@ -56,6 +56,7 @@ class Runtime {
   // Spin the JavaScript engine until the ready flag has been set. This may never return in case a
   // problem with the JavaScript code has been found.
   void SpinUntilReady();
+  bool IsReady() const { return is_ready_; }
   void SetReady();
 
   // Returns the average number of frames per second since the last call to this method. The

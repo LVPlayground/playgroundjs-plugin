@@ -7,6 +7,8 @@
 #include <string.h>
 
 #include "base/logging.h"
+#include "bindings/provided_natives.h"
+#include "bindings/runtime.h"
 #include "bindings/utilities.h"
 #include "performance/scoped_trace.h"
 #include "plugin/plugin_controller.h"
@@ -76,7 +78,10 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
     return v8::Local<v8::Value>();
   }
 
-  //performance::ScopedTrace trace(performance::PAWN_NATIVE_FUNCTION_CALL, function);
+  // Issue a warning when pawnInvoke() is used for a native that is not provided by JavaScript
+  // before the tests have finished running, because tests should not rely on the Pawn code.
+  if (!Runtime::FromIsolate(isolate)->IsReady() && !ProvidedNatives::GetInstance()->IsProvided(function))
+    LOG(WARNING) << "Called Pawn function " << function << " whilst running the JavaScript tests.";
 
   // Fast-path for functions that don't take any arguments at all. Immediately invoke the native on
   // the SA-MP server and return whatever it returned to us.
