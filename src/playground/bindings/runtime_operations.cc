@@ -23,7 +23,9 @@ v8::Local<v8::Value> Call(v8::Isolate* isolate,
   // be outputted to the console by the Runtime, but don't stop further event handlers.
   v8::TryCatch try_catch;
 
-  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Context> context = Runtime::FromIsolate(isolate)->context();
+  v8::Context::Scope context_scope(context);
+
   v8::MaybeLocal<v8::Value> result = function->Call(context, context->Global(),
                                                     argument_count, arguments);
 

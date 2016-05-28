@@ -108,7 +108,7 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
       return 0;
     }
 
-    v8::Local<v8::Function> function = v8::Local<v8::Function>::New(isolate, native.reference);
+    v8::Local<v8::Function> function = native.reference.Get(isolate);
     if (function.IsEmpty()) {
       LOG(WARNING) << "[v8] Unable to coerce the persistent funtion to a local for native " << native.name;
       return 0;

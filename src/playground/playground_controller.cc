@@ -72,6 +72,8 @@ void PlaygroundController::OnGamemodeLoaded() {
 
     runtime_->GetGlobalScope()->Finalize();
   }
+
+  runtime_->SpinUntilReady();
 }
 
 void PlaygroundController::OnServerFrame() {
