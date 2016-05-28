@@ -144,6 +144,9 @@
     <ClCompile Include="plugin\native_parser.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base\file_search.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -303,6 +306,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="plugin\native_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\file_search.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

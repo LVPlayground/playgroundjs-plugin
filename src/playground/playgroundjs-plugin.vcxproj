@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base\file_path.cc" />
+    <ClCompile Include="base\file_search.cc" />
     <ClCompile Include="base\logging.cc" />
     <ClCompile Include="base\string_piece.cc" />
     <ClCompile Include="base\time.cc" />
@@ -66,6 +67,7 @@
   <ItemGroup>
     <ClInclude Include="base\export.h" />
     <ClInclude Include="base\file_path.h" />
+    <ClInclude Include="base\file_search.h" />
     <ClInclude Include="base\logging.h" />
     <ClInclude Include="base\macros.h" />
     <ClInclude Include="base\string_piece.h" />
@@ -214,7 +216,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(SolutionDir)v8\include\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include;$(SolutionDir)..\..\mysql-plugin\libmysql\libbinlogevents\export</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(SolutionDir)v8\include\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include;$(SolutionDir)..\..\mysql-plugin\libmysql\libbinlogevents\export;C:\boost_1_61_0</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -226,6 +228,7 @@
       <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\libmysql\RelWithDebInfo\libmysql.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ModuleDefinitionFile>playgroundjs-plugin.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories>C:\boost_1_61_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

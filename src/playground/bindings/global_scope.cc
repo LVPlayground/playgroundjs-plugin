@@ -59,6 +59,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "notifyReady", NotifyReadyCallback);
 
   // TODO(Russell): Provide some kind of filesystem module.
+  InstallFunction(global, "glob", GlobCallback);
   InstallFunction(global, "readFile", ReadFileCallback);
 
   // Install the Console and MySQL interfaces.

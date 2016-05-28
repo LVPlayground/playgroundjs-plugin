@@ -5,6 +5,7 @@
 #include "bindings/global_callbacks.h"
 
 #include "base/file_path.h"
+#include "base/file_search.h"
 #include "base/logging.h"
 #include "bindings/global_scope.h"
 #include "bindings/pawn_invoke.h"
@@ -74,6 +75,48 @@ void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) 
   object->Set(v8String("fps"), v8::Number::New(runtime->isolate(), average_fps));
 
   arguments.GetReturnValue().Set(object);
+}
+
+// sequence<string> glob(string base, string pattern);
+void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 2) {
+    ThrowException("unable to execute glob(): 2 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute glob(): expected a string for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute glob(): expected a string for argument 2.");
+    return;
+  }
+
+  v8::Isolate* isolate = arguments.GetIsolate();
+
+  const base::FilePath base = base::FilePath::CurrentDirectory().Append(toString(arguments[0]));
+  const std::string query = toString(arguments[1]);
+
+  std::vector<std::string> results;
+
+  FileSearchStatus status = FileSearch(base, query, &results);
+  switch (status) {
+  case FileSearchStatus::ERR_INVALID_REGEX:
+    ThrowException("unable to execute glob(): invalid expression: " + query);
+    break;
+  case FileSearchStatus::SUCCESS:
+    {
+      v8::Local<v8::Array> arr = v8::Array::New(isolate, results.size());
+      for (size_t i = 0; i < results.size(); ++i)
+        arr->Set(i, v8String(results[i]));
+
+      arguments.GetReturnValue().Set(arr);
+    }
+    break;
+  }
 }
 
 // boolean hasEventListeners(string type);
