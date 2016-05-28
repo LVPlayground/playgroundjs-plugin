@@ -7,10 +7,11 @@ $(shell [ -d "out/obj/" ] || mkdir -p out/obj)
 $(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 
 V8LIBS=v8/out/ia32.release/obj.target/src
+BOOSTLIBS=/usr/local/boost_1_61_0/stage/lib
 
 C=clang
 CC=clang++
-CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -Iv8/include -I/usr/include/mysql
+CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -Iv8/include -I/usr/local/boost_1_61_0 -I/usr/include/mysql
 CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
@@ -41,6 +42,7 @@ playground_test:
 # Target: /playground/base/
 playground_base:
 	$(CC) $(CFLAGS) playground/base/file_path.cc -o out/obj/playground_base_file_path.o
+	$(CC) $(CFLAGS) playground/base/file_search.cc -o out/obj/playground_base_file_search.o
 	$(CC) $(CFLAGS) playground/base/logging.cc -o out/obj/playground_base_logging.o
 	$(CC) $(CFLAGS) playground/base/string_piece.cc -o out/obj/playground_base_string_piece.o
 	$(CC) $(CFLAGS) playground/base/time.cc -o out/obj/playground_base_time.o
@@ -105,6 +107,8 @@ playground_third_party: playground_third_party_subhook
 # Link playground.so
 link:
 	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
+		$(BOOSTLIBS)/libboost_filesystem.a \
+		$(BOOSTLIBS)/libboost_regex.a \
 		out/obj/*.o \
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
