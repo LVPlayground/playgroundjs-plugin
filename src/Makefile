@@ -9,8 +9,8 @@ $(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 V8LIBS=v8/out/ia32.release/obj.target/src
 BOOSTLIBS=/usr/local/boost_1_61_0/stage/lib
 
-C=clang
-CC=clang++
+C=gcc
+CC=g++
 CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -Iv8/include -I/usr/local/boost_1_61_0 -I/usr/include/mysql
 CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
@@ -107,9 +107,10 @@ playground_third_party: playground_third_party_subhook
 # Link playground.so
 link:
 	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
+		out/obj/*.o \
 		$(BOOSTLIBS)/libboost_filesystem.a \
 		$(BOOSTLIBS)/libboost_regex.a \
-		out/obj/*.o \
+		$(BOOSTLIBS)/libboost_system.a \
 		$(V8LIBS)/libv8_libplatform.a \
 		$(V8LIBS)/libv8_libbase.a \
 		$(V8LIBS)/libv8_nosnapshot.a \
