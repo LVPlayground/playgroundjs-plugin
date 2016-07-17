@@ -12,6 +12,7 @@
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 #include "performance/trace_manager.h"
+#include "plugin/sdk/plugincommon.h"
 
 #include <include/v8.h>
 #include <string>
@@ -162,6 +163,11 @@ void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 // void provideNative(string name, string parameters, function handler);
 void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+
+  if (!pAMXFunctions) {
+    ThrowException("unable to register natives in the test runner.");
+    return;
+  }
 
   if (arguments.Length() != 3) {
     ThrowException("unable to execute provideNative(): 3 argument required, but only " +
