@@ -30,6 +30,7 @@
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer.cc" />
+    <ClCompile Include="bindings\modules\streamer\streamer_test.cc" />
     <ClCompile Include="bindings\modules\streamer_module.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_client.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_host.cc" />

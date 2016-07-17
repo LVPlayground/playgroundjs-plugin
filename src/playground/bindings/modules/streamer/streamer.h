@@ -44,6 +44,9 @@ private:
   // Type representing a 3D point in the tree. Must be Boost indexable.
   using Point = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;
 
+  // Type representing a 3D box used to define a bounding box.
+  using Box = boost::geometry::model::box<Point>;
+
   // Parameters of the tree that will be used to represent the streaming entities. We use an R* tree
   // with a maximum node count of sixteen. Insertion time is sacrificed for query time.
   using TreeValue = std::pair<Point, uint32_t>;

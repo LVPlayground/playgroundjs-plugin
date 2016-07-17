@@ -57,8 +57,12 @@ const std::vector<uint32_t>& Streamer::Stream(double x, double y, double z) cons
 
   EntityIdBackInserter inserter(results_);
 
-  // TODO(Russell): Consider the |stream_distance_| when querying the tree.
-  tree_.query(boost::geometry::index::nearest(Point(x, y, z), max_visible_),
+  Point point(x, y, z);
+
+  tree_.query(boost::geometry::index::nearest(point, max_visible_) &&
+              boost::geometry::index::satisfies([&](const TreeValue& value) {
+                  return boost::geometry::distance(value.first, point) < stream_distance_;
+              }),
               boost::make_function_output_iterator(inserter));
 
   return results_;
