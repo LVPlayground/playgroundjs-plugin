@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "base/macros.h"
 #include "bindings/modules/streamer/streamer.h"
+#include "bindings/promise.h"
 #include "bindings/utilities.h"
 
 namespace bindings {
@@ -14,29 +15,12 @@ namespace bindings {
 namespace {
 
 // Bindings class bridging between the JavaScript streamer object and the 
-class StreamerBindings {
-public:
-  StreamerBindings(uint32_t max_visible, double stream_distance)
-      : streamer_(max_visible, stream_distance) {}
-  StreamerBindings();
+class StreamerBindings : public streamer::Streamer {
+ public:
+   StreamerBindings(uint32_t max_visible, double stream_distance)
+       : Streamer(max_visible, stream_distance) {}
 
-  inline void Add(uint32_t id, double x, double y, double z) {
-    streamer_.Add(id, x, y, z);
-  }
-
-  inline void Delete(uint32_t id) {
-    streamer_.Delete(id);
-  }
-
-  inline void Clear() {
-    streamer_.Clear();
-  }
-
-  void Stream(double x, double y, double z) {}
-
-  size_t GetSize() const {
-    return streamer_.size();
-  }
+   ~StreamerBindings() override {}
 
   // Installs a weak reference to |object|, which is the JavaScript object that owns this instance.
   // A callback will be used to determine when it has been collected, so we can free up resources.
@@ -45,14 +29,12 @@ public:
     object_.SetWeak(this, OnGarbageCollected, v8::WeakCallbackType::kParameter);
   }
 
-private:
+ private:
   // Called when a Streamer instance has been garbage collected by the v8 engine.
   static void OnGarbageCollected(const v8::WeakCallbackInfo<StreamerBindings>& data) {
     StreamerBindings* instance = data.GetParameter();
     delete instance;
   }
-
-  streamer::Streamer streamer_;
 
   v8::Persistent<v8::Object> object_;
 
@@ -198,7 +180,21 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  // TODO(Russell): Implement bindings for the |stream| method.
+  Promise promise;
+  
+  const auto& results = instance->Stream(arguments[0]->NumberValue(),  // x
+                                         arguments[1]->NumberValue(),  // y
+                                         arguments[2]->NumberValue()); // z
+
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::Local<v8::Array> id_array = v8::Array::New(isolate, results.size());
+
+  for (size_t i = 0; i < results.size(); ++i)
+    id_array->Set(i, v8::Number::New(isolate, static_cast<double>(results[i])));
+
+  promise.Resolve(id_array);
+
+  arguments.GetReturnValue().Set(promise.GetPromise());
 }
 
 // Streamer.prototype.size
@@ -207,7 +203,7 @@ void StreamerSizeGetter(v8::Local<v8::String> name, const v8::PropertyCallbackIn
   if (!instance)
     return;
 
-  info.GetReturnValue().Set(instance->GetSize());
+  info.GetReturnValue().Set(instance->size());
 }
 
 }  // namespace

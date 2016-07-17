@@ -52,6 +52,9 @@ template<> inline bool Promise::Reject(v8::Local<v8::Value> value) { return Reje
 template<> inline bool Promise::Resolve(v8::Local<v8::Object> value) { return ResolveInternal(value); }
 template<> inline bool Promise::Reject(v8::Local<v8::Object> value) { return RejectInternal(value); }
 
+template<> inline bool Promise::Resolve(v8::Local<v8::Array> value) { return ResolveInternal(value); }
+template<> inline bool Promise::Reject(v8::Local<v8::Array> value) { return RejectInternal(value); }
+
 template<> inline bool Promise::Resolve(bool value) {
   return ResolveInternal(v8::Boolean::New(v8::Isolate::GetCurrent(), value));
 }

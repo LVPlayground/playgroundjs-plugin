@@ -22,7 +22,7 @@ namespace streamer {
 class Streamer {
 public:
   Streamer(uint32_t max_visible, double stream_distance);
-  ~Streamer();
+  virtual ~Streamer();
 
   // Adds the entity identified by |id| to the tree, with the given parameters.
   void Add(uint32_t id, double x, double y, double z);
