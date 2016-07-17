@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    f43aa0bc6c38d23717b09bd0339f95e5a6afae5b
-    "[turbofan] Correctly call ArrayNoArgumentConstructor stub from TF code"
-    Monday, May 23th, 2016
+    cc840efd18471d4f4fce92180082ec1f9e62aa65
+    "Update V8 DEPS."
+    Saturday, July 16th, 2016
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -18,16 +18,15 @@ If you want to change the plugin itself, or update the version of v8 that's bein
 ## Common steps
 The following preparatory steps have to be executed on all platforms. They check out v8 including all the dependencies specific to the platform.
 
-    $ git submodule update
     $ cd src/v8
+    $ git pull --rebase
+    $ git checkout origin/master
     $ gclient sync
 
 ## Building on Windows
 On Windows, run the following command to create the MSVC project files:
 
-    $ $env:DEPOT_TOOLS_WIN_TOOLCHAIN = 0
-    $ $env:GYP_MSVS_VERSION = "2015"
-    $ $env:GYP_MSVS_OVERRIDE_PATH = "C:\Program Files (x86)\Microsoft Visual Studio 14.0"
+    $ $env:GYP_GENERATORS = "msvs,ninja"
     $ python gypfiles/gyp_v8 -Dtarget_arch=ia32 -Dcomponent=shared_library -Dv8_use_snapshot=0 -Dv8_use_external_startup_data=0 -Dv8_enable_i18n_support=0
 
 Then open `src\v8\gypfiles\all.sln` in the Visual Studio version you're using to build the plugin, and build the `all` target in release mode for x86.
