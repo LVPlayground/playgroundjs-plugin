@@ -246,9 +246,16 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   unsigned int total_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
   unsigned int failed_tests = static_cast<unsigned int>(arguments[1]->ToNumber()->IntegerValue());
 
-  Runtime::Delegate* runtime_delegate = Runtime::FromIsolate(arguments.GetIsolate())->delegate();
+  auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  Runtime::Delegate* runtime_delegate = runtime->delegate();
   if (runtime_delegate)
     runtime_delegate->OnScriptTestsDone(total_tests, failed_tests);
+
+  if (!pAMXFunctions) {
+    runtime->SetReady();  // this stops the plugin from spinning
+    ThrowException("The Test Runner is done- all's good, thanks for using this tool!");
+  }
 }
 
 // object requireImpl(string filename);
