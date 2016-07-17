@@ -56,6 +56,12 @@ void UnimplementedCallPublicFunction(char* function_name) {
   LOG(ERROR) << "Unimplemented method. Cannot invoke " << function_name << ".";
 }
 
+void WaitForInput() {
+#ifndef LINUX
+  system("PAUSE");
+#endif
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -64,8 +70,10 @@ int main(int argc, char** argv) {
       playground::kPlaygroundVersionBuild, playground::kV8VersionMajor,
       playground::kV8VersionMinor, playground::kV8VersionBuild);
 
-  if (!playground::RunPlaygroundTests(argc, argv))
+  if (!playground::RunPlaygroundTests(argc, argv)) {
+    WaitForInput();
     return 1;
+  }
 
   // Add a new line to separate the JavaScript tests from the native tests.
   putc('\n', stdout);
