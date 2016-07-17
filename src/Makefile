@@ -56,8 +56,13 @@ playground_bindings_mysql:
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/query_result.cc -o out/obj/playground_bindings_modules_mysql_query_result.o
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/thread.cc -o out/obj/playground_bindings_modules_mysql_thread.o
 
+# Target: /playground/bindings/modules/streamer/
+playground_bindings_streamer:
+	$(CC) $(CFLAGS) playground/bindings/modules/streamer_module.cc -o out/obj/playground_bindings_modules_streamer_module.o
+	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer.cc -o out/obj/playground_bindings_modules_streamer_streamer.o
+
 # Target: /playground/bindings/
-playground_bindings: playground_bindings_mysql
+playground_bindings: playground_bindings_mysql playground_bindings_streamer
 	$(CC) $(CFLAGS) playground/bindings/console.cc -o out/obj/playground_bindings_console.o
 	$(CC) $(CFLAGS) playground/bindings/event.cc -o out/obj/playground_bindings_event.o
 	$(CC) $(CFLAGS) playground/bindings/exception_handler.cc -o out/obj/playground_bindings_exception_handler.o
