@@ -13,6 +13,7 @@
 #include "bindings/console.h"
 #include "bindings/exception_handler.h"
 #include "bindings/global_callbacks.h"
+#include "bindings/modules/streamer_module.h"
 #include "bindings/modules/mysql_module.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/promise.h"
@@ -28,6 +29,7 @@ GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
     : finalized_(false),
       console_(new Console),
       pawn_invoke_(new PawnInvoke(plugin_controller)),
+      streamer_module_(new StreamerModule),
       mysql_module_(new MySQLModule) {}
 
 GlobalScope::~GlobalScope() {}
@@ -64,7 +66,9 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   // Install the Console and MySQL interfaces.
   console_->InstallPrototype(global);
+
   mysql_module_->InstallPrototypes(global);
+  streamer_module_->InstallPrototypes(global);
 
   // Install the interfaces associated with each of the dynamically created events.
   for (const auto& pair : events_)

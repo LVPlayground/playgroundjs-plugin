@@ -27,6 +27,7 @@ class Event;
 class MySQLModule;
 class PawnInvoke;
 class Runtime;
+class StreamerModule;
 
 // The global scope object represents and owns the global scope of the Runtime instance that owns
 // it. It will own the global objects and events, instances of said objects and event listeners.
@@ -116,6 +117,9 @@ class GlobalScope {
 
   // The PawnInvoke object, which enables authors to call Pawn native functions.
   std::unique_ptr<PawnInvoke> pawn_invoke_;
+
+  // The Streamer module, which enables lower-level streaming operations from JavaScript.
+  std::unique_ptr<StreamerModule> streamer_module_;
 
   // The MySQL module, which grants access to MySQL connections from JavaScript.
   std::unique_ptr<MySQLModule> mysql_module_;

@@ -147,6 +147,12 @@
     <ClCompile Include="base\file_search.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\modules\streamer_module.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\modules\streamer\streamer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -309,6 +315,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="base\file_search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\streamer_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\streamer\streamer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\streamer\streamer_delegate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -29,6 +29,8 @@
     <ClCompile Include="bindings\global_callbacks.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
+    <ClCompile Include="bindings\modules\streamer\streamer.cc" />
+    <ClCompile Include="bindings\modules\streamer_module.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_client.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_host.cc" />
     <ClCompile Include="bindings\modules\mysql\mutex.cc" />
@@ -78,6 +80,9 @@
     <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />
+    <ClInclude Include="bindings\modules\streamer\streamer.h" />
+    <ClInclude Include="bindings\modules\streamer\streamer_delegate.h" />
+    <ClInclude Include="bindings\modules\streamer_module.h" />
     <ClInclude Include="bindings\modules\mysql\connection_client.h" />
     <ClInclude Include="bindings\modules\mysql\connection_delegate.h" />
     <ClInclude Include="bindings\modules\mysql\connection_host.h" />
@@ -218,7 +223,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(SolutionDir)v8\include\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include;$(SolutionDir)..\..\mysql-plugin\libmysql\libbinlogevents\export;C:\boost_1_61_0</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
-      <PreprocessorDefinitions>_WINDLL;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDLL;NDEBUG;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;WIN32;PLAYGROUND_IMPLEMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
