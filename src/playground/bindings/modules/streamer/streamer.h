@@ -7,6 +7,7 @@
 
 #include "base/macros.h"
 
+#include <iostream>
 #include <boost/geometry/index/rtree.hpp>
 #include <memory>
 #include <stdint.h>
