@@ -139,7 +139,7 @@ class GlobalScope {
 
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
   boost::asio::io_service logstash_io_service_;
-  boost::asio::local::stream_protocol logstash_socket_;
+  boost::asio::local::stream_protocol::socket logstash_socket_;
 
   std::string logstash_socket_endpoint_;
 #endif

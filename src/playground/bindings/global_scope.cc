@@ -193,7 +193,7 @@ void GlobalScope::logstash(const std::string& message, const std::string& endpoi
   }
 
   if (logstash_socket_.is_open())
-    boost::asio::write(logstash_socket_, message);
+    boost::asio::write(logstash_socket_, boost::asio::buffer(message));
 #endif
 }
 
