@@ -30,7 +30,12 @@ GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
       console_(new Console),
       pawn_invoke_(new PawnInvoke(plugin_controller)),
       streamer_module_(new StreamerModule),
-      mysql_module_(new MySQLModule) {}
+      mysql_module_(new MySQLModule)
+#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+    , logstash_socket_(logstash_io_service_)
+#endif
+{
+}
 
 GlobalScope::~GlobalScope() {}
 
@@ -63,6 +68,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   // TODO(Russell): Provide some kind of filesystem module.
   InstallFunction(global, "glob", GlobCallback);
   InstallFunction(global, "readFile", ReadFileCallback);
+  InstallFunction(global, "logstash", LogstashCallback);
 
   // Install the Console and MySQL interfaces.
   console_->InstallPrototype(global);
@@ -171,6 +177,24 @@ void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Fun
     else
       event_listener_iter++;
   }
+}
+
+void GlobalScope::logstash(const std::string& message, const std::string& endpoint) {
+#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+  if (!endpoint.empty() && (logstash_socket_endpoint_ != endpoint || !logstash_socket_.is_open())) {
+    logstash_socket_endpoint_ = endpoint;
+
+    if (logstash_socket_.is_open())
+      logstash_socket_.close();
+
+    logstash_socket_.connect(boost::asio::local::stream_protocol::endpoint(endpoint));
+    if (!logstash_socket_.is_open())
+      LOG(WARNING) << "Unable to connect to the logstash daemon.";
+  }
+
+  if (logstash_socket_.is_open())
+    boost::asio::write(logstash_socket_, message);
+#endif
 }
 
 std::string GlobalScope::ReadFile(const std::string& filename) const {
