@@ -181,19 +181,26 @@ void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Fun
 
 void GlobalScope::logstash(const std::string& message, const std::string& endpoint) {
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-  if (!endpoint.empty() && (logstash_socket_endpoint_ != endpoint || !logstash_socket_.is_open())) {
-    logstash_socket_endpoint_ = endpoint;
+  try {
+    if (!endpoint.empty() && (logstash_socket_endpoint_ != endpoint || !logstash_socket_.is_open())) {
+      logstash_socket_endpoint_ = endpoint;
+
+      if (logstash_socket_.is_open())
+        logstash_socket_.close();
+
+      logstash_socket_.connect(boost::asio::local::stream_protocol::endpoint(endpoint));
+      if (!logstash_socket_.is_open())
+        LOG(WARNING) << "Unable to connect to the logstash daemon.";
+    }
 
     if (logstash_socket_.is_open())
-      logstash_socket_.close();
-
-    logstash_socket_.connect(boost::asio::local::stream_protocol::endpoint(endpoint));
-    if (!logstash_socket_.is_open())
-      LOG(WARNING) << "Unable to connect to the logstash daemon.";
+      boost::asio::write(logstash_socket_, boost::asio::buffer(message));
+  } catch (std::exception& e) {
+    LOG(WARNING) << "Exception thrown: " << e.what() << std::eol;
   }
-
-  if (logstash_socket_.is_open())
-    boost::asio::write(logstash_socket_, boost::asio::buffer(message));
+#else
+  if (!endpoint.empty())
+    LOG(INFO) << "logstash() is not available on Windows, ignoring socket update.";
 #endif
 }
 
