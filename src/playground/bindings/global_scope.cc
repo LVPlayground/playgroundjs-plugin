@@ -196,7 +196,7 @@ void GlobalScope::logstash(const std::string& message, const std::string& endpoi
     if (logstash_socket_.is_open())
       boost::asio::write(logstash_socket_, boost::asio::buffer(message));
   } catch (std::exception& e) {
-    LOG(WARNING) << "Exception thrown: " << e.what() << std::endl;
+    LOG(WARNING) << "Exception thrown: " << e.what();
   }
 #else
   if (!endpoint.empty())
