@@ -18,20 +18,14 @@ Object.defineProperty(self, 'require', {
   writable: false,
   value: (() => {
     let _script_cache = {};
-    let _script_mappings = {};
 
     /** require(script) **/
     let _function = (script) => {
-      if (_script_mappings.hasOwnProperty(script))
-        script = _script_mappings[script];
       if (!_script_cache.hasOwnProperty(script))
         _script_cache[script] = requireImpl(script);
       return _script_cache[script];
-    };
+    }
 
-    /** require.map(source, destination) **/
-    _function.map = (script, destination) =>
-      _script_mappings[script] = destination;
     return _function;
   })()
 });
