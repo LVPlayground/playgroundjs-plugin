@@ -20,11 +20,19 @@ Object.defineProperty(self, 'require', {
     let _script_cache = {};
 
     /** require(script) **/
-    let _function = (script) => {
+    let _function = script => {
       if (!_script_cache.hasOwnProperty(script))
         _script_cache[script] = requireImpl(script);
       return _script_cache[script];
-    }
+    };
+
+    /** require.clear(prefix) **/
+    _function.clear = prefix => {
+      Object.keys(_script_cache).forEach(script => {
+        if (script.startsWith(prefix))
+          delete _script_cache[script];
+      });
+    };
 
     return _function;
   })()
