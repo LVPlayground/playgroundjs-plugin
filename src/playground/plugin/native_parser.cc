@@ -48,7 +48,8 @@ base::StringPiece Trim(const base::StringPiece& input) {
 // Returns whether |character| is valid for use in a native function name.
 bool IsValidCharacter(char character) {
   return (character >= 'A' && character <= 'Z') ||
-         (character >= 'a' && character <= 'z') || character == '_';
+         (character >= 'a' && character <= 'z') ||
+         (character >= '0' && character <= '9') || character == '_';
 }
 
 // Registers |N| native functions, creates |N| functions that will automagically forward the call
