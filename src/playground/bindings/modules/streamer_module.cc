@@ -188,9 +188,9 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   Promise promise;
   
   const auto& results = instance->Stream(arguments[0]->Uint32Value(),  // visible
-                                         arguments[0]->NumberValue(),  // x
-                                         arguments[1]->NumberValue(),  // y
-                                         arguments[2]->NumberValue()); // z
+                                         arguments[1]->NumberValue(),  // x
+                                         arguments[2]->NumberValue(),  // y
+                                         arguments[3]->NumberValue()); // z
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   v8::Local<v8::Array> id_array = v8::Array::New(isolate, results.size());
