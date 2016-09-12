@@ -179,6 +179,7 @@ void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Fun
   }
 }
 
+bool is_logstash_on_windows_info_message_shown(false);
 void GlobalScope::logstash(const std::string& message, const std::string& endpoint) {
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
   try {
@@ -199,8 +200,10 @@ void GlobalScope::logstash(const std::string& message, const std::string& endpoi
     LOG(WARNING) << "Exception thrown: " << e.what();
   }
 #else
-  if (!endpoint.empty())
+  if (!endpoint.empty() && !is_logstash_on_windows_info_message_shown) {
     LOG(INFO) << "logstash() is not available on Windows, ignoring socket update.";
+    is_logstash_on_windows_info_message_shown(true);
+  }
 #endif
 }
 
