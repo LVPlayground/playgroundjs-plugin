@@ -144,6 +144,8 @@ class GlobalScope {
   std::string logstash_socket_endpoint_;
 #endif
 
+  bool has_shown_warning_ = false;
+
   DISALLOW_COPY_AND_ASSIGN(GlobalScope);
 };
 

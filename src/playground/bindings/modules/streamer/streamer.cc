@@ -30,8 +30,7 @@ private:
 }  // namespace
 
 Streamer::Streamer(uint32_t max_visible, double stream_distance)
-    : max_visible_(max_visible),
-      stream_distance_(stream_distance) {
+    : stream_distance_(stream_distance) {
   results_.reserve(max_visible);
 }
 
@@ -52,14 +51,14 @@ void Streamer::Add(uint32_t id, double x, double y, double z) {
   entities_.insert(std::make_pair(id, position));
 }
 
-const std::vector<uint32_t>& Streamer::Stream(double x, double y, double z) const {
+const std::vector<uint32_t>& Streamer::Stream(uint32_t visible, double x, double y, double z) const {
   results_.clear();
 
   EntityIdBackInserter inserter(results_);
 
   Point point(x, y, z);
 
-  tree_.query(boost::geometry::index::nearest(point, max_visible_) &&
+  tree_.query(boost::geometry::index::nearest(point, visible) &&
               boost::geometry::index::satisfies([&](const TreeValue& value) {
                   return boost::geometry::distance(value.first, point) < stream_distance_;
               }),

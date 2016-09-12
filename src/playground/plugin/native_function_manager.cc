@@ -59,7 +59,7 @@ bool NativeFunctionManager::Install() {
 int NativeFunctionManager::OnRegister(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number) {
   if (nativelist != nullptr) {
     for (size_t index = 0; ; ++index) {
-      if (number > 0 && index >= number)
+      if (number > 0 && static_cast<int>(index) >= number)
         break;
 
       if (nativelist[index].func == nullptr || nativelist[index].name == nullptr)

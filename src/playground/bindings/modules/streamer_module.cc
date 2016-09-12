@@ -153,20 +153,20 @@ void StreamerClearCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
   instance->Clear();
 }
 
-// Promise<sequence<unsigned>> Streamer.prototype.stream(double x, double y, double z)
+// Promise<sequence<unsigned>> Streamer.prototype.stream(number visible, double x, double y, double z)
 void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
   if (!instance)
     return;
 
-  if (arguments.Length() < 3) {
-    ThrowException("unable to call stream(): 3 argument required, but only " +
+  if (arguments.Length() < 4) {
+    ThrowException("unable to call stream(): 4 argument required, but only " +
                    std::to_string(arguments.Length()) + " provided.");
     return;
   }
 
-  if (!arguments[0]->IsNumber()) {
-    ThrowException("unable to call add(): expected a number for the first argument.");
+  if (!arguments[0]->IsNumber() || !arguments[0]->IsUint32()) {
+    ThrowException("unable to call add(): expected a positive integer for the first argument.");
     return;
   }
 
@@ -180,9 +180,15 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
+  if (!arguments[3]->IsNumber()) {
+    ThrowException("unable to call add(): expected a number for the first argument.");
+    return;
+  }
+
   Promise promise;
   
-  const auto& results = instance->Stream(arguments[0]->NumberValue(),  // x
+  const auto& results = instance->Stream(arguments[0]->Uint32Value(),  // visible
+                                         arguments[0]->NumberValue(),  // x
                                          arguments[1]->NumberValue(),  // y
                                          arguments[2]->NumberValue()); // z
 

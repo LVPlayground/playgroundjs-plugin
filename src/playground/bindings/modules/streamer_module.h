@@ -18,7 +18,7 @@ namespace bindings {
 //     void add(unsigned id, double x, double y, double z);
 //     void delete(unsigned id);
 //
-//     Promise<sequence<unsigned>> stream(double x, double y, double z);
+//     Promise<sequence<unsigned>> stream(number visible, double x, double y, double z);
 //
 //     void clear();
 //

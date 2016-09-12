@@ -54,7 +54,7 @@ TEST_F(StreamerTest, HonoursMaxVisible) {
   CreateStreamer(TEST_KNN_VISIBLE, TEST_STREAM_DISTANCE);
   CreateRandomObjects(TEST_OBJECT_COUNT);
 
-  auto results = streamer_->Stream(RandomX(), RandomY(), RandomZ());
+  auto results = streamer_->Stream(TEST_KNN_VISIBLE, RandomX(), RandomY(), RandomZ());
   EXPECT_LE(results.size(), TEST_KNN_VISIBLE);
 }
 
@@ -78,7 +78,7 @@ TEST_F(StreamerTest, HonoursStreamDistance) {
   streamer_->Add(7, 150, 200, 0);
   streamer_->Add(8, 200, 200, 0);
 
-  auto results = streamer_->Stream(150, 150, 0);
+  auto results = streamer_->Stream(TEST_KNN_VISIBLE, 150, 150, 0);
   ASSERT_EQ(results.size(), 5);
 }
 
@@ -105,7 +105,7 @@ TEST_F(StreamerTest, HundredThousandObjectPerformance) {
   double query_start = base::monotonicallyIncreasingTime();
 
   for (size_t i = 0; i < TEST_KNN_QUERIES; ++i) {
-    query_results += streamer_->Stream(RandomX(), RandomY(), RandomZ()).size();
+    query_results += streamer_->Stream(TEST_KNN_VISIBLE, RandomX(), RandomY(), RandomZ()).size();
   }
 
   double query_end = base::monotonicallyIncreasingTime();

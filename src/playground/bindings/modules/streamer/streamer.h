@@ -29,7 +29,7 @@ public:
 
   // Streams the entities stored in this streamer, returning the |max_visible| closest entities
   // to the given point that are within |stream_distance|.
-  const std::vector<uint32_t>& Stream(double x, double y, double z) const;
+  const std::vector<uint32_t>& Stream(uint32_t visible, double x, double y, double z) const;
 
   // Deletes the entity identified by |id| from the tree.
   void Delete(uint32_t id);
@@ -52,9 +52,6 @@ private:
   using TreeValue = std::pair<Point, uint32_t>;
   using TreeType = boost::geometry::index::rstar<16>;
   using Tree = boost::geometry::index::rtree<TreeValue, TreeType>;
-
-  // The maximum number of visible entities for a given state.
-  uint32_t max_visible_;
 
   // The maximum distance from the streaming point selected entities may be.
   double stream_distance_;
