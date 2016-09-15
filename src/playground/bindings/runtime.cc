@@ -40,11 +40,13 @@ const char kRuntimeFlags[] =
     "--expose_gc "
     "--use_strict "
     "--harmony "
-    "--harmony_async_await "
-    "--harmony_array_prototype_values "
-    "--harmony_for_in "
-    "--harmony_function_sent "
-    "--harmony_restrictive_generators";
+    "--harmony_array_prototype_values "     // in progress
+    "--harmony_function_sent"               // in progress
+    "--harmony_for_in "                     // in progress
+    "--harmony_function_sent "              // in progress
+    "--harmony_restrictive_generators "     // in progress
+    "--harmony_regexp_named_captures "      // in progress
+    "--harmony_trailing_commas";            // in progress
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {

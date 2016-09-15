@@ -231,7 +231,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\libmysql\RelWithDebInfo\libmysql.lib;WINMM.LIB;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\build\Release\lib\v8.lib;$(SolutionDir)v8\build\Release\lib\v8_libbase.lib;$(SolutionDir)v8\build\Release\lib\v8_libplatform.lib;$(SolutionDir)v8\build\Release\lib\v8_nosnapshot.lib;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\libmysql\RelWithDebInfo\libmysql.lib;WINMM.LIB;Dbghelp.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ModuleDefinitionFile>playgroundjs-plugin.def</ModuleDefinitionFile>
       <AdditionalLibraryDirectories>C:\boost_1_61_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
