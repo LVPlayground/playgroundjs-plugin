@@ -27,6 +27,10 @@ public:
   // Adds the entity identified by |id| to the tree, with the given parameters.
   void Add(uint32_t id, double x, double y, double z);
 
+  // Optimises the streamer by recreating it using the packing algorithm. Should be done after
+  // inserting any substantial amount of entities randomly throughout the tree.
+  void Optimise();
+
   // Streams the entities stored in this streamer, returning the |max_visible| closest entities
   // to the given point that are within |stream_distance|.
   const std::vector<uint32_t>& Stream(uint32_t visible, double x, double y, double z) const;
@@ -44,13 +48,10 @@ private:
   // Type representing a 3D point in the tree. Must be Boost indexable.
   using Point = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;
 
-  // Type representing a 3D box used to define a bounding box.
-  using Box = boost::geometry::model::box<Point>;
-
   // Parameters of the tree that will be used to represent the streaming entities. We use an R* tree
   // with a maximum node count of sixteen. Insertion time is sacrificed for query time.
   using TreeValue = std::pair<Point, uint32_t>;
-  using TreeType = boost::geometry::index::rstar<16>;
+  using TreeType = boost::geometry::index::rstar<32, 16>;
   using Tree = boost::geometry::index::rtree<TreeValue, TreeType>;
 
   // The maximum distance from the streaming point selected entities may be.

@@ -15,8 +15,8 @@ namespace {
 // Iterator functor that inserts the integral Id of an entity in the output container.
 class EntityIdBackInserter {
 public:
-  explicit EntityIdBackInserter(std::vector<uint32_t>& container)
-      : container_(&container) {}
+  explicit EntityIdBackInserter(std::vector<uint32_t>* container)
+      : container_(container) {}
 
   template <typename Value>
   void operator()(Value const& pair) {
@@ -51,10 +51,15 @@ void Streamer::Add(uint32_t id, double x, double y, double z) {
   entities_.insert(std::make_pair(id, position));
 }
 
+void Streamer::Optimise() {
+  Tree repackaged_tree(tree_.begin(), tree_.end());
+  tree_.swap(repackaged_tree);
+}
+
 const std::vector<uint32_t>& Streamer::Stream(uint32_t visible, double x, double y, double z) const {
   results_.clear();
 
-  EntityIdBackInserter inserter(results_);
+  EntityIdBackInserter inserter(&results_);
 
   Point point(x, y, z);
 

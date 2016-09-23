@@ -20,6 +20,7 @@ namespace bindings {
 //
 //     Promise<sequence<unsigned>> stream(number visible, double x, double y, double z);
 //
+//     void optimise();
 //     void clear();
 //
 //     readonly attribute unsigned size;
