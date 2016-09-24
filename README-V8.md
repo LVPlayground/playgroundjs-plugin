@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    65aa596f1e6ac9df45291cde0e7dd107bf2b3ede
-    "Only pass the outer scope info with ParseInfo"
-    Thursday, September 15th, 2016
+    13b8a1238b4d08d91938b3fea6bc25a34958ac78
+    "Move async/await JS support code out of experimental natives"
+    Saturday, September 24th, 2016
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
