@@ -115,6 +115,8 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
     }
 
     v8::Local<v8::Value> value = bindings::Call(isolate, function, arguments.data(), arguments.size());
+    if (value.IsEmpty())
+      value = v8::Number::New(isolate, 0 /* default value */);
 
     if (native.retval_count == 0 && value->IsInt32()) {
       return_value = value->Int32Value();
@@ -132,6 +134,14 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
           continue;
 
         v8::Local<v8::Value> retval = arr->Get(retval_index++);
+        if (retval.IsEmpty()) {
+          LOG(WARNING) << "[v8] Unable to read return values of " << native.name << ": parameter "
+                       << i << " not set.";
+
+          // Always resort to setting the default value to whatever Pawn expects.
+          retval = v8::Null(isolate);
+        }
+
         switch (native.signature[i]) {
         case 'F':
           if (retval->IsNumber())
