@@ -5,6 +5,7 @@
 #include "plugin/plugin_controller.h"
 
 #include "base/file_path.h"
+#include "base/time.h"
 #include "playground_controller.h"
 #include "plugin/callback_manager.h"
 #include "plugin/callback_parser.h"
@@ -28,6 +29,9 @@ const char kNativesFile[] = "data/server/natives.txt";
 
 // Maximum number of bytes to send in a single logprintf() call.
 const size_t kLogLimit = 2048;
+
+// Number of milliseconds of no updates after which a player is considered to be idle.
+const size_t kIdleThresholdMs = 1000;
 
 }  // namespace
 
@@ -93,6 +97,17 @@ void PluginController::Output(const std::string& message) const {
     g_logprintf("%s", message.substr(offset, kLogLimit).c_str());
 }
 
+bool PluginController::IsPlayerMinimized(int player_id) const {
+  const auto iter = player_update_time_.find(player_id);
+  if (iter == player_update_time_.end())
+    return true;  // no updates have ever been received for the |player_id|
+
+  const double last_update = iter->second;
+  const double current_time = base::monotonicallyIncreasingTime();
+
+  return (current_time - last_update) >= kIdleThresholdMs;
+}
+
 bool PluginController::FunctionExists(const std::string& function_name) const {
   return native_function_manager_->FunctionExists(function_name);
 }
@@ -117,6 +132,10 @@ void PluginController::OnGamemodeChanged(AMX* gamemode) {
   callback_manager_->OnGamemodeChanged(gamemode);
   if (gamemode)
     plugin_delegate_->OnGamemodeLoaded();
+}
+
+void PluginController::OnPlayerUpdate(int player_id) {
+  player_update_time_[player_id] = base::monotonicallyIncreasingTime();
 }
 
 bool PluginController::OnCallbackIntercepted(const std::string& callback,

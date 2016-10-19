@@ -33,6 +33,9 @@ class CallbackHook {
     // Called when the gamemode loaded in the Pawn runtime has changed.
     virtual void OnGamemodeChanged(AMX* gamemode) = 0;
 
+    // Called when the |player_id| has sent an update to the server.
+    virtual void OnPlayerUpdate(int player_id) = 0;
+
     // Called when a callback to the gamemode has been intercepted. Returning true will block
     // the callback from being invoked in the Pawn runtime.
     virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments) = 0;
@@ -64,6 +67,9 @@ class CallbackHook {
   // the callback from being invoked on the Pawn runtime, returning |return_value| there.
   bool DoIntercept(AMX* amx, int* retval, const Callback& callback);
 
+  // Called when the OnPlayerUpdate callback has been intercepted by the |amx| runtime.
+  int DoInterceptPlayerUpdate(AMX* amx);
+
   // Weak reference. Will usually own this instance.
   Delegate* delegate_;
 
@@ -75,6 +81,9 @@ class CallbackHook {
 
   // Mapping of function indices to the callback format that is to be intercepted.
   std::unordered_map<int, const Callback*> intercept_indices_;
+
+  // Index assigned to the OnPlayerUpdate function.
+  int on_player_update_index_;
 
   std::string text_buffer_;
 

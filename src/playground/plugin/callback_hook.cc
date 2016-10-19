@@ -43,7 +43,8 @@ CallbackHook::ScopedIgnore::~ScopedIgnore() {
 CallbackHook::CallbackHook(Delegate* delegate, const std::shared_ptr<CallbackParser>& callback_parser)
     : delegate_(delegate),
       callback_parser_(callback_parser),
-      gamemode_(nullptr) {
+      gamemode_(nullptr),
+      on_player_update_index_(-2) {
   g_callback_hook = this;
 }
 
@@ -76,6 +77,9 @@ int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
   } else if (index == AMX_EXEC_MAIN) {
     OnGamemodeLoaded(amx);
   } else if (gamemode_ == amx) {
+    if (index == on_player_update_index_)
+      return DoInterceptPlayerUpdate(amx);
+
     auto interceptor_iter = intercept_indices_.find(index);
     if (interceptor_iter != intercept_indices_.end()) {
       ScopedReentrancyLock reentrancy_lock;
@@ -130,6 +134,13 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
   return result;
 }
 
+int CallbackHook::DoInterceptPlayerUpdate(AMX* amx) {
+  const int player_id = ReadIntFromStack(amx, 0 /* first and only argument */);
+
+  delegate_->OnPlayerUpdate(player_id);
+  return AMX_ERR_NONE;
+}
+
 typedef cell(AMX_NATIVE_CALL *AMX_NATIVE)(struct tagAMX *amx, cell *params);
 
 void CallbackHook::OnGamemodeLoaded(AMX* amx) {
@@ -146,7 +157,11 @@ void CallbackHook::OnGamemodeLoaded(AMX* amx) {
       return;
     }
 
-    const auto* callback = callback_parser_->Find(callback_name);
+    const std::string callback_name_str(callback_name);
+    if (callback_name_str == "OnPlayerUpdate")
+      on_player_update_index_ = index;
+
+    const auto* callback = callback_parser_->Find(callback_name_str);
     if (callback != nullptr)
       intercept_indices_[index] = callback;
   }

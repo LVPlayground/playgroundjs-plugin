@@ -8,6 +8,7 @@
 #include "base/logging.h"
 #include "bindings/provided_natives.h"
 #include "plugin/native_parameters.h"
+#include "plugin/native_parser.h"
 #include "plugin/plugin_controller.h"
 #include "plugin/sdk/amx.h"
 #include "plugin/sdk/plugincommon.h"
@@ -26,6 +27,8 @@ using bindings::ProvidedNatives;
 
 namespace {
 
+#define CHECK_PARAMS(n) { if (params[0] != n * sizeof(cell)) { g_logprintf("SCRIPT: Bad parameter count (%d != %d): ", params[0], n); return 0; } }
+
 // Global instance of the PluginController class, which will be kept alive for the duration of this
 // plugin being loaded by the SA-MP server.
 std::unique_ptr<plugin::PluginController> g_plugin_controller;
@@ -41,6 +44,16 @@ class SAMPLogHandler : public logging::LogMessage::LogHandler {
     g_logprintf("[%s][%s:%d] %s", severity, file, line, message);
   }
 };
+
+// native IsPlayerMinimized(playerid);
+static cell AMX_NATIVE_CALL n_IsPlayerMinimized(AMX* amx, cell* params) {
+  CHECK_PARAMS(1);
+
+  if (g_plugin_controller)
+    return g_plugin_controller->IsPlayerMinimized(params[1]) ? 1 : 0;
+
+  return 0;
+}
 
 }  // namespace
 
@@ -71,6 +84,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   // Initialize the PluginController. This will (synchronously) initialize many of the systems
   // required to load the v8 runtime when the gamemode gets loaded.
   g_plugin_controller.reset(new plugin::PluginController(base::FilePath::CurrentDirectory()));
+
+  // Register the static native functions provided by the plugin's C++ code.
+  g_plugin_controller->native_parser()->SetStaticNative(0 /* index */, "IsPlayerMinimized", n_IsPlayerMinimized);
 
   return true;
 }

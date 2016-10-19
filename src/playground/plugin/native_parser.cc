@@ -60,7 +60,7 @@ template <size_t N> struct NativeRegistrar {
 
     constexpr size_t native_index = NativeParser::kMaxNatives - N;
     if (native_index < g_native_parser->size()) {
-      AMX_NATIVE_INFO* native = &g_native_parser->GetNativeTable()[native_index];
+      AMX_NATIVE_INFO* native = &g_native_parser->GetDynamicNativeTable()[native_index];
       native->name = _strdup(g_native_parser->at(native_index).c_str());
       native->func = &NativeRegistrar<N>::Invoke;
     }
@@ -115,6 +115,14 @@ size_t NativeParser::size() const {
 const std::string& NativeParser::at(size_t index) const {
   DCHECK(natives_.size() > index);
   return natives_[index];
+}
+
+void NativeParser::SetStaticNative(size_t index, const std::string& name, AMX_NATIVE function) {
+  DCHECK(index < kStaticNatives);
+
+  AMX_NATIVE_INFO* native = &native_table_[index];
+  native->name = _strdup(name.c_str());
+  native->func = function;
 }
 
 bool NativeParser::Parse(const std::string& content) {

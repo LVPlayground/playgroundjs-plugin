@@ -25,6 +25,9 @@ class NativeParser {
  public:
   // The maximum number of native functions that may be defined by the parser.
   static constexpr size_t kMaxNatives = 255;
+
+  // The number of static natives (i.e. not provided by JavaScript).
+  static constexpr size_t kStaticNatives = 1;
    
   // Loads the list of native functions from |filename|.
   static std::unique_ptr<NativeParser> FromFile(const base::FilePath& filename);
@@ -37,8 +40,14 @@ class NativeParser {
   // Returns the name of the native function at |index|.
   const std::string& at(size_t index) const;
 
+  // Sets the static native at |index| to the |function| named |name|.
+  void SetStaticNative(size_t index, const std::string& name, AMX_NATIVE function);
+
   // Gets the table of native AMX functions to be shared with the SA-MP server.
   AMX_NATIVE_INFO* GetNativeTable() { return native_table_; }
+
+  // Gets the table of native AMX functions that have been dynamically inserted by JavaScript.
+  AMX_NATIVE_INFO* GetDynamicNativeTable() { return &native_table_[kStaticNatives]; }
 
  private:
   NativeParser();
@@ -55,7 +64,7 @@ class NativeParser {
 
   // The native table has to be of a fixed size and should be frozen after all native functions
   // have been loaded. This will be used by the SA-MP server to load natives from this module.
-  AMX_NATIVE_INFO native_table_[kMaxNatives + 1];
+  AMX_NATIVE_INFO native_table_[kMaxNatives + kStaticNatives + 1];
 
   DISALLOW_COPY_AND_ASSIGN(NativeParser);
 };

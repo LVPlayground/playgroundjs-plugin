@@ -143,6 +143,23 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
   arguments.GetReturnValue().Set(global->HighResolutionTime());
 }
 
+// bool isPlayerMinimized(playerId);
+void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+
+  if (arguments.Length() == 0) {
+    ThrowException("unable to execute isPlayerMinimized(): 1 argument required, but only 0 provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsInt32()) {
+    ThrowException("unable to execute isPlayerMinimized(): expected an integer for argument 1.");
+    return;
+  }
+
+  arguments.GetReturnValue().Set(global->IsPlayerMinimized(arguments[0]->Int32Value()));
+}
+
 // void logstash(string message[, string endpoint = null]);
 void LogstashCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();

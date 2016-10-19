@@ -22,6 +22,7 @@
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 #include "performance/scoped_trace.h"
+#include "plugin/plugin_controller.h"
 
 namespace bindings {
 
@@ -29,6 +30,7 @@ GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
     : finalized_(false),
       console_(new Console),
       pawn_invoke_(new PawnInvoke(plugin_controller)),
+      plugin_controller_(plugin_controller),
       streamer_module_(new StreamerModule),
       mysql_module_(new MySQLModule)
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
@@ -60,6 +62,9 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
   InstallFunction(global, "wait", WaitCallback);
+
+  // Fast-path since idle checks generally are expensive.
+  InstallFunction(global, "isPlayerMinimized", IsPlayerMinimizedCallback);
 
   // Used for telling the test runner (if it's enabled) that the JavaScript tests have finished.
   InstallFunction(global, "reportTestsFinished", ReportTestsFinishedCallback);
@@ -155,6 +160,10 @@ bool GlobalScope::HasEventListeners(const std::string& type) const {
 
 double GlobalScope::HighResolutionTime() const {
   return base::monotonicallyIncreasingTime();
+}
+
+bool GlobalScope::IsPlayerMinimized(int player_id) const {
+  return plugin_controller_->IsPlayerMinimized(player_id);
 }
 
 void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Function> listener) {

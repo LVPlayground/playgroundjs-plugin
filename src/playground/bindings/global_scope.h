@@ -89,6 +89,9 @@ class GlobalScope {
   // with sub-millisecond precision.
   double HighResolutionTime() const;
 
+  // Implementation of the isPlayerMinimized() global function.
+  bool IsPlayerMinimized(int player_id) const;
+
   // Implementation of the removeEventListener() function, which will remove |listener| from the
   // persistently held list of handlers for events of type |type|. If |listener| is an empty
   // reference, all associated listeners for events of type |type| will be removed.
@@ -121,6 +124,9 @@ class GlobalScope {
 
   // The PawnInvoke object, which enables authors to call Pawn native functions.
   std::unique_ptr<PawnInvoke> pawn_invoke_;
+
+  // Weak reference to the PluginController servicing this global scope.
+  plugin::PluginController* plugin_controller_;
 
   // The Streamer module, which enables lower-level streaming operations from JavaScript.
   std::unique_ptr<StreamerModule> streamer_module_;

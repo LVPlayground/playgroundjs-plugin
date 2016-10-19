@@ -6,6 +6,7 @@
 #define PLAYGROUND_PLUGIN_PLUGIN_CONTROLLER_H_
 
 #include <memory>
+#include <unordered_map>
 
 #include "plugin/callback_hook.h"
 
@@ -39,6 +40,9 @@ class PluginController : public CallbackHook::Delegate {
   // Output |message| as a raw string to the console, and record it in the log.
   void Output(const std::string& message) const;
 
+  // Returns whether the player with |player_id| has not recently sent an update to the server.
+  bool IsPlayerMinimized(int player_id) const;
+
   // Returns whether a function named |function_name| exists in the Pawn runtime.
   bool FunctionExists(const std::string& function_name) const;
   
@@ -58,8 +62,11 @@ class PluginController : public CallbackHook::Delegate {
 
   // CallbackHook::Delegate implementation.
   void OnGamemodeChanged(AMX* gamemode) override;
+  void OnPlayerUpdate(int player_id) override;
   bool OnCallbackIntercepted(const std::string& callback,
                              const Arguments& arguments) override;
+
+  NativeParser* native_parser() { return native_parser_.get(); }
 
  private:
   // The hook through which we intercept callbacks issued by the SA-MP server, as well those
@@ -83,6 +90,9 @@ class PluginController : public CallbackHook::Delegate {
   // concepts to much more generic ones. No traces of the Pawn runtime should be exposed at
   // this layer.
   std::unique_ptr<PluginDelegate> plugin_delegate_;
+
+  // Stores a mapping from a player Id to the time they last sent an update.
+  std::unordered_map<int, double> player_update_time_;
 };
 
 }  // plugin
