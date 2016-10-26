@@ -24,8 +24,8 @@ class Profiler {
   // Returns whether a CPU profile is currently being recorded.
   bool IsActive() const { return active_; }
 
-  // Captures a CPU profile lasting |seconds| and writes the result to |filename| once completed.
-  void Profile(int32_t seconds, const std::string& filename);
+  // Captures a CPU profile lasting |milliseconds| and writes the result to |filename| once done.
+  void Profile(int32_t milliseconds, const std::string& filename);
 
   // Called each server frame while a CPU profile is active.
   void OnFrame(double current_time);
@@ -34,8 +34,14 @@ class Profiler {
   // Weak reference. Will be disposed of by the constructor.
   v8::CpuProfiler* cpu_profiler_;
 
+  // The isolate for which the profile is being captured.
+  v8::Isolate* isolate_;
+
   // Indicates whether a profile is currently being recorded.
   bool active_ = false;
+
+  // The file to which the active profile should be written.
+  std::string filename_;
 
   // Time at which the in-progress profile should stop.
   double completion_time_ = 0;

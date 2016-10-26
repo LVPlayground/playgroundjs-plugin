@@ -147,6 +147,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_->SetFatalErrorHandler(FatalErrorCallback);
   isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
 
+  profiler_.reset(new Profiler(isolate_));
   timer_queue_.reset(new TimerQueue(this));
 
   // TODO: This should be set by some sort of Configuration object.

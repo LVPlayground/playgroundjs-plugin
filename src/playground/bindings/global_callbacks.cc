@@ -43,7 +43,7 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   global->AddEventListener(toString(arguments[0]), v8::Local<v8::Function>::Cast(arguments[1]));
 }
 
-// void captureProfile(number duration, string filename);
+// void captureProfile(number milliseconds, string filename);
 void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
 
@@ -71,8 +71,8 @@ void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   const int32_t duration = arguments[0]->Int32Value();
   const std::string filename = toString(arguments[1]);
 
-  if (duration < 0 || duration > 180) {
-    ThrowException("unable to execute captureProfile(): duration must be in range of [0, 180] seconds.");
+  if (duration < 1000 || duration > 180000) {
+    ThrowException("unable to execute captureProfile(): duration must be in range of [1000, 180000] milliseconds.");
     return;
   }
 
