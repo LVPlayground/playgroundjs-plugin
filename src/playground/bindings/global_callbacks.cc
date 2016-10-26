@@ -71,8 +71,8 @@ void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   const int32_t duration = arguments[0]->Int32Value();
   const std::string filename = toString(arguments[1]);
 
-  if (duration < 1000 || duration > 180000) {
-    ThrowException("unable to execute captureProfile(): duration must be in range of [1000, 180000] milliseconds.");
+  if (duration < 100 || duration > 180000) {
+    ThrowException("unable to execute captureProfile(): duration must be in range of [100, 180000] milliseconds.");
     return;
   }
 

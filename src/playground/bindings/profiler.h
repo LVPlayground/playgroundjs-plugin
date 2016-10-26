@@ -18,6 +18,9 @@ namespace bindings {
 // the performance of Las Venturas Playground as we can gather.
 class Profiler {
  public:
+  // Sampling interval of the profiler, in nanoseconds.
+  static constexpr int32_t kSamplingIntervalUs = 50;
+
   explicit Profiler(v8::Isolate* isolate);
   ~Profiler();
 
