@@ -19,6 +19,10 @@ namespace performance {
 
 namespace {
 
+// Number of seconds of wall clock execution time after a warning should be issued to the console
+// when a trace is active and a slow callback is observed.
+const double TraceWarningThresholdSeconds = 0.5;
+
 // Global instance of the trace manager.
 std::unique_ptr<TraceManager> g_trace_manager_;
 
@@ -38,6 +42,15 @@ TraceManager::TraceManager()
 void TraceManager::Capture(const Trace& trace) {
   std::lock_guard<std::mutex> scoped_lock(captured_traces_lock_);
   captured_traces_.push_back(trace);
+
+  if (trace.type != INTERCEPTED_CALLBACK_TOTAL)
+    return;  // never issue warnings for this type
+
+  const double diff = trace.end - trace.start;
+  if (diff < TraceWarningThresholdSeconds)
+    return;
+
+  LOG(WARNING) << "Event " << trace.details[0] << " took a long time: " << diff << "ms";
 }
 
 void TraceManager::Write(const base::FilePath& file, bool clear_traces) {
