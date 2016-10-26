@@ -41,7 +41,6 @@ const char kRuntimeFlags[] =
     "--use_strict "
     "--harmony "
     "--harmony_array_prototype_values "     // in progress
-    "--harmony_function_sent"               // in progress
     "--harmony_for_in "                     // in progress
     "--harmony_function_sent "              // in progress
     "--harmony_restrictive_generators "     // in progress
