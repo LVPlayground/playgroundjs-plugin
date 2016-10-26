@@ -22,6 +22,7 @@ namespace bindings {
 class ExceptionHandler;
 class FrameObserver;
 class GlobalScope;
+class Profiler;
 class TimerQueue;
 
 // The runtime class represents a v8 virtual machine. It must be externally owned, but additional
@@ -75,6 +76,9 @@ class Runtime {
   // Returns the global scope associated with this runtime. May be used to get access to the event
   // target and instances of the common JavaScript objects.
   GlobalScope* GetGlobalScope() { return global_scope_.get(); }
+
+  // Returns the Profiler that can instrument the runtime.
+  Profiler* GetProfiler() { return profiler_.get(); }
 
   // Returns the timer queue associated with this runtime.
   TimerQueue* GetTimerQueue() { return timer_queue_.get(); }
@@ -151,6 +155,9 @@ class Runtime {
 
   // The global scope that will service the runtime.
   std::unique_ptr<GlobalScope> global_scope_;
+
+  // The profiler that's able to profile Las Venturas Playground.
+  std::unique_ptr<Profiler> profiler_;
 
   // The timer queue is a prioritized queue of time-dependent promises.
   std::unique_ptr<TimerQueue> timer_queue_;

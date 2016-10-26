@@ -13,6 +13,7 @@ class Value;
 namespace bindings {
 
 void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

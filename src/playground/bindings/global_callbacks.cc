@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "bindings/global_scope.h"
 #include "bindings/pawn_invoke.h"
+#include "bindings/profiler.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 #include "performance/trace_manager.h"
@@ -40,6 +41,42 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   }
 
   global->AddEventListener(toString(arguments[0]), v8::Local<v8::Function>::Cast(arguments[1]));
+}
+
+// void captureProfile(number duration, string filename);
+void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  if (arguments.Length() < 2) {
+    ThrowException("unable to execute captureProfile(): 2 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsInt32()) {
+    ThrowException("unable to execute captureProfile(): expected an integer for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute captureProfile(): expected a string for argument 2.");
+    return;
+  }
+
+  if (runtime->GetProfiler()->IsActive()) {
+    ThrowException("unable to execute captureProfile(): a profile is already being captured.");
+    return;
+  }
+
+  const int32_t duration = arguments[0]->Int32Value();
+  const std::string filename = toString(arguments[1]);
+
+  if (duration < 0 || duration > 180) {
+    ThrowException("unable to execute captureProfile(): duration must be in range of [0, 180] seconds.");
+    return;
+  }
+
+  runtime->GetProfiler()->Profile(duration, filename);
 }
 
 // boolean dispatchEvent(string type[, object event]);

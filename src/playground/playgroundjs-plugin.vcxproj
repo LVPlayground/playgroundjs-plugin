@@ -61,6 +61,7 @@
     <ClCompile Include="plugin\plugin_controller.cc" />
     <ClCompile Include="plugin\scoped_reentrancy_lock.cc" />
     <ClCompile Include="plugin\sdk\amxplugin.cpp" />
+    <ClCompile Include="bindings\profiler.cc" />
     <ClCompile Include="test_runner.cc" />
     <ClCompile Include="bindings\runtime.cc" />
     <ClCompile Include="third_party\subhook\subhook.c" />
@@ -94,6 +95,7 @@
     <ClInclude Include="bindings\modules\mysql\thread.h" />
     <ClInclude Include="bindings\modules\mysql_module.h" />
     <ClInclude Include="bindings\pawn_invoke.h" />
+    <ClInclude Include="bindings\profiler.h" />
     <ClInclude Include="bindings\promise.h" />
     <ClInclude Include="bindings\provided_natives.h" />
     <ClInclude Include="bindings\runtime_operations.h" />

@@ -27,7 +27,7 @@ class TimerQueue {
   void Add(std::shared_ptr<Promise> promise, int64_t time);
 
   // Runs the timer queue - determines if there's anything that should be executed this cycle.
-  void Run();
+  void Run(double current_time);
 
  private:
   Runtime* runtime_;

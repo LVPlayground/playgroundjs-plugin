@@ -21,6 +21,7 @@
 #include "bindings/exception_handler.h"
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
+#include "bindings/profiler.h"
 #include "bindings/script_prologue.h"
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
@@ -216,10 +217,15 @@ void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {
 void Runtime::OnFrame() {
   ++frame_counter_;
 
+  double current_time = base::monotonicallyIncreasingTime();
+
   for (FrameObserver* observer : frame_observers_)
     observer->OnFrame();
 
-  timer_queue_->Run();
+  if (profiler_->IsActive())
+    profiler_->OnFrame(current_time);
+
+  timer_queue_->Run(current_time);
 
   isolate_->RunMicrotasks();
 }

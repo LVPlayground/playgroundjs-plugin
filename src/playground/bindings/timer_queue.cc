@@ -33,12 +33,11 @@ void TimerQueue::Add(std::shared_ptr<Promise> promise, int64_t time) {
   timers_.push(storage);
 }
 
-void TimerQueue::Run() {
+void TimerQueue::Run(double current_time) {
   if (!timers_.size())
     return;
 
   std::vector<std::shared_ptr<Promise>> execution_list;
-  double current_time = base::monotonicallyIncreasingTime();
 
   while (timers_.size()) {
     const TimerStorage& top = timers_.top();
