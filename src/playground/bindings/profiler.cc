@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "base/time.h"
 
+#include <cstring>
 #include <fstream>
 
 #include <include/v8.h>
