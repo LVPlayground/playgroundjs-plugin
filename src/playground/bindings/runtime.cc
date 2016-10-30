@@ -77,11 +77,14 @@ void FatalErrorCallback(const char* location, const char* message) {
 // Callback for uncaught promise rejection events. Output the exception message to the console
 // after all, so that developers can pick up on the error and deal with it.
 void PromiseRejectCallback(PromiseRejectMessage message) {
-  // TODO(Russell): Should we ignore when message.GetEvent()==kPromiseHandlerAddedAfterReject?
-
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
   if (!runtime)
     return;
+
+  if (message.GetEvent() == v8::kPromiseHandlerAddedAfterReject) {
+    runtime->GetExceptionHandler()->RevokeQueuedMessages(message.GetPromise());
+    return;
+  }
 
   v8::Local<v8::Value> value = message.GetValue();
   if (value.IsEmpty() || !value->IsNativeError())
@@ -92,7 +95,7 @@ void PromiseRejectCallback(PromiseRejectMessage message) {
     return;
 
   runtime->GetExceptionHandler()->OnMessage(
-      error_message, value, ExceptionHandler::MessageSource::kRejectedPromise);
+      error_message, value, ExceptionHandler::MessageSource::kRejectedPromise, message.GetPromise());
 }
 
 }  // namespace
@@ -229,6 +232,8 @@ void Runtime::OnFrame() {
   timer_queue_->Run(current_time);
 
   isolate_->RunMicrotasks();
+
+  exception_handler_->FlushMessageQueue();
 }
 
 void Runtime::AddFrameObserver(FrameObserver* observer) {

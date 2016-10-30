@@ -32,13 +32,40 @@ class ExceptionHandler {
 
   // Called when the v8 runtime generates a message. It may also be called manually by any code
   // that maintains a v8::TryCatch before doing an operation on the engine.
-  void OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source);
+  void OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source,
+                 v8::Local<v8::Promise> promise = v8::Local<v8::Promise>());
+
+  // Revokes queued messages for the |promise|. Needed to support async try/catch statements.
+  void RevokeQueuedMessages(v8::Local<v8::Promise> promise);
+
+  // Flushes the queued unexpected promise revocations.
+  void FlushMessageQueue();
 
   // Called when a non-recoverable error occurs within the runtime.
   void OnFatalError(const char* location, const char* message);
 
  private:
   Runtime::Delegate* runtime_delegate_;
+
+  // Structure to store queued up messages. Necessary to support async try/catch statements.
+  struct QueuedMessage {
+    QueuedMessage(v8::Isolate* isolate, v8::Local<v8::Message> message, v8::Local<v8::Value> error,
+                  MessageSource message_source, v8::Local<v8::Promise> promise)
+        : message(isolate, message), error(isolate, error), message_source(message_source),
+          promise(isolate, promise) {}
+
+    QueuedMessage() = delete;
+    QueuedMessage(QueuedMessage& other) = delete;
+
+    v8::Persistent<v8::Message> message;
+    v8::Persistent<v8::Value> error;
+    MessageSource message_source;
+
+    v8::Persistent<v8::Promise> promise;
+  };
+
+  // Linked list of queued messages. Avoids needing to make copies.
+  std::list<QueuedMessage> queued_messages_;
 };
 
 }  // namespace bindings
