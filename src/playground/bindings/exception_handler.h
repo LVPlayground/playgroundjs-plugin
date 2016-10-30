@@ -5,6 +5,8 @@
 #ifndef PLAYGROUND_BINDINGS_EXCEPTION_HANDLER_H_
 #define PLAYGROUND_BINDINGS_EXCEPTION_HANDLER_H_
 
+#include <list>
+
 #include "bindings/runtime.h"
 
 namespace bindings {
