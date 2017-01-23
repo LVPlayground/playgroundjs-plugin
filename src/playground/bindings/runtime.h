@@ -116,7 +116,7 @@ class Runtime {
 
   // Executes |file| using the runtime. The file will be read from disk before it will be executed.
   // The caller must have created a handle scope prior to using this method.
-  bool ExecuteFile(const base::FilePath& file,
+  bool ExecuteFile(const ::base::FilePath& file,
                    ExecutionType execution_type,
                    v8::Local<v8::Value>* result = nullptr);
 
@@ -135,7 +135,7 @@ class Runtime {
   // Dispatches the exception caught in |try_catch| to the delegate, if any.
   void DisplayException(const v8::TryCatch& try_catch);
 
-  base::FilePath script_directory_;
+  ::base::FilePath script_directory_;
   Delegate* runtime_delegate_;
 
   // Set of attached frame observers.

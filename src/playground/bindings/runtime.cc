@@ -126,7 +126,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
     : global_scope_(new GlobalScope(plugin_controller)),
       runtime_delegate_(runtime_delegate),
       is_ready_(false),
-      frame_counter_start_(base::monotonicallyIncreasingTime()),
+      frame_counter_start_(::base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
   V8::InitializeICU();
 
@@ -154,7 +154,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   timer_queue_.reset(new TimerQueue(this));
 
   // TODO: This should be set by some sort of Configuration object.
-  script_directory_ = base::FilePath("javascript");
+  script_directory_ = ::base::FilePath("javascript");
 }
 
 Runtime::~Runtime() {
@@ -209,7 +209,7 @@ void Runtime::SetReady() {
 void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {
   DCHECK(duration && average_fps);
 
-  double current = base::monotonicallyIncreasingTime();
+  double current = ::base::monotonicallyIncreasingTime();
 
   *duration = current - frame_counter_start_;
   *average_fps = frame_counter_ / (*duration / 1000);
@@ -221,7 +221,7 @@ void Runtime::GetAndResetFrameCounter(double* duration, double* average_fps) {
 void Runtime::OnFrame() {
   ++frame_counter_;
 
-  double current_time = base::monotonicallyIncreasingTime();
+  double current_time = ::base::monotonicallyIncreasingTime();
 
   for (FrameObserver* observer : frame_observers_)
     observer->OnFrame();
@@ -280,10 +280,10 @@ bool Runtime::Execute(const ScriptSource& script_source,
   return true;
 }
 
-bool Runtime::ExecuteFile(const base::FilePath& file,
+bool Runtime::ExecuteFile(const ::base::FilePath& file,
                           ExecutionType execution_type,
                           v8::Local<v8::Value>* result) {
-  const base::FilePath script_path = script_directory_.Append(file);
+  const ::base::FilePath script_path = script_directory_.Append(file);
 
   std::ifstream handle(script_path.value().c_str());
   if (!handle.is_open() || handle.fail())
