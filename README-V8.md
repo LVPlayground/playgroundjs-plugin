@@ -37,6 +37,7 @@ Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.
 
-    $ make -j32 ia32.release component=shared_library snapshot=off i18nsupport=off
+    $ gn gen --args='target_cpu="x86" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false' out.gn/x86.release
+    $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 Browse to `src/v8/out/ia32.release/lib.target/` where you will find `libv8.so` that has to be copied to the [//bin](/bin) directory.

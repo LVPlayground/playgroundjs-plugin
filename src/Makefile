@@ -118,15 +118,13 @@ link:
 		$(BOOSTLIBS)/libboost_filesystem.a \
 		$(BOOSTLIBS)/libboost_regex.a \
 		$(BOOSTLIBS)/libboost_system.a \
-		$(V8LIBS)/libv8_libplatform.a \
-		$(V8LIBS)/libv8_libbase.a \
-		$(V8LIBS)/libv8_nosnapshot.a \
-		out/libv8.so -lmysqlclient
+		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so -lmysqlclient
 
 # Move libv8.so
 move:
-	cp v8/out/ia32.release/lib.target/libv8.so out/libv8.so
-	strip out/libv8.so
+	cp v8/out.gn/x86.release/libv8.so out/libv8.so
+	cp v8/out.gn/x86.release/libv8_libbase.so out/libv8_libbase.so
+	cp v8/out.gn/x86.release/libv8_libplatform.so out/libv8_libplatform.so
 
 # Target: test_runner
 test_runner:
@@ -134,7 +132,7 @@ test_runner:
 	$(CC) $(CFLAGSBASE) runner/main.cc -o out/obj.test_runner/runner_main.o
 	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner \
 		obj.test_runner/*.o \
-		$(OUTFILE) libv8.so
+		$(OUTFILE) libv8_libplatform.so libv8_libbase.so libv8.so
 
 # Clean
 clean:
