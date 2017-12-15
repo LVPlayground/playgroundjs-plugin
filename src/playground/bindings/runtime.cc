@@ -31,22 +31,6 @@ namespace bindings {
 
 namespace {
 
-// Taken from src/samples/hello-world.cc from the v8 source.
-class SimpleArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
-  void* Allocate(size_t length) override {
-    void* data = AllocateUninitialized(length);
-    return data == NULL ? data : memset(data, 0, length);
-  }
-
-  void* AllocateUninitialized(size_t length) override {
-    return malloc(length);
-  }
-
-  void Free(void* data, size_t) override {
-    free(data);
-  }
-};
-
 // Map of v8 Isolates to the associated Runtime instances (weak references).
 std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 
@@ -158,7 +142,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));
   V8::Initialize();
 
-  allocator_.reset(new SimpleArrayBufferAllocator());
+  allocator_.reset(v8::ArrayBuffer::Allocator::NewDefaultAllocator());
 
   Isolate::CreateParams create_params;
   create_params.array_buffer_allocator = allocator_.get();
