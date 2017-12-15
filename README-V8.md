@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    d840ed11d9fa9f38676e6edcee93ed749afb284d
-    "Revert of [build] Introduce an embedder version string (...)"
-    Saturday, January 21st, 2017
+    214e5cee2d2e4a6f3411a02348e13e1f11ae7da0
+    "[cctest] Add FuncNameInferrer coverage for arrow functions"
+    Friday, December 15th, 2017
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -26,10 +26,10 @@ The following preparatory steps have to be executed on all platforms. They check
 ## Building on Windows
 On Windows, run the following command to create the MSVC project files:
 
-    $ $env:DEPOT_TOOLS_WIN_TOOLCHAIN = 0
-    $ $env:GYP_MSVS_VERSION = 2015
-    $ $env:GYP_CHROMIUM_NO_ACTION = 0
-    $ gn gen --ide=vs2015 --args='target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false' out.gn/x86.release
+    $ set DEPOT_TOOLS_WIN_TOOLCHAIN=0
+    $ set GYP_MSVS_VERSION=2017
+    $ set GYP_CHROMIUM_NO_ACTION=0
+    $ gn gen --ide=vs2017 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false" out.gn\x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.dll` and `v8_libplatform.dll` that have to be copied to the [//bin](/bin) directory.

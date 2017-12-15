@@ -41,12 +41,19 @@ const char kRuntimeFlags[] =
     "--expose_gc "
     "--use_strict "
     "--harmony "
-    "--harmony_array_prototype_values "     // in progress
-    "--harmony_class_fields "               // in progress
-    "--harmony_regexp_named_captures "      // in progress
-    "--harmony_trailing_commas "            // in progress
-    "--ignition_staging "                   // Ignition interpreter
-    "--turbo";                              // TurboFan compiler
+
+    // import.meta property
+    "--harmony_import_meta "
+
+    // Arbitrary precision integers (beyond the usual 53 bits)
+    "--harmony_bigint "
+
+    // Public and class fields to be usable in class literals
+    "--harmony_public_fields "
+    "--harmony_class_fields "
+
+    // Array.prototype.values
+    "--harmony_array_prototype_values";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {

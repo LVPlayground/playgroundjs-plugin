@@ -7,6 +7,7 @@
 #include "base/logging.h"
 
 #include <boost/function_output_iterator.hpp>
+#include <boost/geometry/geometry.hpp>
 #include <iterator>
 
 namespace streamer {
