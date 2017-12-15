@@ -17,7 +17,6 @@
 
 #include "base/logging.h"
 #include "base/time.h"
-#include "bindings/allocator.h"
 #include "bindings/exception_handler.h"
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
@@ -31,6 +30,22 @@ using namespace v8;
 namespace bindings {
 
 namespace {
+
+// Taken from src/samples/hello-world.cc from the v8 source.
+class SimpleArrayBufferAllocator : public v8::ArrayBuffer::Allocator {
+  void* Allocate(size_t length) override {
+    void* data = AllocateUninitialized(length);
+    return data == NULL ? data : memset(data, 0, length);
+  }
+
+  void* AllocateUninitialized(size_t length) override {
+    return malloc(length);
+  }
+
+  void Free(void* data, size_t) override {
+    free(data);
+  }
+};
 
 // Map of v8 Isolates to the associated Runtime instances (weak references).
 std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;

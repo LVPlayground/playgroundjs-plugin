@@ -106,7 +106,6 @@
     <ClInclude Include="performance\trace.h" />
     <ClInclude Include="performance\trace_manager.h" />
     <ClInclude Include="playground_controller.h" />
-    <ClInclude Include="bindings\allocator.h" />
     <ClInclude Include="plugin\arguments.h" />
     <ClInclude Include="plugin\callback.h" />
     <ClInclude Include="plugin\callback_hook.h" />

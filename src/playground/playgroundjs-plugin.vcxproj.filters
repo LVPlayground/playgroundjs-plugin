@@ -176,9 +176,6 @@
     <ClInclude Include="base\macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\allocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="plugin\sdk\plugincommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
