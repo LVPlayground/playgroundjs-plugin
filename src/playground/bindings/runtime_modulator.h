@@ -20,7 +20,7 @@ namespace bindings {
 class RuntimeModulator {
  public:
   // Returns whether the Modulator is enabled.
-  static constexpr bool IsEnabled() { return false; }
+  static constexpr bool IsEnabled() { return true; }
 
   // Called by v8 when a module has to be loaded. The |referrer| contains the script
   // or module that initiated the load. The |specifier| is the name or path that is to
@@ -40,7 +40,7 @@ class RuntimeModulator {
 
   // Gets the module identified by the |specifier|, if any.
   v8::MaybeLocal<v8::Module> GetModule(v8::Local<v8::Context> context,
-                                       const std::string& referrer,
+                                       v8::Local<v8::Module> referrer,
                                        const std::string& specifier);
 
  private:

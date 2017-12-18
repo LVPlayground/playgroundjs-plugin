@@ -26,8 +26,6 @@
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 
-using namespace v8;
-
 namespace bindings {
 
 namespace {
@@ -84,7 +82,7 @@ void FatalErrorCallback(const char* location, const char* message) {
 
 // Callback for uncaught promise rejection events. Output the exception message to the console
 // after all, so that developers can pick up on the error and deal with it.
-void PromiseRejectCallback(PromiseRejectMessage message) {
+void PromiseRejectCallback(v8::PromiseRejectMessage message) {
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
   if (!runtime)
     return;
@@ -136,21 +134,21 @@ Runtime::Runtime(Delegate* runtime_delegate,
       is_ready_(false),
       frame_counter_start_(::base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
-  V8::InitializeICU();
+  v8::V8::InitializeICU();
 
-  platform_.reset(platform::CreateDefaultPlatform());
-  V8::InitializePlatform(platform_.get());
+  platform_.reset(v8::platform::CreateDefaultPlatform());
+  v8::V8::InitializePlatform(platform_.get());
 
-  V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));
-  V8::Initialize();
+  v8::V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));
+  v8::V8::Initialize();
 
   allocator_.reset(v8::ArrayBuffer::Allocator::NewDefaultAllocator());
 
-  Isolate::CreateParams create_params;
+  v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator = allocator_.get();
 
-  isolate_ = Isolate::New(create_params);
-  isolate_scope_.reset(new Isolate::Scope(isolate_));
+  isolate_ = v8::Isolate::New(create_params);
+  isolate_scope_.reset(new v8::Isolate::Scope(isolate_));
 
   exception_handler_.reset(new ExceptionHandler(runtime_delegate_));
   isolate_->SetCaptureStackTraceForUncaughtExceptions(true, 15);
@@ -176,29 +174,32 @@ Runtime::~Runtime() {
   isolate_scope_.reset();
   isolate_->Dispose();
 
-  V8::Dispose();
-  V8::ShutdownPlatform();
+  v8::V8::Dispose();
+  v8::V8::ShutdownPlatform();
 }
 
 void Runtime::Initialize() {
-  HandleScope handle_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
 
-  Local<ObjectTemplate> global = ObjectTemplate::New(isolate_);
+  v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate_);
 
   // The global scope is being applied in two steps. First we install all the prototypes (which
   // essentially are functions that may be instantiated), then we install objects, which may
   // include instantiations of previously installed prototypes (e.g. the console global).
   global_scope_->InstallPrototypes(global);
 
-  Local<Context> context = Context::New(isolate_, nullptr, global);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_, nullptr, global);
 
-  Context::Scope context_scope(context);
+  v8::Context::Scope context_scope(context);
   global_scope_->InstallObjects(context->Global());
 
   context_.Reset(isolate_, context);
 
   if (RuntimeModulator::IsEnabled()) {
-    modulator_ = std::make_unique<RuntimeModulator>(isolate_, script_directory_);
+    base::FilePath source_directory =
+        base::FilePath::CurrentDirectory().Append("javascript");
+
+    modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory);
     modulator_->LoadModule(context, std::string() /* referrer */, "main.mod.js");
     return;
   }
@@ -262,29 +263,29 @@ void Runtime::RemoveFrameObserver(FrameObserver* observer) {
 
 bool Runtime::Execute(const ScriptSource& script_source,
                       v8::Local<v8::Value>* result) {
-  EscapableHandleScope handle_scope(isolate());
-  Context::Scope context_scope(context());
+  v8::EscapableHandleScope handle_scope(isolate());
+  v8::Context::Scope context_scope(context());
 
-  MaybeLocal<String> script_string =
-      String::NewFromUtf8(isolate_, script_source.source.c_str(), NewStringType::kNormal);
-  MaybeLocal<String> filename_string =
-      String::NewFromUtf8(isolate_, script_source.filename.c_str(), NewStringType::kNormal);
+  v8::MaybeLocal<v8::String> script_string =
+    v8::String::NewFromUtf8(isolate_, script_source.source.c_str(), v8::NewStringType::kNormal);
+  v8::MaybeLocal<v8::String> filename_string =
+    v8::String::NewFromUtf8(isolate_, script_source.filename.c_str(), v8::NewStringType::kNormal);
 
   if (script_string.IsEmpty() || filename_string.IsEmpty())
     return false;
 
-  ScriptOrigin origin(filename_string.ToLocalChecked());
-  Local<String> source = script_string.ToLocalChecked();
+  v8::ScriptOrigin origin(filename_string.ToLocalChecked());
+  v8::Local<v8::String> source = script_string.ToLocalChecked();
 
-  TryCatch try_catch;
+  v8::TryCatch try_catch;
 
-  MaybeLocal<Script> script = Script::Compile(context(), source, &origin);
+  v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context(), source, &origin);
   if (script.IsEmpty()) {
     DisplayException(try_catch);
     return false;
   }
 
-  MaybeLocal<Value> script_result = script.ToLocalChecked()->Run(context());
+  v8::MaybeLocal<v8::Value> script_result = script.ToLocalChecked()->Run(context());
   if (try_catch.HasCaught()) {
     DisplayException(try_catch);
     return false;
@@ -328,16 +329,16 @@ bool Runtime::ExecuteFile(const ::base::FilePath& file,
   return Execute(script, result);
 }
 
-void Runtime::DisplayException(const TryCatch& try_catch) {
+void Runtime::DisplayException(const v8::TryCatch& try_catch) {
   if (!runtime_delegate_)
     return;
 
   // TODO: Exceptions ideally should have stack traces attached to them.
 
-  Local<Message> message = try_catch.Message();
+  v8::Local<v8::Message> message = try_catch.Message();
 
   // Extract the exception message from the try-catch block.
-  String::Utf8Value exception(try_catch.Exception());
+  v8::String::Utf8Value exception(try_catch.Exception());
   std::string exception_string(*exception, exception.length());
 
   std::string filename = "unknown";
@@ -346,7 +347,7 @@ void Runtime::DisplayException(const TryCatch& try_catch) {
   if (message.IsEmpty()) {
     LOG(WARNING) << "[v8] Empty message received in " << __FUNCTION__;
   } else {
-    String::Utf8Value resource_name(message->GetScriptOrigin().ResourceName());
+    v8::String::Utf8Value resource_name(message->GetScriptOrigin().ResourceName());
     filename.assign(*resource_name, resource_name.length());
 
     line_number = message->GetLineNumber();
