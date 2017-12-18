@@ -74,6 +74,7 @@ playground_bindings: playground_bindings_mysql playground_bindings_streamer
 	$(CC) $(CFLAGS) playground/bindings/provided_natives.cc -o out/obj/playground_bindings_provided_natives.o
 	$(CC) $(CFLAGS) playground/bindings/promise.cc -o out/obj/playground_bindings_promise.o
 	$(CC) $(CFLAGS) playground/bindings/runtime.cc -o out/obj/playground_bindings_runtime.o
+	$(CC) $(CFLAGS) playground/bindings/runtime_modulator.cc -o out/obj/playground_bindings_runtime_modulator.o
 	$(CC) $(CFLAGS) playground/bindings/runtime_operations.cc -o out/obj/playground_bindings_runtime_operations.o
 	$(CC) $(CFLAGS) playground/bindings/script_prologue.cc -o out/obj/playground_bindings_script_prologue.o
 	$(CC) $(CFLAGS) playground/bindings/timer_queue.cc -o out/obj/playground_bindings_timer_queue.o

@@ -21,6 +21,7 @@
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
 #include "bindings/profiler.h"
+#include "bindings/runtime_modulator.h"
 #include "bindings/script_prologue.h"
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
@@ -41,7 +42,8 @@ const char kRuntimeFlags[] =
     "--use_strict "
     "--harmony "
 
-    // import.meta property
+    // Dynamic imports
+    "--harmony_dynamic_import "
     "--harmony_import_meta "
 
     // Arbitrary precision integers (beyond the usual 53 bits)
@@ -155,6 +157,8 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_->AddMessageListener(MessageCallback);
   isolate_->SetFatalErrorHandler(FatalErrorCallback);
   isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
+  isolate_->SetHostImportModuleDynamicallyCallback(
+      &RuntimeModulator::ImportModuleDynamicallyCallback);
 
   profiler_.reset(new Profiler(isolate_));
   timer_queue_.reset(new TimerQueue(this));
@@ -192,6 +196,12 @@ void Runtime::Initialize() {
   global_scope_->InstallObjects(context->Global());
 
   context_.Reset(isolate_, context);
+
+  if (RuntimeModulator::IsEnabled()) {
+    modulator_ = std::make_unique<RuntimeModulator>(isolate_, script_directory_);
+    modulator_->LoadModule(context, std::string() /* referrer */, "main.mod.js");
+    return;
+  }
 
   // Make sure that the global script prologue is loaded in the virtual machine.
   ScriptSource global_prologue(kScriptPrologue);

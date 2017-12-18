@@ -10,6 +10,7 @@
 #include "bindings/event.h"
 #include "bindings/global_scope.h"
 #include "bindings/runtime.h"
+#include "bindings/runtime_modulator.h"
 #include "bindings/utilities.h"
 #include "performance/scoped_trace.h"
 #include "plugin/callback.h"
@@ -57,6 +58,9 @@ bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
 
 void PlaygroundController::OnGamemodeLoaded() {
   runtime_->Initialize();
+
+  if (bindings::RuntimeModulator::IsEnabled())
+    return;
 
   {
     performance::ScopedTrace trace(performance::LOAD_JAVASCRIPT_TRACE, "main.js");

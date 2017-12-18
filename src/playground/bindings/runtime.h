@@ -23,6 +23,7 @@ class ExceptionHandler;
 class FrameObserver;
 class GlobalScope;
 class Profiler;
+class RuntimeModulator;
 class TimerQueue;
 
 // The runtime class represents a v8 virtual machine. It must be externally owned, but additional
@@ -72,6 +73,9 @@ class Runtime {
   // ScopedFrameObserver rather than trying to do this manually.
   void AddFrameObserver(FrameObserver* observer);
   void RemoveFrameObserver(FrameObserver* observer);
+
+  // Returns the modulator that should be used for loading modules.
+  RuntimeModulator* GetModulator() { return modulator_.get(); }
 
   // Returns the global scope associated with this runtime. May be used to get access to the event
   // target and instances of the common JavaScript objects.
@@ -140,6 +144,8 @@ class Runtime {
 
   // Set of attached frame observers.
   std::unordered_set<FrameObserver*> frame_observers_;
+
+  std::unique_ptr<RuntimeModulator> modulator_;
 
   std::unique_ptr<v8::Platform> platform_;
   std::unique_ptr<v8::ArrayBuffer::Allocator> allocator_;
