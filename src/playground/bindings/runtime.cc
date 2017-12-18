@@ -198,7 +198,7 @@ void Runtime::Initialize() {
 
   if (RuntimeModulator::IsEnabled()) {
     modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory_);
-    modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.mod.js");
+    modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.js");
     return;
   }
 
