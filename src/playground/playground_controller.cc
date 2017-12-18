@@ -22,7 +22,7 @@ PlaygroundController::PlaygroundController(plugin::PluginController* plugin_cont
     : plugin_controller_(plugin_controller),
       runtime_(bindings::Runtime::Create(this, plugin_controller)) {}
 
-PlaygroundController::~PlaygroundController() {}
+PlaygroundController::~PlaygroundController() = default;
 
 void PlaygroundController::OnCallbacksAvailable(const std::vector<plugin::Callback>& callbacks) {
   bindings::GlobalScope* global = runtime_->GetGlobalScope();

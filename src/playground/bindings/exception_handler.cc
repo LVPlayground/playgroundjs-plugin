@@ -44,7 +44,7 @@ bool ScopedExceptionAttribution::HasAttribution() {
 }
 
 void RegisterError(v8::Local<v8::Value> error) {
-  if (!g_attribution_stack_.size())
+  if (!ScopedExceptionAttribution::HasAttribution())
     return;
 
   const auto& pair = g_attribution_stack_.top();

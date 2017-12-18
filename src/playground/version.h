@@ -9,7 +9,7 @@
 
 namespace playground {
 
-const int kPlaygroundVersionMajor = 1;
+const int kPlaygroundVersionMajor = 2;
 const int kPlaygroundVersionMinor = 0;
 const int kPlaygroundVersionBuild = 0;
 

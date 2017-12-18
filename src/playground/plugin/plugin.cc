@@ -96,8 +96,10 @@ PLUGIN_EXPORT void PLUGIN_CALL Unload() {
 }
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx) {
-  DCHECK(g_plugin_controller);
-  return amx_Register(amx, g_plugin_controller->GetNativeTable(), -1);
+  if (g_plugin_controller)
+    return amx_Register(amx, g_plugin_controller->GetNativeTable(), -1);
+
+  return AMX_ERR_NONE;
 }
 
 PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX *amx) {
@@ -105,6 +107,6 @@ PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX *amx) {
 }
 
 PLUGIN_EXPORT void PLUGIN_CALL ProcessTick() {
-  DCHECK(g_plugin_controller);
-  g_plugin_controller->OnServerFrame();
+  if (g_plugin_controller)
+    g_plugin_controller->OnServerFrame();
 }
