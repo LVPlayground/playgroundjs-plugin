@@ -11,6 +11,7 @@
 #include "bindings/pawn_invoke.h"
 #include "bindings/profiler.h"
 #include "bindings/runtime.h"
+#include "bindings/runtime_modulator.h"
 #include "bindings/utilities.h"
 #include "performance/trace_manager.h"
 #include "plugin/sdk/plugincommon.h"
@@ -77,6 +78,23 @@ void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   }
 
   runtime->GetProfiler()->Profile(duration, filename);
+}
+
+// void clearModuleCache(string prefix);
+void ClearModuleCacheCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  if (arguments.Length() < 1) {
+    ThrowException("unable to execute clearModuleCache(): 1 arguments required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute clearModuleCache(): expected a string for argument 1.");
+    return;
+  }
+
+  runtime->GetModulator()->ClearCache(toString(arguments[0]));
 }
 
 // boolean dispatchEvent(string type[, object event]);

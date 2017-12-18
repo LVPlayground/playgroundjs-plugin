@@ -43,6 +43,9 @@ class RuntimeModulator {
                                        v8::Local<v8::Module> referrer,
                                        const std::string& specifier);
 
+  // Clears the cached modules whose path matches |prefix|.
+  void ClearCache(const std::string& prefix);
+
  private:
   // Aims to resolve the |resolver| with the module namespace object for a module
   // identified by |specifier|. If such a module is already loaded it will be

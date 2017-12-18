@@ -106,6 +106,22 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(
   return v8::MaybeLocal<v8::Module>();
 }
 
+void RuntimeModulator::ClearCache(const std::string& relative_prefix) {
+  fs::path root(root_.value());
+  fs::path prefix(fs::absolute(fs::path(relative_prefix), root));
+
+  const std::string prefix_str = prefix.string();
+
+  std::vector<base::FilePath> to_remove;
+  for (const auto& pair : modules_) {
+    if (!pair.first.value().find(prefix_str))
+      to_remove.push_back(pair.first);
+  }
+
+  for (const base::FilePath& path : to_remove)
+    modules_.erase(path);
+}
+
 void RuntimeModulator::ResolveOrCreateModule(
   v8::Local<v8::Context> context,
   v8::Local<v8::Promise::Resolver> resolver,
@@ -218,8 +234,6 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
 
   return module;
 }
-
-
 
 bool RuntimeModulator::ResolveModulePath(
     const base::FilePath& referrer,
