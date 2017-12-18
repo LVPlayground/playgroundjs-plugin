@@ -72,7 +72,7 @@ v8::MaybeLocal<v8::Promise> RuntimeModulator::LoadModule(
   const base::FilePath& referrer,
   const std::string& specifier) {
   v8::MaybeLocal<v8::Promise::Resolver> maybe_resolver =
-    v8::Promise::Resolver::New(context);
+      v8::Promise::Resolver::New(context);
   v8::Local<v8::Promise::Resolver> resolver;
   if (maybe_resolver.ToLocal(&resolver)) {
     ResolveOrCreateModule(context, resolver, referrer, specifier);
@@ -110,10 +110,10 @@ void RuntimeModulator::ResolveOrCreateModule(
   v8::Local<v8::Promise::Resolver> resolver,
   const base::FilePath& referrer,
   const std::string& specifier) {
-  v8::Local<v8::Module> module;
-  base::FilePath path;
-
   v8::TryCatch try_catch(context->GetIsolate());
+  v8::Local<v8::Module> module;
+
+  base::FilePath path;
 
   // Resolve the path of the module that is to be loaded. It is considered a
   // fatal error when we cannot resolve the path.
@@ -223,10 +223,7 @@ bool RuntimeModulator::ResolveModulePath(
     base::FilePath* path) const {
   fs::path root(root_.value());
 
-  // (1) Attempt to resolve against internal services.
-  // TODO(Russell): Support including internal services such as "lvp:mysql".
-
-  // (2) Attempt to resolve the |specifier| against the |referrer|.
+  // (1) Attempt to resolve the |specifier| against the |referrer|.
   if (!referrer.empty()) {
     fs::path referrer_relative =
         fs::absolute(fs::path(specifier), fs::path(referrer.value()));
@@ -236,7 +233,7 @@ bool RuntimeModulator::ResolveModulePath(
     }
   }
 
-  // (1) Attempt to resolve the |specifier| against the |root_|.
+  // (2) Attempt to resolve the |specifier| against the |root_|.
   fs::path root_relative = fs::absolute(fs::path(specifier), root);
   if (FileExists(root_relative)) {
     *path = base::FilePath(root_relative.string());
