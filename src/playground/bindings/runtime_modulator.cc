@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "base/logging.h"
+#include "bindings/exception_handler.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 
@@ -188,6 +189,9 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
 
   for (int i = 0; i < module->GetModuleRequestsLength(); ++i) {
     const std::string specifier = toString(module->GetModuleRequest(i));
+
+    ScopedExceptionAttribution attribution(
+        path, module->GetModuleRequestLocation(i).GetLineNumber());
 
     // Special-case attempted module loads from HTTP. This is supported in many
     // other environments, but we've opted not to support this for now. Bail out

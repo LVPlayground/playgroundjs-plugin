@@ -9,6 +9,8 @@
 
 #include <include/v8.h>
 
+#include "bindings/exception_handler.h"
+
 namespace bindings {
 
 inline v8::Local<v8::String> v8String(const char* string) {
@@ -41,7 +43,11 @@ inline std::string toString(v8::Local<v8::Value> string) {
 }
 
 inline void ThrowException(const std::string& message) {
-  v8::Isolate::GetCurrent()->ThrowException(v8::Exception::TypeError(v8String(message)));
+  v8::Local<v8::Value> error = v8::Exception::TypeError(v8String(message));
+  if (ScopedExceptionAttribution::HasAttribution())
+    RegisterError(error);
+
+  v8::Isolate::GetCurrent()->ThrowException(error);
 }
 
 }  // namespace bindings

@@ -24,7 +24,34 @@ const char kAnonymousFunction[] = "`anonymous function`";
 // instances when invoking functionality on the v8 runtime.
 std::stack<std::string> g_exception_sources_;
 
+// Stack of sources that thrown exceptions should be attributed to.
+std::stack<std::pair<base::FilePath, int>> g_attribution_stack_;
+
 }  // namespace
+
+ScopedExceptionAttribution::ScopedExceptionAttribution(
+    const base::FilePath& path, int line) {
+  g_attribution_stack_.emplace(path, line);
+}
+
+ScopedExceptionAttribution::~ScopedExceptionAttribution() {
+  g_attribution_stack_.pop();
+}
+
+// static
+bool ScopedExceptionAttribution::HasAttribution() {
+  return g_attribution_stack_.size() > 0;
+}
+
+void RegisterError(v8::Local<v8::Value> error) {
+  if (!g_attribution_stack_.size())
+    return;
+
+  const auto& pair = g_attribution_stack_.top();
+
+  Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetExceptionHandler()
+      ->RegisterAttributedError(error, pair.first, pair.second);
+}
 
 ScopedExceptionSource::ScopedExceptionSource(const std::string& source) {
   g_exception_sources_.push(source);
@@ -38,6 +65,13 @@ ExceptionHandler::ExceptionHandler(Runtime* runtime, Runtime::Delegate* runtime_
     : runtime_(runtime), runtime_delegate_(runtime_delegate) {}
 
 ExceptionHandler::~ExceptionHandler() {}
+
+void ExceptionHandler::RegisterAttributedError(v8::Local<v8::Value> error, const base::FilePath& path, int line) {
+  if (registered_attribution_.size() > 100)
+    registered_attribution_.pop_front();
+
+  registered_attribution_.emplace_back(v8::Isolate::GetCurrent(), error, path, line);
+}
 
 void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source,
                                  v8::Local<v8::Promise> promise) {
@@ -56,7 +90,21 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
   {
     // (1) Append the resource name.
     const base::FilePath& source_directory = runtime_->source_directory();
-    const std::string resource_name = toString(message->GetScriptResourceName());
+
+    std::string resource_name = toString(message->GetScriptResourceName());
+    int resource_line = message->GetLineNumber();
+
+    // Try to correct the |resource_name| and |resource_line| with saved attribution.
+    if (resource_name == "undefined" || !resource_line) {
+      for (const auto& attribution : registered_attribution_) {
+        if (attribution.error != error)
+          continue;
+
+        resource_name = attribution.path.value();
+        resource_line = attribution.line;
+        break;
+      }
+    }
 
     if (!resource_name.find(source_directory.value()))
       prefix += resource_name.substr(source_directory.value().length() + 1);
@@ -64,7 +112,7 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
       prefix += resource_name;
 
     // (2) Append the line number.
-    prefix += ":" + std::to_string(message->GetLineNumber());
+    prefix += ":" + std::to_string(resource_line);
     prefix += ": ";
   }
 
