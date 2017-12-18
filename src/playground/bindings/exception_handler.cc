@@ -34,8 +34,8 @@ ScopedExceptionSource::~ScopedExceptionSource() {
   g_exception_sources_.pop();
 }
 
-ExceptionHandler::ExceptionHandler(Runtime::Delegate* runtime_delegate)
-    : runtime_delegate_(runtime_delegate) {}
+ExceptionHandler::ExceptionHandler(Runtime* runtime, Runtime::Delegate* runtime_delegate)
+    : runtime_(runtime), runtime_delegate_(runtime_delegate) {}
 
 ExceptionHandler::~ExceptionHandler() {}
 
@@ -52,10 +52,28 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
 
   runtime_delegate_->OnScriptOutput("=========================");
 
-  const char* message_prefix = source == MessageSource::kRejectedPromise ? "Uncaught promise rejection: "
-                                                                         : "";
+  std::string prefix;
+  {
+    // (1) Append the resource name.
+    const base::FilePath& source_directory = runtime_->source_directory();
+    const std::string resource_name = toString(message->GetScriptResourceName());
 
-  runtime_delegate_->OnScriptOutput(message_prefix + toString(error));
+    if (!resource_name.find(source_directory.value()))
+      prefix += resource_name.substr(source_directory.value().length() + 1);
+    else
+      prefix += resource_name;
+
+    // (2) Append the line number.
+    prefix += ":" + std::to_string(message->GetLineNumber());
+    prefix += ": ";
+
+    // (3) If this exception is through due to an uncaught rejected promise,
+    //     add an extra prefix to clarify this fact.
+    if (source == MessageSource::kRejectedPromise)
+      prefix += "Uncaught promise rejection: ";
+  }
+
+  runtime_delegate_->OnScriptOutput(prefix + toString(error));
 
   v8::Local<v8::StackTrace> stack_trace = message->GetStackTrace();
   for (int frame = 0; frame < stack_trace->GetFrameCount(); ++frame) {

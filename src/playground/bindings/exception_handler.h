@@ -23,7 +23,7 @@ class ScopedExceptionSource {
 // outputting them to the console in a neatly formatted fashion.
 class ExceptionHandler {
  public:
-  explicit ExceptionHandler(Runtime::Delegate* runtime_delegate);
+  ExceptionHandler(Runtime* runtime, Runtime::Delegate* runtime_delegate);
   ~ExceptionHandler();
 
   enum class MessageSource {
@@ -47,6 +47,7 @@ class ExceptionHandler {
   void OnFatalError(const char* location, const char* message);
 
  private:
+  Runtime* runtime_;
   Runtime::Delegate* runtime_delegate_;
 
   // Structure to store queued up messages. Necessary to support async try/catch statements.

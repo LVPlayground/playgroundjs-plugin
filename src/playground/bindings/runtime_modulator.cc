@@ -106,7 +106,6 @@ void RuntimeModulator::ResolveOrCreateModule(
   base::FilePath path;
 
   v8::TryCatch try_catch(context->GetIsolate());
-  try_catch.SetVerbose(true);
 
   // Resolve the path of the module that is to be loaded. It is considered a
   // fatal error when we cannot resolve the path.
@@ -121,7 +120,6 @@ void RuntimeModulator::ResolveOrCreateModule(
     // (2) Attempt to create a new module for the given |path|.
     if (!CreateModule(context, path).ToLocal(&module)) {
       // (3) Reject the |resolver| since the |path| cannot be loaded.
-      DCHECK(try_catch.HasCaught());
       resolver->Reject(context, try_catch.Exception());
       return;
     }
@@ -159,6 +157,7 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
     return v8::MaybeLocal<v8::Module>();
   }
 
+  v8::Isolate* isolate = context->GetIsolate();
   v8::ScriptOrigin origin(
       v8String(path.value()),
       v8::Local<v8::Integer>() /* resource_line_offset */,
@@ -168,16 +167,16 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
       v8::Local<v8::Value>() /* source_map_url */,
       v8::Local<v8::Boolean>() /* resource_is_opaque */,
       v8::Local<v8::Boolean>() /* is_wasm */,
-      v8::True(context->GetIsolate()) /* is_module */);
+      v8::True(isolate) /* is_module */);
 
   v8::ScriptCompiler::Source source(code, origin);
 
   v8::Local<v8::Module> module;
-  if (!v8::ScriptCompiler::CompileModule(context->GetIsolate(), &source).ToLocal(&module))
+  if (!v8::ScriptCompiler::CompileModule(isolate, &source).ToLocal(&module))
     return v8::MaybeLocal<v8::Module>();
 
   DCHECK(!modules_.count(path));
-  modules_.emplace(path, v8::Global<v8::Module>(context->GetIsolate(), module));
+  modules_.emplace(path, v8::Global<v8::Module>(isolate, module));
 
   for (int i = 0; i < module->GetModuleRequestsLength(); ++i) {
     const std::string specifier = toString(module->GetModuleRequest(i));

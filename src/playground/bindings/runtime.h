@@ -74,6 +74,9 @@ class Runtime {
   void AddFrameObserver(FrameObserver* observer);
   void RemoveFrameObserver(FrameObserver* observer);
 
+  // Returns the root file path in which the JavaScript code lives.
+  const base::FilePath& source_directory() const { return source_directory_; }
+
   // Returns the modulator that should be used for loading modules.
   RuntimeModulator* GetModulator() { return modulator_.get(); }
 
@@ -139,7 +142,7 @@ class Runtime {
   // Dispatches the exception caught in |try_catch| to the delegate, if any.
   void DisplayException(const v8::TryCatch& try_catch);
 
-  ::base::FilePath script_directory_;
+  base::FilePath source_directory_;
   Delegate* runtime_delegate_;
 
   // Set of attached frame observers.

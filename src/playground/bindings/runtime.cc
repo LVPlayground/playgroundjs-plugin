@@ -150,10 +150,11 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_ = v8::Isolate::New(create_params);
   isolate_scope_.reset(new v8::Isolate::Scope(isolate_));
 
-  exception_handler_.reset(new ExceptionHandler(runtime_delegate_));
+  exception_handler_.reset(new ExceptionHandler(this, runtime_delegate_));
   isolate_->SetCaptureStackTraceForUncaughtExceptions(true, 15);
   isolate_->AddMessageListener(MessageCallback);
   isolate_->SetFatalErrorHandler(FatalErrorCallback);
+  isolate_->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
   isolate_->SetPromiseRejectCallback(PromiseRejectCallback);
   isolate_->SetHostImportModuleDynamicallyCallback(
       &RuntimeModulator::ImportModuleDynamicallyCallback);
@@ -161,8 +162,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   profiler_.reset(new Profiler(isolate_));
   timer_queue_.reset(new TimerQueue(this));
 
-  // TODO: This should be set by some sort of Configuration object.
-  script_directory_ = ::base::FilePath("javascript");
+  source_directory_ = base::FilePath::CurrentDirectory().Append("javascript");
 }
 
 Runtime::~Runtime() {
@@ -197,10 +197,7 @@ void Runtime::Initialize() {
   context_.Reset(isolate_, context);
 
   if (RuntimeModulator::IsEnabled()) {
-    base::FilePath source_directory =
-        base::FilePath::CurrentDirectory().Append("javascript");
-
-    modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory);
+    modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory_);
     modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.mod.js");
     return;
   }
@@ -209,8 +206,6 @@ void Runtime::Initialize() {
   ScriptSource global_prologue(kScriptPrologue);
   if (!Execute(global_prologue, nullptr /** result **/))
     LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
-
-  isolate_->SetMicrotasksPolicy(v8::MicrotasksPolicy::kExplicit);
 }
 
 void Runtime::SpinUntilReady() {
@@ -301,7 +296,7 @@ bool Runtime::Execute(const ScriptSource& script_source,
 bool Runtime::ExecuteFile(const ::base::FilePath& file,
                           ExecutionType execution_type,
                           v8::Local<v8::Value>* result) {
-  const ::base::FilePath script_path = script_directory_.Append(file);
+  const ::base::FilePath script_path = source_directory_.Append(file);
 
   std::ifstream handle(script_path.value().c_str());
   if (!handle.is_open() || handle.fail())
