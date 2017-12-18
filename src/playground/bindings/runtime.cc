@@ -201,7 +201,7 @@ void Runtime::Initialize() {
         base::FilePath::CurrentDirectory().Append("javascript");
 
     modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory);
-    modulator_->LoadModule(context, std::string() /* referrer */, "main.mod.js");
+    modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.mod.js");
     return;
   }
 

@@ -30,6 +30,7 @@ public:
 
   bool operator==(const FilePath& path) { return path_ == path.path_; }
   bool operator!=(const FilePath& path) { return path_ != path.path_; }
+  bool operator<(const FilePath& path) const { return path_ < path.path_; }
 
   const std::string& value() const { return path_; }
 

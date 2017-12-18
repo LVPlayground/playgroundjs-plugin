@@ -35,7 +35,7 @@ class RuntimeModulator {
 
   // Loads the module identified by the |specifier| as the top-level module.
   v8::MaybeLocal<v8::Promise> LoadModule(v8::Local<v8::Context> context,
-                                         const std::string& referrer,
+                                         const base::FilePath& referrer,
                                          const std::string& specifier);
 
   // Gets the module identified by the |specifier|, if any.
@@ -49,7 +49,7 @@ class RuntimeModulator {
   // reused, otherwise it will be created.
   void ResolveOrCreateModule(v8::Local<v8::Context> context,
                              v8::Local<v8::Promise::Resolver> resolver,
-                             const std::string& referrer,
+                             const base::FilePath& referrer,
                              const std::string& specifier);
 
   // Gets the module that is identified by the given |path|.
@@ -61,7 +61,7 @@ class RuntimeModulator {
 
   // Resolves the path for the given |specifier| against the |referrer| script and the
   // |root_| that employs this modulator.
-  bool ResolveModulePath(const std::string& referrer,
+  bool ResolveModulePath(const base::FilePath& referrer,
                          const std::string& specifier,
                          base::FilePath* path) const;
 
@@ -73,8 +73,8 @@ class RuntimeModulator {
   v8::Isolate* isolate_;
   base::FilePath root_;
 
-  // TODO(Russell): This should be keyed on base::FilePath.
-  std::map<std::string, v8::Global<v8::Module>> modules_;
+  // Map of paths to loaded v8::Module instances.
+  std::map<base::FilePath, v8::Global<v8::Module>> modules_;
 
   DISALLOW_COPY_AND_ASSIGN(RuntimeModulator);
 };

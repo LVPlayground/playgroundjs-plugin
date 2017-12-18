@@ -25,11 +25,13 @@ bool IsHTTP(const std::string& specifier) {
          !lowercase_specifier.find("https:");
 }
 
+// Resolves the given |specifier| to a v8::Module instance. This method is not
+// expected to fail, as all dependent modules should've been loaded during the
+// LoadModule() phase. (Which recursively loads child modules.)
 v8::MaybeLocal<v8::Module> ResolveModuleCallback(
     v8::Local<v8::Context> context,
     v8::Local<v8::String> specifier,
     v8::Local<v8::Module> referrer) {
-  std::string referrer_string;
   return Runtime::FromIsolate(context->GetIsolate())->GetModulator()->GetModule(
     context, referrer, toString(specifier));
 }
@@ -49,7 +51,7 @@ v8::MaybeLocal<v8::Promise> RuntimeModulator::ImportModuleDynamicallyCallback(
   }
 
   return Runtime::FromIsolate(context->GetIsolate())->GetModulator()->LoadModule(
-    context, referrer_string, toString(specifier));
+    context, base::FilePath(referrer_string), toString(specifier));
 }
 
 RuntimeModulator::RuntimeModulator(v8::Isolate* isolate, const base::FilePath& root)
@@ -59,7 +61,7 @@ RuntimeModulator::~RuntimeModulator() = default;
 
 v8::MaybeLocal<v8::Promise> RuntimeModulator::LoadModule(
   v8::Local<v8::Context> context,
-  const std::string& referrer,
+  const base::FilePath& referrer,
   const std::string& specifier) {
   v8::MaybeLocal<v8::Promise::Resolver> maybe_resolver =
     v8::Promise::Resolver::New(context);
@@ -98,7 +100,7 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(
 void RuntimeModulator::ResolveOrCreateModule(
   v8::Local<v8::Context> context,
   v8::Local<v8::Promise::Resolver> resolver,
-  const std::string& referrer,
+  const base::FilePath& referrer,
   const std::string& specifier) {
   v8::Local<v8::Module> module;
   base::FilePath path;
@@ -141,7 +143,7 @@ void RuntimeModulator::ResolveOrCreateModule(
 }
 
 v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(const base::FilePath& path) {
-  auto iter = modules_.find(path.value());
+  auto iter = modules_.find(path);
   if (iter == modules_.end())
     return v8::MaybeLocal<v8::Module>();
 
@@ -174,8 +176,8 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
   if (!v8::ScriptCompiler::CompileModule(context->GetIsolate(), &source).ToLocal(&module))
     return v8::MaybeLocal<v8::Module>();
 
-  DCHECK(!modules_.count(path.value()));
-  modules_.emplace(path.value(), v8::Global<v8::Module>(context->GetIsolate(), module));
+  DCHECK(!modules_.count(path));
+  modules_.emplace(path, v8::Global<v8::Module>(context->GetIsolate(), module));
 
   for (int i = 0; i < module->GetModuleRequestsLength(); ++i) {
     const std::string specifier = toString(module->GetModuleRequest(i));
@@ -189,7 +191,7 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
     }
 
     base::FilePath request_path;
-    if (!ResolveModulePath(path.value(), specifier, &request_path))
+    if (!ResolveModulePath(path, specifier, &request_path))
       return v8::Local<v8::Module>();
 
     // Attempt to get the v8::Module if it's already been loaded.
@@ -207,10 +209,10 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
 }
 
 bool RuntimeModulator::ResolveModulePath(
-    const std::string& referrer,
+    const base::FilePath& referrer,
     const std::string& specifier,
     base::FilePath* path) const {
-  LOG(INFO) << "Resolve [" << referrer << "][" << specifier << "]";
+  LOG(INFO) << "Resolve [" << referrer.value() << "][" << specifier << "]";
 
   // TODO(Russell): Support relative paths?
   *path = root_.Append(specifier);
