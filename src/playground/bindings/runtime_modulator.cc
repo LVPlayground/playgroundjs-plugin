@@ -4,6 +4,7 @@
 
 #include "bindings/runtime_modulator.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -13,6 +14,16 @@
 
 namespace bindings {
 namespace {
+
+// Returns whether the |specifier| refers to a file on the HTTP(s) protocol.
+bool IsHTTP(const std::string& specifier) {
+  std::string lowercase_specifier(specifier.size(), ' ');
+  std::transform(
+      specifier.begin(), specifier.end(), lowercase_specifier.begin(), ::tolower);
+
+  return !lowercase_specifier.find("http:") ||
+         !lowercase_specifier.find("https:");
+}
 
 v8::MaybeLocal<v8::Module> ResolveModuleCallback(
     v8::Local<v8::Context> context,
@@ -50,13 +61,11 @@ v8::MaybeLocal<v8::Promise> RuntimeModulator::LoadModule(
   v8::Local<v8::Context> context,
   const std::string& referrer,
   const std::string& specifier) {
-  const base::FilePath path = ResolveModulePath(referrer, specifier);
-
   v8::MaybeLocal<v8::Promise::Resolver> maybe_resolver =
     v8::Promise::Resolver::New(context);
   v8::Local<v8::Promise::Resolver> resolver;
   if (maybe_resolver.ToLocal(&resolver)) {
-    ResolveOrCreateModule(context, resolver, path);
+    ResolveOrCreateModule(context, resolver, referrer, specifier);
     return resolver->GetPromise();
   }
 
@@ -73,7 +82,13 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(
     if (pair.second != referrer)
       continue;
 
-    return GetModule(ResolveModulePath(pair.first, specifier));
+    base::FilePath path;
+    if (!ResolveModulePath(pair.first, specifier, &path)) {
+      LOG(ERROR) << "Unable to get the module for: " << specifier;
+      return v8::MaybeLocal<v8::Module>();
+    }
+
+    return GetModule(path);
   }
 
   DCHECK(false) << "GetModule() calls should always succeed.";
@@ -83,8 +98,20 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(
 void RuntimeModulator::ResolveOrCreateModule(
   v8::Local<v8::Context> context,
   v8::Local<v8::Promise::Resolver> resolver,
-  const base::FilePath& path) {
+  const std::string& referrer,
+  const std::string& specifier) {
   v8::Local<v8::Module> module;
+  base::FilePath path;
+
+  v8::TryCatch try_catch(context->GetIsolate());
+  try_catch.SetVerbose(true);
+
+  // Resolve the path of the module that is to be loaded. It is considered a
+  // fatal error when we cannot resolve the path.
+  if (!ResolveModulePath(referrer, specifier, &path)) {
+    resolver->Reject(context, try_catch.Exception());
+    return;
+  }
 
   // (1) Reuse a previously loaded module if it exists.
   v8::MaybeLocal<v8::Module> existing_module = GetModule(path);
@@ -92,14 +119,11 @@ void RuntimeModulator::ResolveOrCreateModule(
     // (2) Attempt to create a new module for the given |path|.
     if (!CreateModule(context, path).ToLocal(&module)) {
       // (3) Reject the |resolver| since the |path| cannot be loaded.
-      // TODO(Russell): Reject the |resolver|. How can we do that?
-      CHECK(false) << "Unable to load module: " << path.value();
+      DCHECK(try_catch.HasCaught());
+      resolver->Reject(context, try_catch.Exception());
       return;
     }
   }
-
-  v8::TryCatch try_catch(context->GetIsolate());
-  try_catch.SetVerbose(true);
 
   // Instantiate the module for the current import.
   v8::MaybeLocal<v8::Value> maybe_module_result;
@@ -129,8 +153,8 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
     const base::FilePath& path) {
   v8::Local<v8::String> code;
   if (!ReadFile(path, &code)) {
-    // TODO(Russell): Should we throw in this situation?
-    LOG(ERROR) << "Unable to read the file contents of: " << path.value();
+    // TODO(Russell): We'll probably have to throw in ResolveModulePath()?
+    ThrowException("Unable to load module code: " + path.value());
     return v8::MaybeLocal<v8::Module>();
   }
 
@@ -155,12 +179,25 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
   modules_.emplace(path.value(), v8::Global<v8::Module>(context->GetIsolate(), module));
 
   for (int i = 0; i < module->GetModuleRequestsLength(); ++i) {
-    v8::Local<v8::String> specifier = module->GetModuleRequest(i);
+    const std::string specifier = toString(module->GetModuleRequest(i));
 
-    base::FilePath request_path = ResolveModulePath(path.value(), toString(specifier));
+    // Special-case attempted module loads from HTTP. This is supported in many
+    // other environments, but we've opted not to support this for now. Bail out
+    // immediately with an exception.
+    if (IsHTTP(specifier)) {
+      ThrowException("Serving modules over HTTP(s) is not supported: " + specifier);
+      return v8::Local<v8::Module>();
+    }
+
+    base::FilePath request_path;
+    if (!ResolveModulePath(path.value(), specifier, &request_path))
+      return v8::Local<v8::Module>();
+
+    // Attempt to get the v8::Module if it's already been loaded.
     if (!GetModule(request_path).IsEmpty())
       continue;
 
+    // Attempt to load the v8::Module given that that's not the case.
     if (!CreateModule(context, request_path).IsEmpty())
       continue;
 
@@ -170,12 +207,15 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
   return module;
 }
 
-base::FilePath RuntimeModulator::ResolveModulePath(
+bool RuntimeModulator::ResolveModulePath(
     const std::string& referrer,
-    const std::string& specifier) const {
+    const std::string& specifier,
+    base::FilePath* path) const {
   LOG(INFO) << "Resolve [" << referrer << "][" << specifier << "]";
+
   // TODO(Russell): Support relative paths?
-  return root_.Append(specifier);
+  *path = root_.Append(specifier);
+  return true;
 }
 
 bool RuntimeModulator::ReadFile(const base::FilePath& path,

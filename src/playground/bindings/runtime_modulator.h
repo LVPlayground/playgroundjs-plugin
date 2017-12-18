@@ -45,11 +45,12 @@ class RuntimeModulator {
 
  private:
   // Aims to resolve the |resolver| with the module namespace object for a module
-  // identified by |path|. If such a module is already loaded it will be reused,
-  // otherwise it will be created.
+  // identified by |specifier|. If such a module is already loaded it will be
+  // reused, otherwise it will be created.
   void ResolveOrCreateModule(v8::Local<v8::Context> context,
                              v8::Local<v8::Promise::Resolver> resolver,
-                             const base::FilePath& path);
+                             const std::string& referrer,
+                             const std::string& specifier);
 
   // Gets the module that is identified by the given |path|.
   v8::MaybeLocal<v8::Module> GetModule(const base::FilePath& path);
@@ -60,8 +61,9 @@ class RuntimeModulator {
 
   // Resolves the path for the given |specifier| against the |referrer| script and the
   // |root_| that employs this modulator.
-  base::FilePath ResolveModulePath(const std::string& referrer,
-                                   const std::string& specifier) const;
+  bool ResolveModulePath(const std::string& referrer,
+                         const std::string& specifier,
+                         base::FilePath* path) const;
 
   // Reads the file identified by |path| and writes the result to |contents|. Returns
   // whether the file could be read correctly. Failures must be handled.
