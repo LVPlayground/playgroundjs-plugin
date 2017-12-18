@@ -72,9 +72,6 @@
     <ClCompile Include="bindings\global_scope.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\script_prologue.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="base\time.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -234,9 +231,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\utilities.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\script_prologue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="base\time.h">

@@ -60,7 +60,6 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "provideNative", ProvideNativeCallback);
-  InstallFunction(global, "requireImpl", RequireImplCallback);
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
   InstallFunction(global, "wait", WaitCallback);
@@ -237,16 +236,6 @@ std::string GlobalScope::ReadFile(const std::string& filename) const {
             std::ostreambuf_iterator<char>(content_stream));
 
   return content_stream.str();
-}
-
-v8::Local<v8::Value> GlobalScope::RequireImpl(Runtime* runtime, const std::string& filename) const {
-  performance::ScopedTrace trace(performance::LOAD_JAVASCRIPT_TRACE, filename);
-
-  v8::Local<v8::Value> result;
-  if (!runtime->ExecuteFile(base::FilePath(filename), Runtime::EXECUTION_TYPE_MODULE, &result))
-    ThrowException("unable to execute require(): cannot evaluate " + filename + ".");
-
-  return result;
 }
 
 v8::Local<v8::Promise> GlobalScope::Wait(Runtime* runtime, int64_t time) {

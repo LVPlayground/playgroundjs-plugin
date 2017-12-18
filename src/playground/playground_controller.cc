@@ -58,25 +58,6 @@ bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
 
 void PlaygroundController::OnGamemodeLoaded() {
   runtime_->Initialize();
-
-  if (bindings::RuntimeModulator::IsEnabled())
-    return;
-
-  {
-    performance::ScopedTrace trace(performance::LOAD_JAVASCRIPT_TRACE, "main.js");
-    v8::HandleScope scope(runtime_->isolate());
-
-    const bool result =
-        runtime_->ExecuteFile(base::FilePath("main.js"),
-                              bindings::Runtime::EXECUTION_TYPE_NORMAL,
-                              nullptr /** result **/);
-
-    if (!result)
-      LOG(ERROR) << "Unable to load the main JavaScript file.";
-
-    runtime_->GetGlobalScope()->Finalize();
-  }
-
   runtime_->SpinUntilReady();
 }
 

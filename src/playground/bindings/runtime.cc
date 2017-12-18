@@ -6,9 +6,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <fstream>
-#include <sstream>
-#include <streambuf>
 #include <string.h>
 #include <thread>
 #include <unordered_map>
@@ -22,7 +19,6 @@
 #include "bindings/global_scope.h"
 #include "bindings/profiler.h"
 #include "bindings/runtime_modulator.h"
-#include "bindings/script_prologue.h"
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 
@@ -166,9 +162,6 @@ Runtime::Runtime(Delegate* runtime_delegate,
 }
 
 Runtime::~Runtime() {
-  // TODO: Multiple instances would now break.
-  //g_runtime_instances_.erase(isolate_);
-
   global_scope_.reset();
   timer_queue_.reset();
   modulator_.reset();
@@ -194,19 +187,12 @@ void Runtime::Initialize() {
 
   v8::Context::Scope context_scope(context);
   global_scope_->InstallObjects(context->Global());
+  global_scope_->Finalize();
 
   context_.Reset(isolate_, context);
 
-  if (RuntimeModulator::IsEnabled()) {
-    modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory_);
-    modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.js");
-    return;
-  }
-
-  // Make sure that the global script prologue is loaded in the virtual machine.
-  ScriptSource global_prologue(kScriptPrologue);
-  if (!Execute(global_prologue, nullptr /** result **/))
-    LOG(ERROR) << "Unable to install the global script prologue in the virtual machine.";
+  modulator_ = std::make_unique<RuntimeModulator>(isolate_, source_directory_);
+  modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.js");
 }
 
 void Runtime::SpinUntilReady() {
@@ -256,101 +242,6 @@ void Runtime::AddFrameObserver(FrameObserver* observer) {
 
 void Runtime::RemoveFrameObserver(FrameObserver* observer) {
   frame_observers_.erase(observer);
-}
-
-bool Runtime::Execute(const ScriptSource& script_source,
-                      v8::Local<v8::Value>* result) {
-  v8::EscapableHandleScope handle_scope(isolate());
-  v8::Context::Scope context_scope(context());
-
-  v8::MaybeLocal<v8::String> script_string =
-    v8::String::NewFromUtf8(isolate_, script_source.source.c_str(), v8::NewStringType::kNormal);
-  v8::MaybeLocal<v8::String> filename_string =
-    v8::String::NewFromUtf8(isolate_, script_source.filename.c_str(), v8::NewStringType::kNormal);
-
-  if (script_string.IsEmpty() || filename_string.IsEmpty())
-    return false;
-
-  v8::ScriptOrigin origin(filename_string.ToLocalChecked());
-  v8::Local<v8::String> source = script_string.ToLocalChecked();
-
-  v8::TryCatch try_catch;
-
-  v8::MaybeLocal<v8::Script> script = v8::Script::Compile(context(), source, &origin);
-  if (script.IsEmpty()) {
-    DisplayException(try_catch);
-    return false;
-  }
-
-  v8::MaybeLocal<v8::Value> script_result = script.ToLocalChecked()->Run(context());
-  if (try_catch.HasCaught()) {
-    DisplayException(try_catch);
-    return false;
-  }
-
-  if (result)
-    *result = handle_scope.Escape(script_result.ToLocalChecked());
-
-  return true;
-}
-
-bool Runtime::ExecuteFile(const ::base::FilePath& file,
-                          ExecutionType execution_type,
-                          v8::Local<v8::Value>* result) {
-  const ::base::FilePath script_path = source_directory_.Append(file);
-
-  std::ifstream handle(script_path.value().c_str());
-  if (!handle.is_open() || handle.fail())
-    return false;
-
-  ScriptSource script;
-  script.filename = file.value();
-
-  std::stringstream source_stream;
-
-  // Prepend and append the module prologue and epilogue if the execution type is set to module
-  // style. Otherwise just pass through the file's source to |source_stream|.
-  if (execution_type == EXECUTION_TYPE_MODULE)
-    source_stream << RemoveLineBreaks(kModulePrologue);
-
-  std::copy(std::istreambuf_iterator<char>(handle),
-            std::istreambuf_iterator<char>(),
-            std::ostreambuf_iterator<char>(source_stream));
-  
-  if (execution_type == EXECUTION_TYPE_MODULE)
-    source_stream << RemoveLineBreaks(kModuleEpilogue);
-
-  script.source = source_stream.str();
-
-  // Now execute |script| normally on the runtime.
-  return Execute(script, result);
-}
-
-void Runtime::DisplayException(const v8::TryCatch& try_catch) {
-  if (!runtime_delegate_)
-    return;
-
-  // TODO: Exceptions ideally should have stack traces attached to them.
-
-  v8::Local<v8::Message> message = try_catch.Message();
-
-  // Extract the exception message from the try-catch block.
-  v8::String::Utf8Value exception(try_catch.Exception());
-  std::string exception_string(*exception, exception.length());
-
-  std::string filename = "unknown";
-  size_t line_number = 0;
-
-  if (message.IsEmpty()) {
-    LOG(WARNING) << "[v8] Empty message received in " << __FUNCTION__;
-  } else {
-    v8::String::Utf8Value resource_name(message->GetScriptOrigin().ResourceName());
-    filename.assign(*resource_name, resource_name.length());
-
-    line_number = message->GetLineNumber();
-  }
-
-  runtime_delegate_->OnScriptError(filename, line_number, exception_string);
 }
 
 }  // namespace bindings

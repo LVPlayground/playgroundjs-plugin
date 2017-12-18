@@ -19,9 +19,6 @@ namespace bindings {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 class RuntimeModulator {
  public:
-  // Returns whether the Modulator is enabled.
-  static constexpr bool IsEnabled() { return true; }
-
   // Called by v8 when a module has to be loaded. The |referrer| contains the script
   // or module that initiated the load. The |specifier| is the name or path that is to
   // be loaded. Returns a Promise that will be resolved with the module namespace object.

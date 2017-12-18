@@ -100,10 +100,6 @@ class GlobalScope {
   // Reads the contents of |filename| and returns them as a string.
   std::string ReadFile(const std::string& filename) const;
 
-  // Implementation of the requireImpl() global function, which loads and executes |filename| with
-  // a CommonJS-esque module boilerplate in the current global scope and returns the result.
-  v8::Local<v8::Value> RequireImpl(Runtime* runtime, const std::string& filename) const;
-
   // Returns a promise that will be resolved after |time| milliseconds.
   v8::Local<v8::Promise> Wait(Runtime* runtime, int64_t time);
 

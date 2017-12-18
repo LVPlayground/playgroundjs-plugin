@@ -359,25 +359,6 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   }
 }
 
-// object requireImpl(string filename);
-// NOTE: The public entry-point is require(), so reflect this in exceptions.
-void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
-  GlobalScope* global = runtime->GetGlobalScope();
-
-  if (arguments.Length() == 0) {
-    ThrowException("unable to execute require(): 1 argument required, but only 0 provided.");
-    return;
-  }
-
-  if (!arguments[0]->IsString()) {
-    ThrowException("unable to execute require(): expected a string for argument 1.");
-    return;
-  }
-
-  arguments.GetReturnValue().Set(global->RequireImpl(runtime.get(), toString(arguments[0])));
-}
-
 // void startTrace();
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   LOG(INFO) << "[TraceManager] Started capturing traces.";

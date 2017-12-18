@@ -104,29 +104,6 @@ class Runtime {
     std::string filename;
   };
 
-  // Defines how to execute a script passed to |Execute| or |ExecuteFile|. Execution as a module
-  // will surround the script in module boilerplate code, for use with require().
-  enum ExecutionType {
-    EXECUTION_TYPE_NORMAL,
-    EXECUTION_TYPE_MODULE
-  };
-
-  // TODO: Move these to helper functions, e.g.
-  //     bindings::Execute()
-  //     bindings::ExecuteFile()
-
-  // Executes |script_source| using the runtime. May be called multiple times in the lifetime of
-  // this runtime. The same global object will be reused for each invocation. The caller must
-  // have created a handle scope prior to using this method.
-  bool Execute(const ScriptSource& script_source,
-               v8::Local<v8::Value>* result = nullptr);
-
-  // Executes |file| using the runtime. The file will be read from disk before it will be executed.
-  // The caller must have created a handle scope prior to using this method.
-  bool ExecuteFile(const ::base::FilePath& file,
-                   ExecutionType execution_type,
-                   v8::Local<v8::Value>* result = nullptr);
-
   // Returns the isolate associated with this runtime.
   v8::Isolate* isolate() const { return isolate_; }
 
@@ -138,9 +115,6 @@ class Runtime {
 
  private:
   Runtime(Delegate* runtime_delegate, plugin::PluginController* plugin_controller);
-
-  // Dispatches the exception caught in |try_catch| to the delegate, if any.
-  void DisplayException(const v8::TryCatch& try_catch);
 
   base::FilePath source_directory_;
   Delegate* runtime_delegate_;

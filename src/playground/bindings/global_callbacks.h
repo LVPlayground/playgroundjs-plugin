@@ -28,7 +28,6 @@ void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
-void RequireImplCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void WaitCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
