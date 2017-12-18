@@ -170,6 +170,7 @@ Runtime::~Runtime() {
   //g_runtime_instances_.erase(isolate_);
 
   global_scope_.reset();
+  modulator_.reset();
 
   isolate_scope_.reset();
   isolate_->Dispose();

@@ -153,8 +153,7 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
     const base::FilePath& path) {
   v8::Local<v8::String> code;
   if (!ReadFile(path, &code)) {
-    // TODO(Russell): We'll probably have to throw in ResolveModulePath()?
-    ThrowException("Unable to load module code: " + path.value());
+    ThrowException("Unable to open the module for reading: " + path.value());
     return v8::MaybeLocal<v8::Module>();
   }
 
