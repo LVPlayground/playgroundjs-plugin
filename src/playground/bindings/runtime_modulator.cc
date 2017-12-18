@@ -1,16 +1,19 @@
-// Copyright 2015 Las Venturas Playground. All rights reserved.
+// Copyright 2017 Las Venturas Playground. All rights reserved.
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
 #include "bindings/runtime_modulator.h"
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <sstream>
 
 #include "base/logging.h"
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
+
+namespace fs = boost::filesystem;
 
 namespace bindings {
 namespace {
@@ -23,6 +26,11 @@ bool IsHTTP(const std::string& specifier) {
 
   return !lowercase_specifier.find("http:") ||
          !lowercase_specifier.find("https:");
+}
+
+// Returns whether the file represented by |path| exists.
+bool FileExists(const fs::path& path) {
+  return fs::exists(path);
 }
 
 // Resolves the given |specifier| to a v8::Module instance. This method is not
@@ -207,15 +215,36 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
   return module;
 }
 
+
+
 bool RuntimeModulator::ResolveModulePath(
     const base::FilePath& referrer,
     const std::string& specifier,
     base::FilePath* path) const {
-  LOG(INFO) << "Resolve [" << referrer.value() << "][" << specifier << "]";
+  fs::path root(root_.value());
 
-  // TODO(Russell): Support relative paths?
-  *path = root_.Append(specifier);
-  return true;
+  // (1) Attempt to resolve against internal services.
+  // TODO(Russell): Support including internal services such as "lvp:mysql".
+
+  // (2) Attempt to resolve the |specifier| against the |referrer|.
+  if (!referrer.empty()) {
+    fs::path referrer_relative =
+        fs::absolute(fs::path(specifier), fs::path(referrer.value()));
+    if (FileExists(referrer_relative)) {
+      *path = base::FilePath(referrer_relative.string());
+      return true;
+    }
+  }
+
+  // (1) Attempt to resolve the |specifier| against the |root_|.
+  fs::path root_relative = fs::absolute(fs::path(specifier), root);
+  if (FileExists(root_relative)) {
+    *path = base::FilePath(root_relative.string());
+    return true;
+  }
+
+  ThrowException("Unable to resolve import: " + specifier);
+  return false;
 }
 
 bool RuntimeModulator::ReadFile(const base::FilePath& path,

@@ -66,11 +66,6 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
     // (2) Append the line number.
     prefix += ":" + std::to_string(message->GetLineNumber());
     prefix += ": ";
-
-    // (3) If this exception is through due to an uncaught rejected promise,
-    //     add an extra prefix to clarify this fact.
-    if (source == MessageSource::kRejectedPromise)
-      prefix += "Uncaught promise rejection: ";
   }
 
   runtime_delegate_->OnScriptOutput(prefix + toString(error));
