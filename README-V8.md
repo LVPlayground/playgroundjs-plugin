@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    214e5cee2d2e4a6f3411a02348e13e1f11ae7da0
-    "[cctest] Add FuncNameInferrer coverage for arrow functions"
-    Friday, December 15th, 2017
+    6c48f74fdafe303ea4013f443fd4c2a7ab824a85
+    "Version 7.7.310"
+    Wednesday, July 24, 2019
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -15,12 +15,18 @@ Updating the version of v8 we use involves changing the submodule to refer to th
 # Building v8
 If you want to change the plugin itself, or update the version of v8 that's being used, make sure that you've got [depot_tools installed](https://dev.chromium.org/developers/how-tos/install-depot-tools) and available in your PATH.
 
+## First time compilation (Linux only)
+If this is the first time you're building v8 on Linux, run the following commands to initialize your environment.
+
+    $ git submodule update --init --recursive
+    $ sudo yum install glibc-static
+
 ## Common steps
 The following preparatory steps have to be executed on all platforms. They check out v8 including all the dependencies specific to the platform.
 
     $ cd src/v8
     $ git pull --rebase
-    $ git checkout origin/master
+    $ git checkout 7.7.310
     $ gclient sync
 
 ## Building on Windows

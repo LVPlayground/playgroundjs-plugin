@@ -69,7 +69,7 @@ void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  const int32_t duration = arguments[0]->Int32Value();
+  const int32_t duration = arguments[0]->Int32Value(runtime->context()).ToChecked();
   const std::string filename = toString(arguments[1]);
 
   if (duration < 100 || duration > 180000) {
@@ -122,13 +122,14 @@ void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 // object { duration, fps } frameCounter();
 void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
+  auto context = runtime->context();
 
   double duration, average_fps;
   runtime->GetAndResetFrameCounter(&duration, &average_fps);
 
   v8::Local<v8::Object> object = v8::Object::New(runtime->isolate());
-  object->Set(v8String("duration"), v8::Number::New(runtime->isolate(), duration));
-  object->Set(v8String("fps"), v8::Number::New(runtime->isolate(), average_fps));
+  object->Set(context, v8String("duration"), v8::Number::New(runtime->isolate(), duration));
+  object->Set(context, v8String("fps"), v8::Number::New(runtime->isolate(), average_fps));
 
   arguments.GetReturnValue().Set(object);
 }
@@ -152,6 +153,7 @@ void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   }
 
   v8::Isolate* isolate = arguments.GetIsolate();
+  auto context = isolate->GetCurrentContext();
 
   const base::FilePath base = base::FilePath::CurrentDirectory().Append(toString(arguments[0]));
   const std::string query = toString(arguments[1]);
@@ -166,8 +168,8 @@ void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   case FileSearchStatus::SUCCESS:
     {
       v8::Local<v8::Array> arr = v8::Array::New(isolate, results.size());
-      for (size_t i = 0; i < results.size(); ++i)
-        arr->Set(i, v8String(results[i]));
+      for (uint32_t i = 0; i < results.size(); ++i)
+        arr->Set(context, i, v8String(results[i]));
 
       arguments.GetReturnValue().Set(arr);
     }
@@ -200,7 +202,10 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
 
 // bool isPlayerMinimized(playerId);
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
+  auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  auto context = runtime->context();
+  auto global = runtime->GetGlobalScope();
 
   if (arguments.Length() == 0) {
     ThrowException("unable to execute isPlayerMinimized(): 1 argument required, but only 0 provided.");
@@ -212,7 +217,7 @@ void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
     return;
   }
 
-  arguments.GetReturnValue().Set(global->IsPlayerMinimized(arguments[0]->Int32Value()));
+  arguments.GetReturnValue().Set(global->IsPlayerMinimized(arguments[0]->Int32Value(context).ToChecked()));
 }
 
 // void logstash(string message[, string endpoint = null]);
@@ -344,8 +349,10 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
     return;
   }
 
-  unsigned int total_tests = static_cast<unsigned int>(arguments[0]->ToNumber()->IntegerValue());
-  unsigned int failed_tests = static_cast<unsigned int>(arguments[1]->ToNumber()->IntegerValue());
+  auto context = GetContext();
+
+  unsigned int total_tests = static_cast<unsigned int>(GetInt64(context, arguments[0]));
+  unsigned int failed_tests = static_cast<unsigned int>(GetInt64(context, arguments[1]));
 
   auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
 
@@ -405,7 +412,7 @@ void WaitCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  arguments.GetReturnValue().Set(global->Wait(runtime.get(), arguments[0]->ToNumber()->IntegerValue()));
+  arguments.GetReturnValue().Set(global->Wait(runtime.get(), GetInt64(runtime->context(), arguments[0])));
 }
 
 }  // namespace bindings

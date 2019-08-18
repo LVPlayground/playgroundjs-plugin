@@ -88,15 +88,17 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 }
 
 void GlobalScope::InstallObjects(v8::Local<v8::Object> global) {
+  auto context = GetContext();
+
   // Install the "self" object, which refers to the global scope (for compatibility with
   // Web Workers and Document in Web development, which also expose "self").
-  global->Set(v8String("self"), global);
+  global->Set(context, v8String("self"), global);
 
   // https://github.com/tc39/proposal-global
   {
     v8::Local<v8::Value> key = v8String("global");
-    if (!global->Has(key))
-      global->Set(key, global);
+    if (!global->Has(context, key).ToChecked())
+      global->Set(context, key, global);
   }
 
   // Install the global instance of the Console object.

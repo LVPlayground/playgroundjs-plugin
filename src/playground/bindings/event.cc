@@ -85,7 +85,7 @@ bool Event::DefaultPrevented(v8::Local<v8::Value> value) {
   if (internal_flag.IsEmpty() || !internal_flag->IsBoolean())
     return false;
 
-  return internal_flag->BooleanValue();
+  return internal_flag->BooleanValue(GetIsolate());
 }
 
 // static
@@ -137,25 +137,25 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-  v8::Local<v8::Value> function_value = context->Global()->Get(v8String(event_type_));
+  v8::Local<v8::Value> function_value = context->Global()->Get(context, v8String(event_type_)).ToLocalChecked();
   DCHECK(function_value->IsFunction());
 
   v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(function_value);
-  v8::Local<v8::Object> instance = function->NewInstance();
+  v8::Local<v8::Object> instance = function->NewInstance(context).ToLocalChecked();
 
   for (const auto& argument : callback_.arguments) {
     v8::Local<v8::String> property = v8String(argument.first);
     switch (argument.second) {
     case plugin::ARGUMENT_TYPE_INT:
-      instance->Set(property, v8::Number::New(isolate, arguments.GetInteger(argument.first)));
+      instance->Set(context, property, v8::Number::New(isolate, arguments.GetInteger(argument.first)));
       break;
 
     case plugin::ARGUMENT_TYPE_FLOAT:
-      instance->Set(property, v8::Number::New(isolate, arguments.GetFloat(argument.first)));
+      instance->Set(context, property, v8::Number::New(isolate, arguments.GetFloat(argument.first)));
       break;
 
     case plugin::ARGUMENT_TYPE_STRING:
-      instance->Set(property, v8String(arguments.GetString(argument.first)));
+      instance->Set(context, property, v8String(arguments.GetString(argument.first)));
       break;
     }
   }

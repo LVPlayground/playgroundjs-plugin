@@ -9,6 +9,7 @@
 #include "base/logging.h"
 #include "bindings/exception_handler.h"
 #include "bindings/runtime.h"
+#include "bindings/utilities.h"
 
 namespace bindings {
 
@@ -21,7 +22,7 @@ v8::Local<v8::Value> Call(v8::Isolate* isolate,
 
   // Create a TryCatch block to catch any exceptions that may be thrown by |function|. These will
   // be outputted to the console by the Runtime, but don't stop further event handlers.
-  v8::TryCatch try_catch;
+  v8::TryCatch try_catch(GetIsolate());
 
   v8::Local<v8::Context> context = Runtime::FromIsolate(isolate)->context();
   v8::Context::Scope context_scope(context);

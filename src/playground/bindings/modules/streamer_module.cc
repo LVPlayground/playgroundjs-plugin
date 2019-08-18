@@ -52,6 +52,8 @@ StreamerBindings* GetInstanceFromObject(v8::Local<v8::Object> object) {
 
 // Streamer.prototype.constructor(number maxVisible, number streamDistance = 300)
 void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
   if (!arguments.IsConstructCall()) {
     ThrowException("unable to construct Streamer: must only be used as a constructor.");
     return;
@@ -70,7 +72,7 @@ void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
     return;
   }
 
-  max_visible = arguments[0]->Uint32Value();
+  max_visible = arguments[0]->Uint32Value(context).ToChecked();
 
   if (arguments.Length() >= 2) {
     if (!arguments[1]->IsNumber()) {
@@ -78,7 +80,7 @@ void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
       return;
     }
 
-    stream_distance = arguments[1]->NumberValue();
+    stream_distance = arguments[1]->NumberValue(context).ToChecked();
   }
 
   StreamerBindings* instance = new StreamerBindings(max_visible, stream_distance);
@@ -89,6 +91,8 @@ void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
 
 // void Streamer.prototype.add(unsigned id, double x, double y, double z)
 void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
   StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
   if (!instance)
     return;
@@ -119,10 +123,10 @@ void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  instance->Add(arguments[0]->Uint32Value(),  // id
-                arguments[1]->NumberValue(),  // x
-                arguments[2]->NumberValue(),  // y
-                arguments[3]->NumberValue()); // z
+  instance->Add(arguments[0]->Uint32Value(context).ToChecked(),  // id
+                arguments[1]->NumberValue(context).ToChecked(),  // x
+                arguments[2]->NumberValue(context).ToChecked(),  // y
+                arguments[3]->NumberValue(context).ToChecked()); // z
 }
 
 // void Streamer.prototype.optimise()
@@ -136,6 +140,8 @@ void StreamerOptimiseCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
 
 // void Streamer.prototype.delete(unsigned id)
 void StreamerDeleteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
   StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
   if (!instance)
     return;
@@ -150,7 +156,7 @@ void StreamerDeleteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  instance->Delete(arguments[0]->Uint32Value());
+  instance->Delete(arguments[0]->Uint32Value(context).ToChecked());
 }
 
 // void Streamer.prototype.clear()
@@ -164,6 +170,8 @@ void StreamerClearCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 
 // Promise<sequence<unsigned>> Streamer.prototype.stream(number visible, double x, double y, double z)
 void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
   StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
   if (!instance)
     return;
@@ -196,16 +204,16 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
 
   Promise promise;
   
-  const auto& results = instance->Stream(arguments[0]->Uint32Value(),  // visible
-                                         arguments[1]->NumberValue(),  // x
-                                         arguments[2]->NumberValue(),  // y
-                                         arguments[3]->NumberValue()); // z
+  const auto& results = instance->Stream(arguments[0]->Uint32Value(context).ToChecked(),  // visible
+                                         arguments[1]->NumberValue(context).ToChecked(),  // x
+                                         arguments[2]->NumberValue(context).ToChecked(),  // y
+                                         arguments[3]->NumberValue(context).ToChecked()); // z
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
   v8::Local<v8::Array> id_array = v8::Array::New(isolate, results.size());
 
   for (size_t i = 0; i < results.size(); ++i)
-    id_array->Set(i, v8::Number::New(isolate, static_cast<double>(results[i])));
+    id_array->Set(context, i, v8::Number::New(isolate, static_cast<double>(results[i])));
 
   promise.Resolve(id_array);
 

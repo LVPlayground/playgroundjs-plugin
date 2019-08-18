@@ -79,6 +79,8 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
   if (isolate->IsExecutionTerminating())
     isolate->CancelTerminateExecution();
 
+  auto context = isolate->GetCurrentContext();
+
   if (!promise.IsEmpty()) {
     queued_messages_.emplace_back(isolate, message, error, source, promise);
     return;
@@ -92,7 +94,7 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
     const base::FilePath& source_directory = runtime_->source_directory();
 
     std::string resource_name = toString(message->GetScriptResourceName());
-    int resource_line = message->GetLineNumber();
+    int resource_line = message->GetLineNumber(context).ToChecked();
 
     // Try to correct the |resource_name| and |resource_line| with saved attribution.
     if (resource_name == "undefined" || !resource_line) {
@@ -120,7 +122,7 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
 
   v8::Local<v8::StackTrace> stack_trace = message->GetStackTrace();
   for (int frame = 0; frame < stack_trace->GetFrameCount(); ++frame) {
-    v8::Local<v8::StackFrame> stack_frame = stack_trace->GetFrame(frame);
+    v8::Local<v8::StackFrame> stack_frame = stack_trace->GetFrame(isolate, frame);
     v8::Local<v8::String> function_name = stack_frame->GetFunctionName();
 
     const std::string function =

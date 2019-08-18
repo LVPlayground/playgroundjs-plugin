@@ -92,7 +92,7 @@ void PromiseRejectCallback(v8::PromiseRejectMessage message) {
   if (value.IsEmpty() || !value->IsNativeError())
     return;
 
-  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(value);
+  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(GetIsolate(), value);
   if (error_message.IsEmpty())
     return;
 
@@ -101,6 +101,15 @@ void PromiseRejectCallback(v8::PromiseRejectMessage message) {
 }
 
 }  // namespace
+
+// Declared in utilities.h
+v8::Local<v8::Context> GetContext() {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+  if (runtime)
+    return runtime->context();
+
+  return v8::Local<v8::Context>();
+}
 
 // static
 std::shared_ptr<Runtime> Runtime::FromIsolate(v8::Isolate* isolate) {
@@ -132,7 +141,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
       frame_counter_(0) {
   v8::V8::InitializeICU();
 
-  platform_.reset(v8::platform::CreateDefaultPlatform());
+  platform_ = v8::platform::NewDefaultPlatform();
   v8::V8::InitializePlatform(platform_.get());
 
   v8::V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));

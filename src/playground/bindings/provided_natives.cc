@@ -75,6 +75,7 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
   }
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  auto context = isolate->GetCurrentContext();
 
   const StoredNative& native = native_iter->second;
   if (params.count() < native.param_count)
@@ -119,7 +120,7 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
       value = v8::Number::New(isolate, 0 /* default value */);
 
     if (native.retval_count == 0 && value->IsInt32()) {
-      return_value = value->Int32Value();
+      return_value = value->Int32Value(context).ToChecked();
     } else if (native.retval_count > 0) {
       if (!value->IsArray())
         return -1;  // reference values must be returned in an array
@@ -133,7 +134,7 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
         if (native.signature[i] != 'I' && native.signature[i] != 'F' && native.signature[i] != 'S')
           continue;
 
-        v8::Local<v8::Value> retval = arr->Get(retval_index++);
+        v8::Local<v8::Value> retval = arr->Get(context, retval_index++).ToLocalChecked();
         if (retval.IsEmpty()) {
           LOG(WARNING) << "[v8] Unable to read return values of " << native.name << ": parameter "
                        << i << " not set.";
@@ -145,19 +146,19 @@ int32_t ProvidedNatives::Call(const std::string& name, plugin::NativeParameters&
         switch (native.signature[i]) {
         case 'F':
           if (retval->IsNumber())
-            params.SetFloat(i, static_cast<float>(retval->NumberValue()));
+            params.SetFloat(i, static_cast<float>(retval->NumberValue(context).ToChecked()));
           else
             params.SetFloat(i, -1);
           break;
         case 'I':
           if (retval->IsInt32())
-            params.SetInteger(i, retval->Int32Value());
+            params.SetInteger(i, retval->Int32Value(context).ToChecked());
           else
             params.SetInteger(i, -1);
           break;
         case 'S':
           if (retval->IsString()) {
-            v8::String::Utf8Value text_value(retval);
+            v8::String::Utf8Value text_value(isolate, retval);
             if (text_value.length()) {
               params.SetString(i, *text_value, text_value.length() + 1);
               break;

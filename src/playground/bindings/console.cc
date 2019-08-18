@@ -46,7 +46,7 @@ class ValueStringBuilder {
   }
 
   void WriteError(v8::Local<v8::Value> value) {
-    v8::Local<v8::Message> message = v8::Exception::CreateMessage(value);
+    v8::Local<v8::Message> message = v8::Exception::CreateMessage(v8::Isolate::GetCurrent(), value);
     if (message.IsEmpty())
       return;
 
@@ -56,6 +56,7 @@ class ValueStringBuilder {
 
   void WriteArray(v8::Local<v8::Value> value, size_t indent) {
     v8::Local<v8::Array> array_value = v8::Local<v8::Array>::Cast(value);
+    auto context = GetContext();
 
     const std::string prefix(indent, ' ');
     const std::string new_prefix(indent + kIndentStep, ' ');
@@ -63,7 +64,7 @@ class ValueStringBuilder {
     stream_ << "[\n";
     for (size_t index = 0; index < array_value->Length(); ++index) {
       stream_ << new_prefix;
-      Write(array_value->Get(index), indent + kIndentStep);
+      Write(array_value->Get(context, indent + kIndentStep).ToLocalChecked());
       stream_ << ",\n";
     }
 
@@ -72,16 +73,17 @@ class ValueStringBuilder {
 
   void WriteObject(v8::Local<v8::Value> value, size_t indent) {
     v8::Local<v8::Object> object_value = v8::Local<v8::Object>::Cast(value);
+    auto context = GetContext();
 
     const std::string prefix(indent, ' ');
     const std::string new_prefix(indent + kIndentStep, ' ');
 
     stream_ << "{\n";
 
-    v8::Local<v8::Array> properties = object_value->GetOwnPropertyNames();
+    v8::Local<v8::Array> properties = object_value->GetOwnPropertyNames(context).ToLocalChecked();
     for (size_t index = 0; index < properties->Length(); ++index) {
-      v8::Local<v8::Value> member_key = properties->Get(index);
-      v8::Local<v8::Value> member_value = object_value->Get(member_key);
+      v8::Local<v8::Value> member_key = properties->Get(context, index).ToLocalChecked();
+      v8::Local<v8::Value> member_value = object_value->Get(context, member_key).ToLocalChecked();
 
       if (member_value->StrictEquals(value) || !member_key->IsString())
         continue;  // TODO: Implement printing of non-string values. Symbols?
@@ -97,7 +99,7 @@ class ValueStringBuilder {
   }
 
   void WriteGeneric(v8::Local<v8::Value> value) {
-    v8::String::Utf8Value string(value);
+    v8::String::Utf8Value string(GetIsolate(), value);
     if (*string == nullptr) {
       stream_ << "[unknown]";
       return;
@@ -137,12 +139,14 @@ void Console::InstallPrototype(v8::Local<v8::ObjectTemplate> global) const {
 }
 
 void Console::InstallObjects(v8::Local<v8::Object> global) const {
-  v8::Local<v8::Value> function_value = global->Get(v8String("Console"));
+  auto context = GetContext();
+
+  v8::Local<v8::Value> function_value = global->Get(context, v8String("Console")).ToLocalChecked();
   DCHECK(function_value->IsFunction());
 
   v8::Local<v8::Function> function = v8::Local<v8::Function>::Cast(function_value);
 
-  global->Set(v8String("console"), function->NewInstance());
+  global->Set(context, v8String("console"), function->NewInstance(context).ToLocalChecked());
 }
 
 void Console::OutputValue(v8::Local<v8::Value> value) const {

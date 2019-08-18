@@ -127,6 +127,7 @@ class MySQL : public mysql::ConnectionDelegate,
     }
 
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    auto context = isolate->GetCurrentContext();
 
     std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
     {
@@ -162,16 +163,16 @@ class MySQL : public mysql::ConnectionDelegate,
         while (auto row = mysql_fetch_row(mysql_result)) {
           v8::Local<v8::Object> js_row = v8::Object::New(isolate);
           for (size_t i = 0; i < column_count; ++i)
-            js_row->Set(column_names[i], toValue(row[i], column_lenghts[i], columns[i].type));
+            js_row->Set(context, column_names[i], toValue(row[i], column_lenghts[i], columns[i].type));
 
-          rows->Set(current_row_index++, js_row);
+          rows->Set(context, current_row_index++, js_row);
         }
       }
 
       v8::Local<v8::Object> js_result = v8::Object::New(isolate);
-      js_result->Set(v8String("affectedRows"), affected_rows);
-      js_result->Set(v8String("insertId"), insert_id);
-      js_result->Set(v8String("rows"), rows);
+      js_result->Set(context, v8String("affectedRows"), affected_rows);
+      js_result->Set(context, v8String("insertId"), insert_id);
+      js_result->Set(context, v8String("rows"), rows);
 
       queries_[request_id]->Resolve(js_result);
     }
@@ -324,8 +325,9 @@ void MySQLConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   }
 
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  auto context = isolate->GetCurrentContext();
 
-  v8::MaybeLocal<v8::Number> maybe_port = arguments[4]->ToNumber(isolate->GetCallingContext());
+  v8::MaybeLocal<v8::Number> maybe_port = arguments[4]->ToNumber(context);
   if (maybe_port.IsEmpty())
     return;  // ???
 
@@ -335,7 +337,7 @@ void MySQLConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
                               toString(arguments[1]),  // username
                               toString(arguments[2]),  // password
                               toString(arguments[3]),  // database
-                              port->Int32Value());   // port
+                              port->Int32Value(context).ToChecked());   // port
 
   instance->WeakBind(isolate, arguments.Holder());
 

@@ -41,7 +41,7 @@ ScopedTrace::ScopedTrace(TraceType type, const std::string& details, const v8::S
 
   trace_.type = type;
   trace_.details[0] = details;
-  trace_.details[1] = script_name + ":" + std::to_string(origin.ResourceLineOffset()->IntegerValue() + line_number + 1);
+  trace_.details[1] = script_name + ":" + std::to_string(origin.ResourceLineOffset()->IntegerValue(bindings::GetContext()).ToChecked() + line_number + 1);
   trace_.start = base::monotonicallyIncreasingTime();
 }
 

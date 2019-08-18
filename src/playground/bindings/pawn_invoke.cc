@@ -150,7 +150,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
                            std::to_string(index));
           }
 
-          array_data[array_length++] = entry->Int32Value();
+          array_data[array_length++] = entry->Int32Value(context).ToChecked();
         }
 
         static_buffer_->arguments[argument] = array_data;
@@ -164,7 +164,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
         break;
 
       {
-        float float_value = static_cast<float>(arguments[index]->NumberValue());
+        float float_value = static_cast<float>(arguments[index]->NumberValue(context).ToChecked());
         static_buffer_->number_values[argument] = *reinterpret_cast<int*>(&float_value);
       }
 
@@ -181,7 +181,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
       if (type_mismatch = !arguments[index]->IsNumber())
         break;
 
-      static_buffer_->number_values[argument] = arguments[index]->Int32Value();
+      static_buffer_->number_values[argument] = arguments[index]->Int32Value(context).ToChecked();
       static_buffer_->arguments[argument] = &static_buffer_->number_values[argument];
       static_buffer_->arguments_format[argument] = 'i';
       break;
@@ -193,7 +193,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
     case SIGNATURE_TYPE_STRING:
       {
-        v8::String::Utf8Value string(arguments[index]);
+        v8::String::Utf8Value string(isolate, arguments[index]);
 
         // If the string is longer than our buffer supports, bail out.
         if (string.length() >= StaticBuffer::kMaxStringLength) {
@@ -281,14 +281,14 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
       if (eager_return)
         return value;
 
-      return_array->Set(stored_return_values++, value);
+      return_array->Set(context, stored_return_values++, value);
       break;
     case SIGNATURE_TYPE_INT_REFERENCE:
       value = v8::Number::New(isolate, static_buffer_->number_values[argument]);
       if (eager_return)
         return value;
 
-      return_array->Set(stored_return_values++, value);
+      return_array->Set(context, stored_return_values++, value);
       break;
     case SIGNATURE_TYPE_STRING_REFERENCE:
       {
@@ -305,7 +305,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
       if (eager_return)
         return value;
 
-      return_array->Set(stored_return_values++, value);
+      return_array->Set(context, stored_return_values++, value);
       break;
     }
   }
@@ -315,7 +315,7 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
 bool PawnInvoke::ParseSignature(v8::Local<v8::Value> signature,
                                 size_t* argument_count, size_t* return_count) {
-  v8::String::Utf8Value string(signature);
+  v8::String::Utf8Value string(GetIsolate(), signature);
   DCHECK(*string);
 
   bool found_reference = false;
