@@ -127,12 +127,12 @@ class MySQL : public mysql::ConnectionDelegate,
     }
 
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    auto context = isolate->GetCurrentContext();
 
     std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
     {
       v8::HandleScope handle_scope(isolate);
       v8::Context::Scope context_scope(runtime->context());
+      auto context = runtime->context();
 
       v8::Local<v8::Value> affected_rows, insert_id;
       if (result->has_affected_rows())
