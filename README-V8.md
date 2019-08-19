@@ -21,6 +21,8 @@ If this is the first time you're building v8 on Linux, run the following command
     $ git submodule update --init --recursive
     $ sudo yum install glibc-static
 
+Depending on the distribution, [a more modern compiler](https://github.com/phpv8/v8js/wiki/Installing-on-CentOS-7-x64---PHP-7.3) may be necessary too.
+
 ## Common steps
 The following preparatory steps have to be executed on all platforms. They check out v8 including all the dependencies specific to the platform.
 

@@ -33,6 +33,7 @@ class StreamerBindings : public streamer::Streamer {
   // Called when a Streamer instance has been garbage collected by the v8 engine.
   static void OnGarbageCollected(const v8::WeakCallbackInfo<StreamerBindings>& data) {
     StreamerBindings* instance = data.GetParameter();
+    instance->object_.Reset();
     delete instance;
   }
 

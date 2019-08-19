@@ -366,6 +366,11 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
   }
 }
 
+// void killServer();
+void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  exit(-1);
+}
+
 // void startTrace();
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   LOG(INFO) << "[TraceManager] Started capturing traces.";

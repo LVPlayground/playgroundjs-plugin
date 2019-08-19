@@ -23,6 +23,7 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void LogstashCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
