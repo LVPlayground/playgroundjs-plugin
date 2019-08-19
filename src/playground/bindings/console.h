@@ -8,8 +8,8 @@
 #include "base/macros.h"
 
 namespace v8 {
+class Context;
 template <class T> class Local;
-class Object;
 class ObjectTemplate;
 class Value;
 }
@@ -35,7 +35,7 @@ class Console {
 
   // Instantiates the Console object to provide a default instance as the |console| variable. This
   // is analogous to the behavior of the console property in browsers.
-  void InstallObjects(v8::Local<v8::Object> global) const;
+  void InstallObjects(v8::Local<v8::Context> context) const;
 
   // Outputs |value| to the console. It will be recursively converted to textual representations.
   void OutputValue(v8::Local<v8::Value> value) const;

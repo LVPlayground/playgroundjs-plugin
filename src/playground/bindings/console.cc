@@ -138,8 +138,8 @@ void Console::InstallPrototype(v8::Local<v8::ObjectTemplate> global) const {
   global->Set(v8String("Console"), function_template);
 }
 
-void Console::InstallObjects(v8::Local<v8::Object> global) const {
-  auto context = GetContext();
+void Console::InstallObjects(v8::Local<v8::Context> context) const {
+  auto global = context->Global();
 
   v8::Local<v8::Value> function_value = global->Get(context, v8String("Console")).ToLocalChecked();
   DCHECK(function_value->IsFunction());

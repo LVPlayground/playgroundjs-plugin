@@ -87,8 +87,8 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
     pair.second->InstallPrototype(global);
 }
 
-void GlobalScope::InstallObjects(v8::Local<v8::Object> global) {
-  auto context = GetContext();
+void GlobalScope::InstallObjects(v8::Local<v8::Context> context) {
+  auto global = context->Global();
 
   // Install the "self" object, which refers to the global scope (for compatibility with
   // Web Workers and Document in Web development, which also expose "self").
@@ -102,7 +102,7 @@ void GlobalScope::InstallObjects(v8::Local<v8::Object> global) {
   }
 
   // Install the global instance of the Console object.
-  console_->InstallObjects(global);
+  console_->InstallObjects(context);
 }
 
 void GlobalScope::Finalize() {

@@ -54,9 +54,9 @@ class GlobalScope {
   // two-pass global object initialization sequence.
   void InstallPrototypes(v8::Local<v8::ObjectTemplate> global);
 
-  // Installs instances of objects that should be available on the |global| object. The prototypes
-  // associated with these objects must have been registered during InstallPrototypes().
-  void InstallObjects(v8::Local<v8::Object> global);
+  // Installs instances of objects that should be available on the |context| object's global. The
+  // prototypes associated with these objects must have been registered during InstallPrototypes().
+  void InstallObjects(v8::Local<v8::Context> context);
 
   // Finalizes the Global Scope, i.e. marks the pawn function repository as read-only.
   void Finalize();

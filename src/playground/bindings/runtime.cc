@@ -34,21 +34,10 @@ std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 const char kRuntimeFlags[] =
     "--expose_gc "
     "--use_strict "
-    "--harmony "
 
-    // Dynamic imports
-    "--harmony_dynamic_import "
-    "--harmony_import_meta "
-
-    // Arbitrary precision integers (beyond the usual 53 bits)
-    "--harmony_bigint "
-
-    // Public and class fields to be usable in class literals
-    "--harmony_public_fields "
-    "--harmony_class_fields "
-
-    // Array.prototype.values
-    "--harmony_array_prototype_values";
+    // Private methods and weak references
+    "--harmony_private_methods "
+    "--harmony_weak_refs";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {
@@ -195,13 +184,13 @@ void Runtime::Initialize() {
   v8::Local<v8::Context> context = v8::Context::New(isolate_, nullptr, global);
 
   v8::Context::Scope context_scope(context);
-  global_scope_->InstallObjects(context->Global());
+  global_scope_->InstallObjects(context);
   global_scope_->Finalize();
 
   context_.Reset(isolate_, context);
 
   modulator_.reset(new RuntimeModulator(isolate_, source_directory_));
-  modulator_->LoadModule(context, base::FilePath() /* referrer */, "main.js");
+  modulator_->LoadModule(context, /* referrer= */ base::FilePath(), "main.js");
 }
 
 void Runtime::SpinUntilReady() {
