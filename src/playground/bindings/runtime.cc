@@ -130,7 +130,21 @@ Runtime::Runtime(Delegate* runtime_delegate,
       frame_counter_(0) {
   v8::V8::InitializeICU();
 
+#if defined(__linux__)
+  //
+  // This is a work-around for a linking issue we're having on Linux that quite
+  // likely isn't worth fixing. Make the following changes to the v8 checkout:
+  //
+  // v8/include/libplatform/libplatform.h
+  //     V8_PLATFORM_EXPORT v8::Platform* lvpLinuxLinkerHack();
+  //
+  // v8/src/libplatform/default-platform.cc
+  //    v8::Platform* lvpLinuxLinkerHack() { return NewDefaultPlatform().release(); }
+  //
+  platform_.reset(v8::platform::lvpLinuxLinkerHack());
+#else
   platform_ = v8::platform::NewDefaultPlatform();
+#endif
   v8::V8::InitializePlatform(platform_.get());
 
   v8::V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));

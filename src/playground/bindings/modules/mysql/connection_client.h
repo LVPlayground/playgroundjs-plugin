@@ -13,6 +13,8 @@
 #include <my_sys.h>
 #include <mysql.h>
 
+#undef test
+
 namespace mysql {
 
 class ConnectionClient : public Thread {

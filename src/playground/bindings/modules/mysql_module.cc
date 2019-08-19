@@ -10,10 +10,13 @@
 #include <vector>
 
 #define max max
+#define test test
 
 #include <my_global.h>
 #include <my_sys.h>
 #include <mysql.h>
+
+#undef test
 
 #include "base/logging.h"
 #include "base/macros.h"
