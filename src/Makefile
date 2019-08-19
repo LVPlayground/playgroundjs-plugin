@@ -6,12 +6,20 @@ $(shell [ -d "out" ] || mkdir -p out)
 $(shell [ -d "out/obj/" ] || mkdir -p out/obj)
 $(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 
-V8LIBS=v8/out/ia32.release/obj.target/src
-BOOSTLIBS=/usr/local/boost_1_61_0/stage/lib
+BOOST_HEADERS=/opt/boost_1_70_0_32bit
+BOOST_LIBS=/opt/boost_1_70_0_32bit/lib
+
+V8_HEADERS_A=v8
+V8_HEADERS_B=v8/include
+V8_LIBS=v8/out/x86
+
+MYSQL_HEADERS=/usr/include/mysql
+
+CC_INCLUDE=-I$(BOOST_HEADERS) -I$(V8_HEADERS_A) -I$(V8_HEADERS_B) -I$(MYSQL_HEADERS)
 
 C=gcc
 CC=g++
-CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground -Iv8 -Iv8/include -I/usr/local/boost_1_61_0 -I/usr/include/mysql
+CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground $(CC_INCLUDE)
 CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
@@ -115,10 +123,10 @@ playground_third_party: playground_third_party_subhook
 link:
 	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
 		out/obj/*.o \
-		$(BOOSTLIBS)/libboost_filesystem.a \
-		$(BOOSTLIBS)/libboost_regex.a \
-		$(BOOSTLIBS)/libboost_system.a \
-		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so out/libc++.so -lmysqlclient
+		$(BOOST_LIBS)/libboost_filesystem.a \
+		$(BOOST_LIBS)/libboost_regex.a \
+		$(BOOST_LIBS)/libboost_system.a \
+		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so out/libc++.so /lib/mysql/libmysqlclient.so
 
 # Move libv8.so
 move:
@@ -133,7 +141,7 @@ test_runner:
 	$(CC) $(CFLAGSBASE) runner/main.cc -o out/obj.test_runner/runner_main.o
 	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner \
 		obj.test_runner/*.o \
-		$(OUTFILE) libv8_libplatform.so libv8_libbase.so libv8.so libc++.so
+		$(OUTFILE) libv8_libplatform.so libv8_libbase.so libv8.so libc++.so /lib/mysql/libmysqlclient.so
 
 # Clean
 clean:
