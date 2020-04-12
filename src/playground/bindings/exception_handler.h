@@ -56,6 +56,11 @@ class ExceptionHandler {
   // Revokes queued messages for the |promise|. Needed to support async try/catch statements.
   void RevokeQueuedMessages(v8::Local<v8::Promise> promise);
 
+  // Returns whether there are any queued messages.
+  bool HasQueuedMessages() const {
+    return !queued_messages_.empty();
+  }
+  
   // Flushes the queued unexpected promise revocations.
   void FlushMessageQueue();
 

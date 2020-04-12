@@ -76,10 +76,15 @@ void ExceptionHandler::RegisterAttributedError(v8::Local<v8::Value> error, const
 void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::Value> error, MessageSource source,
                                  v8::Local<v8::Promise> promise) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
   if (isolate->IsExecutionTerminating())
     isolate->CancelTerminateExecution();
 
-  auto context = isolate->GetCurrentContext();
+  auto context = isolate->GetEnteredOrMicrotaskContext();
+  if (context.IsEmpty()) {
+    LOG(ERROR) << "Unable to handle exception: no entered context";
+    return;
+  }
 
   if (!promise.IsEmpty()) {
     queued_messages_.emplace_back(isolate, message, error, source, promise);
@@ -118,7 +123,13 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
     prefix += ": ";
   }
 
-  runtime_delegate_->OnScriptOutput(prefix + toString(error));
+  if (!error.IsEmpty()) {
+    v8::MaybeLocal<v8::String> error_string_maybe = error->ToString(context);
+    v8::Local<v8::String> error_string;
+
+    if (error_string_maybe.ToLocal(&error_string))
+      runtime_delegate_->OnScriptOutput(prefix + toString(error_string));
+  }
 
   v8::Local<v8::StackTrace> stack_trace = message->GetStackTrace();
   for (int frame = 0; frame < stack_trace->GetFrameCount(); ++frame) {
@@ -157,12 +168,8 @@ void ExceptionHandler::RevokeQueuedMessages(v8::Local<v8::Promise> promise) {
 }
 
 void ExceptionHandler::FlushMessageQueue() {
-  if (!queued_messages_.size())
-    return;
-
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
-  v8::HandleScope handle_scope(isolate);
-  
+
   for (const QueuedMessage& message : queued_messages_) {
     OnMessage(v8::Local<v8::Message>::New(isolate, message.message),
               v8::Local<v8::Value>::New(isolate, message.error), message.message_source);

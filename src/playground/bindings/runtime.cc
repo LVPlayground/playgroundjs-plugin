@@ -53,9 +53,10 @@ std::string RemoveLineBreaks(std::string line) {
 // Callback for the v8 message handler. Forward the call to the exception handler.
 void MessageCallback(v8::Local<v8::Message> message, v8::Local<v8::Value> error) {
   std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
-  if (runtime)
+  if (runtime) {
     runtime->GetExceptionHandler()->OnMessage(
-        message, error, ExceptionHandler::MessageSource::kScript);
+      message, error, ExceptionHandler::MessageSource::kScript);
+  }
 }
 
 // Callback for the v8 fatal error handler. Forward the call to the exception handler.
@@ -245,7 +246,12 @@ void Runtime::OnFrame() {
 
   isolate_->RunMicrotasks();
 
-  exception_handler_->FlushMessageQueue();
+  if (exception_handler_->HasQueuedMessages()) {
+    v8::HandleScope handle_scope(isolate_);
+    v8::Context::Scope context_scope(context());
+
+    exception_handler_->FlushMessageQueue();
+  }
 }
 
 void Runtime::AddFrameObserver(FrameObserver* observer) {
