@@ -1,2 +1,3 @@
 *.opendb
+src/.cipd/
 src/playground.VC.db

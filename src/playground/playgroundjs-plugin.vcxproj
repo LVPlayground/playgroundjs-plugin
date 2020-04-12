@@ -130,33 +130,33 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E5740268-229C-460B-BFB2-DC1468C730A2}</ProjectGuid>
     <RootNamespace>playground</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>playgroundjs-plugin</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -223,10 +223,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(SolutionDir)v8\include\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include;$(SolutionDir)..\..\mysql-plugin\libmysql\libbinlogevents\export;C:\boost_1_65_1</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)v8\;$(SolutionDir)v8\include\;$(ProjectDir);$(SolutionDir)..\..\mysql-plugin\libmysql\include\;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\include;$(SolutionDir)..\..\mysql-plugin\libmysql\libbinlogevents\export;C:\boost_1_73_0</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;NDEBUG;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;WIN32;PLAYGROUND_IMPLEMENTATION;_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/D "_SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -235,7 +236,7 @@
       <AdditionalDependencies>$(SolutionDir)out\release\lib\gtest.lib;$(SolutionDir)v8\out.gn\x86.release\v8.dll.lib;$(SolutionDir)v8\out.gn\x86.release\v8_libbase.dll.lib;$(SolutionDir)v8\out.gn\x86.release\v8_libplatform.dll.lib;$(SolutionDir)..\..\mysql-plugin\libmysql\lvpbuild\libmysql\RelWithDebInfo\libmysql.lib;WINMM.LIB;Dbghelp.lib;Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <ModuleDefinitionFile>playgroundjs-plugin.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>C:\boost_1_65_1\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\boost_1_73_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

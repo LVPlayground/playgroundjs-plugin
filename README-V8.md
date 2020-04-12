@@ -35,12 +35,16 @@ The following preparatory steps have to be executed on all platforms. They check
 On Windows, run the following command to create the MSVC project files:
 
     $ set DEPOT_TOOLS_WIN_TOOLCHAIN=0
-    $ set GYP_MSVS_VERSION=2017
+    $ set GYP_MSVS_VERSION=2019
     $ set GYP_CHROMIUM_NO_ACTION=0
-    $ gn gen --ide=vs2017 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false" out.gn\x86.release
+    $ gn gen --ide=vs2019 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false" out.gn\x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.dll` and `v8_libplatform.dll` that have to be copied to the [//bin](/bin) directory.
+
+Further, Boost will have to be built. After running the bootstrap, the following command is of use:
+
+    $ b2.exe architecture=x86 --with-filesystem --with-system --with-regex --with-date_time
 
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.

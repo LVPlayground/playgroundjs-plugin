@@ -5,6 +5,7 @@
 #ifndef PLAYGROUND_PLUGIN_PLUGIN_DELEGATE_H_
 #define PLAYGROUND_PLUGIN_PLUGIN_DELEGATE_H_
 
+#include <string>
 #include <vector>
 
 namespace plugin {
