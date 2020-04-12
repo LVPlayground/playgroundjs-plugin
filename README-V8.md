@@ -49,7 +49,7 @@ Further, Boost will have to be built. After running the bootstrap, the following
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.
 
-    $ gn gen --args='target_cpu="x86" is_component_build=true is_debug=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false' out.gn/x86.release
+    $ gn gen --args='target_cpu="x86" is_component_build=true is_debug=false v8_use_external_startup_data=false v8_enable_i18n_support=false is_clang=false use_custom_libcxx=false' out.gn/x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 The [Makefile](src/Makefile) will automatically copy the required files to the appropriate directories.
