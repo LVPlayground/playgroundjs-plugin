@@ -36,7 +36,7 @@ const char kRuntimeFlags[] =
     "--use_strict "
 
     // Private methods and weak references
-    "--harmony_private_methods "
+    "--harmony_string_replaceall "
     "--harmony_weak_refs";
 
 // Returns whether |character| represents a line break.

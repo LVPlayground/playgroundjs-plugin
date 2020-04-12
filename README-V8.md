@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    6c48f74fdafe303ea4013f443fd4c2a7ab824a85
-    "Version 7.7.310"
-    Wednesday, July 24, 2019
+    be97f7d25c8a2da44fa888c833eedcd7291fd821
+    "Version 8.3.129"
+    Thursday, April 2nd, 2020
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -28,16 +28,16 @@ The following preparatory steps have to be executed on all platforms. They check
 
     $ cd src/v8
     $ git pull --rebase
-    $ git checkout 7.7.310
+    $ git checkout 8.3.129
     $ gclient sync
 
 ## Building on Windows
-On Windows, run the following command to create the MSVC project files:
+On Windows, run the following command to create an MSVC-compatible binary:
 
     $ set DEPOT_TOOLS_WIN_TOOLCHAIN=0
     $ set GYP_MSVS_VERSION=2019
     $ set GYP_CHROMIUM_NO_ACTION=0
-    $ gn gen --ide=vs2019 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false" out.gn\x86.release
+    $ gn gen --ide=vs2019 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_external_startup_data=false v8_enable_i18n_support=false is_clang=false use_custom_libcxx=false" out.gn\x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.dll` and `v8_libplatform.dll` that have to be copied to the [//bin](/bin) directory.
@@ -49,10 +49,7 @@ Further, Boost will have to be built. After running the bootstrap, the following
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.
 
-    $ gn gen --args='target_cpu="x86" is_component_build=true is_debug=false v8_use_snapshot=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false' out.gn/x86.release
+    $ gn gen --args='target_cpu="x86" is_component_build=true is_debug=false v8_use_external_startup_data=false v8_enable_i18n_support=false use_custom_libcxx=false' out.gn/x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 The [Makefile](src/Makefile) will automatically copy the required files to the appropriate directories.
-
-
-gn gen out.gn/library --args='use_custom_libcxx=false is_component_build=true is_debug=false target_cpu="x64"'
