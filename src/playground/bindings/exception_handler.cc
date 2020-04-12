@@ -137,13 +137,15 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
   }
 
   v8::Local<v8::StackTrace> stack_trace = message->GetStackTrace();
+
   for (int frame = 0; frame < stack_trace->GetFrameCount(); ++frame) {
     v8::Local<v8::StackFrame> stack_frame = stack_trace->GetFrame(isolate, frame);
     v8::Local<v8::String> function_name = stack_frame->GetFunctionName();
 
-    const std::string function =
-        function_name->Length() ? toString(function_name)
-                                : kAnonymousFunction;
+    std::string function = kAnonymousFunction;
+
+    if (!function_name.IsEmpty() && !function_name->IsNullOrUndefined())
+      function = toString(function_name);
 
     const std::string file_name = toString(stack_frame->GetScriptName());
     const int line_number = stack_frame->GetLineNumber();
