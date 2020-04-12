@@ -123,6 +123,11 @@ void ExceptionHandler::OnMessage(v8::Local<v8::Message> message, v8::Local<v8::V
     prefix += ": ";
   }
 
+  if (!message.IsEmpty() && message->Get()->Length() > 0) {
+    runtime_delegate_->OnScriptOutput("JavaScript exception: " + toString(message->Get()));
+    runtime_delegate_->OnScriptOutput(" ");  // blank line
+  }
+
   if (!error.IsEmpty()) {
     v8::MaybeLocal<v8::String> error_string_maybe = error->ToString(context);
     v8::Local<v8::String> error_string;
