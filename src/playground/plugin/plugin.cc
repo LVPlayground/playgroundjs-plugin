@@ -59,9 +59,9 @@ bool GetStringFromPawnArg(AMX* amx, cell param, std::string* result) {
   if (!amx_len)
     return false;  // empty string
 
-  char* buffer = (char*) _malloca((amx_len + 1) * sizeof(char));
+  char* buffer = (char*) alloca(amx_len + 1);
   if (buffer && amx_GetString(buffer, amx_addr, 0, amx_len + 1) == AMX_ERR_NONE) {
-    result->assign(buffer, amx_len + 1);
+    result->assign(buffer, amx_len);  // skip the null terminator
     return true;
   }
 
@@ -105,6 +105,7 @@ static cell AMX_NATIVE_CALL n_SendEchoMessage(AMX* amx, cell* params) {
     boost::asio::ip::udp::socket socket(io_service);
     socket.open(boost::asio::ip::udp::v4());
     socket.send_to(boost::asio::buffer(message), remote);
+    
   } catch (const boost::system::system_error& exception) {
     LOG(WARNING) << "Unable to distribute an error message: "
                  << exception.what() << " (" << exception.code() << ")";
