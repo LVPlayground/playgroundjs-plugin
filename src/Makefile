@@ -122,18 +122,15 @@ playground_third_party: playground_third_party_subhook
 # Link playground.so
 link:
 	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
-		out/obj/*.o \
-		$(BOOST_LIBS)/libboost_filesystem.a \
-		$(BOOST_LIBS)/libboost_regex.a \
-		$(BOOST_LIBS)/libboost_system.a \
-		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so out/libc++.so /lib/mysql/libmysqlclient.so
+		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lmysqlclient \
+		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
 
 # Move libv8.so
 move:
 	cp v8/out.gn/x86.release/libv8.so out/libv8.so
 	cp v8/out.gn/x86.release/libv8_libbase.so out/libv8_libbase.so
 	cp v8/out.gn/x86.release/libv8_libplatform.so out/libv8_libplatform.so
-	cp v8/out.gn/x86.release/libc++.so out/libc++.so
+	cp v8/out.gn/x86.release/libchrome_zlib.so out/libchrome_zlib.so
 
 # Target: test_runner
 test_runner:
