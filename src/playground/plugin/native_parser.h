@@ -27,7 +27,7 @@ class NativeParser {
   static constexpr size_t kMaxNatives = 255;
 
   // The number of static natives (i.e. not provided by JavaScript).
-  static constexpr size_t kStaticNatives = 1;
+  static constexpr size_t kStaticNatives = 2;
    
   // Loads the list of native functions from |filename|.
   static std::unique_ptr<NativeParser> FromFile(const base::FilePath& filename);

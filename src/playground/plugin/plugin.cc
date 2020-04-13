@@ -13,6 +13,8 @@
 #include "plugin/sdk/amx.h"
 #include "plugin/sdk/plugincommon.h"
 
+#include <boost/asio.hpp>
+
 #if defined(LINUX)
 #include <sys/resource.h>
 #endif
@@ -45,6 +47,27 @@ class SAMPLogHandler : public logging::LogMessage::LogHandler {
   }
 };
 
+bool GetStringFromPawnArg(AMX* amx, cell param, std::string* result) {
+  result->clear();
+
+  cell* amx_addr = 0;
+  int amx_len = 0;
+
+  amx_GetAddr(amx, param, &amx_addr);
+  amx_StrLen(amx_addr, &amx_len);
+
+  if (!amx_len)
+    return false;  // empty string
+
+  char* buffer = (char*) _malloca((amx_len + 1) * sizeof(char));
+  if (buffer && amx_GetString(buffer, amx_addr, 0, amx_len + 1) == AMX_ERR_NONE) {
+    result->assign(buffer, amx_len + 1);
+    return true;
+  }
+
+  return false;
+}
+
 // native IsPlayerMinimized(playerid);
 static cell AMX_NATIVE_CALL n_IsPlayerMinimized(AMX* amx, cell* params) {
   CHECK_PARAMS(1);
@@ -53,6 +76,41 @@ static cell AMX_NATIVE_CALL n_IsPlayerMinimized(AMX* amx, cell* params) {
     return g_plugin_controller->IsPlayerMinimized(params[1]) ? 1 : 0;
 
   return 0;
+}
+
+// native SendEchoMessage(destinationIp[], destinationPort, message[]);
+static cell AMX_NATIVE_CALL n_SendEchoMessage(AMX* amx, cell* params) {
+  CHECK_PARAMS(3);
+
+  std::string destination_ip;
+  if (!GetStringFromPawnArg(amx, params[1], &destination_ip)) {
+    LOG(WARNING) << "[SendEchoMessage] Error: empty destination IP given.";
+    return 0;
+  }
+
+  uint16_t destination_port = static_cast<uint16_t>(params[2]);
+
+  std::string message;
+  if (!GetStringFromPawnArg(amx, params[3], &message)) {
+    LOG(WARNING) << "[SendEchoMessage] Error: empty message given.";
+    return 0;
+  }
+
+  boost::asio::io_service io_service;
+  boost::asio::ip::udp::endpoint remote{
+    boost::asio::ip::address::from_string(destination_ip),
+    destination_port };
+
+  try {
+    boost::asio::ip::udp::socket socket(io_service);
+    socket.open(boost::asio::ip::udp::v4());
+    socket.send_to(boost::asio::buffer(message), remote);
+  } catch (const boost::system::system_error& exception) {
+    LOG(WARNING) << "Unable to distribute an error message: "
+                 << exception.what() << " (" << exception.code() << ")";
+  }
+
+  return 1;
 }
 
 }  // namespace
@@ -86,7 +144,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   g_plugin_controller.reset(new plugin::PluginController(base::FilePath::CurrentDirectory()));
 
   // Register the static native functions provided by the plugin's C++ code.
-  g_plugin_controller->native_parser()->SetStaticNative(0 /* index */, "IsPlayerMinimized", n_IsPlayerMinimized);
+  g_plugin_controller->native_parser()->SetStaticNative(/* index= */ 0, "IsPlayerMinimized", n_IsPlayerMinimized);
+  g_plugin_controller->native_parser()->SetStaticNative(/* index= */ 1, "SendEchoMessage", n_SendEchoMessage);
 
   return true;
 }
