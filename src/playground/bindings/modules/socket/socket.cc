@@ -44,7 +44,10 @@ Socket::Socket(Protocol protocol)
       boost_deadline_timer_(io_context_),
       boost_socket_(io_context_) {}
 
-Socket::~Socket() = default;
+Socket::~Socket() {
+  if (state_ != State::kDisconnected)
+    boost_socket_.close();
+}
 
 void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
   connection_id_ = gConnectionId++;
