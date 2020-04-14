@@ -13,11 +13,16 @@ namespace bindings {
 // for example to open (and maintain) echo or IRC connections. The class is implemented on top of
 // the Boost ASIO library.
 //
-// The |protocol| has to be either "TCP" or "UDP", insensitive to casing.
-
+// The |protocol| has to be either "tcp" or "udp", insensitive to casing. Timeouts, where given,
+// are in seconds.
+//
 // [Constructor(string protocol)]
 // interface Socket {
+//     Promise<boolean> open(string ip, number port[, number timeout]);
+//     void             close();
+//
 //     readonly attribute string protocol;
+//     readonly attribute string state;
 // }
 class SocketModule {
  public:

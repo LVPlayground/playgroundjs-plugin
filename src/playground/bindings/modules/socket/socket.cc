@@ -7,8 +7,17 @@
 namespace socket {
 
 Socket::Socket(Protocol protocol)
-  : protocol_(protocol) {}
+    : protocol_(protocol),
+      state_(State::kDisconnected) {}
 
 Socket::~Socket() = default;
+
+void Socket::open(const std::string& ip, int32_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
+  promise->Resolve(true);
+}
+
+void Socket::close() {
+
+}
 
 }  // namespace
