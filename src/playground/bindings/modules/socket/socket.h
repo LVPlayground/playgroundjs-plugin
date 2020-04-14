@@ -9,9 +9,12 @@
 #include <stdint.h>
 #include <string>
 
+#include <boost/asio.hpp>
+
 #include "base/macros.h"
 #include "bindings/promise.h"
 
+namespace bindings {
 namespace socket {
 
 // Network protocol that should be used by a created socket.
@@ -36,13 +39,13 @@ class Socket {
 
   // Opens a connection with the given parameters. A promise is included that should be resolved
   // when the connection either has been established, failed or timed out.
-  void open(const std::string& ip, int32_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise);
+  void Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<Promise> promise);
 
   // Immediately closes the connection currently held by this socket.
-  void close();
+  void Close();
 
   // Returns whether the socket can be closed, depending on its current state.
-  bool canClose() const {
+  bool CanClose() const {
     return state_ == State::kConnecting ||
            state_ == State::kConnected;
   }
@@ -52,12 +55,32 @@ class Socket {
   State state() const { return state_; }
 
  private:
+  // To be called by Boost when the connection attempt has a result.
+  void OnConnect(const std::string& ip, uint16_t port, const boost::system::error_code& ec);
+
+  // To be called by Boost when the connection timeout timer has fired.
+  void OnConnectTimeout(const std::string& ip, uint16_t port);
+
   Protocol protocol_;
   State state_;
+
+  // Global counter indicating the current connection Id.
+  int64_t connection_id_;
+
+  // The connection promise that is pending for the current connection attempt.
+  std::unique_ptr<Promise> connection_promise_;
+
+  // The IO Context, owned by the bindings Runtime, on which to post tasks.
+  boost::asio::io_context& io_context_;
+
+  // The underlying Boost socket that powers this instance.
+  boost::asio::deadline_timer boost_deadline_timer_;
+  boost::asio::ip::tcp::socket boost_socket_;
 
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };
 
-}
+}  // namespace socket
+}  // namespace bindings
 
 #endif  // PLAYGROUND_BINDINGS_MODULES_SOCKET_SOCKET_H_

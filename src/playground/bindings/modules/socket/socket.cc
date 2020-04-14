@@ -4,20 +4,102 @@
 
 #include "bindings/modules/socket/socket.h"
 
+#include <boost/bind/bind.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
+
+#include "base/logging.h"
+#include "bindings/exception_handler.h"
+#include "bindings/runtime.h"
+
+namespace bindings {
 namespace socket {
 
-Socket::Socket(Protocol protocol)
-    : protocol_(protocol),
-      state_(State::kDisconnected) {}
+namespace {
 
-Socket::~Socket() = default;
+// Global Connection ID counter.
+int64_t gConnectionId = 1;
 
-void Socket::open(const std::string& ip, int32_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
-  promise->Resolve(true);
-}
+template <typename T>
+void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
+  ScopedExceptionSource source("socket module");
+  {
+    std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+    if (!runtime)
+      return;  // the runtime is being shut down
 
-void Socket::close() {
+    v8::HandleScope handle_scope(runtime->isolate());
+    v8::Context::Scope context_scope(runtime->context());
 
+    promise->Resolve(value);
+  }
 }
 
 }  // namespace
+
+Socket::Socket(Protocol protocol)
+    : protocol_(protocol),
+      state_(State::kDisconnected),
+      connection_id_(0),
+      io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
+      boost_deadline_timer_(io_context_),
+      boost_socket_(io_context_) {}
+
+Socket::~Socket() = default;
+
+void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
+  connection_id_ = gConnectionId++;
+  connection_promise_ = std::move(promise);
+
+  LOG(INFO) << "[Socket][#" << connection_id_ << "] Opening connection to "
+            << ip << ":" << port << "...";
+
+  boost::asio::ip::tcp::endpoint endpoint{
+      boost::asio::ip::address_v4::from_string(ip),
+      port };
+
+  boost_socket_.async_connect(
+      endpoint,
+      boost::bind(&Socket::OnConnect, this, ip, port, boost::asio::placeholders::error));
+
+  boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(timeout));
+  boost_deadline_timer_.async_wait(boost::bind(&Socket::OnConnectTimeout, this, ip, port));
+
+  state_ = State::kConnecting;
+}
+
+void Socket::OnConnect(const std::string& ip, uint16_t port, const boost::system::error_code& ec) {
+  if (ec) {
+    LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
+              << " has failed (" << ec.value() << "): " << ec.message();
+
+    state_ = State::kDisconnected;
+    boost_socket_.close();
+
+  } else {
+    LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
+              << " has been established.";
+  
+    state_ = State::kConnected;
+  }
+
+  ResolvePromise(std::move(connection_promise_), /* success= */ !ec);
+}
+
+void Socket::OnConnectTimeout(const std::string& ip, uint16_t port) {
+  if (this->state_ != State::kConnecting)
+    return;
+
+  LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
+            << " has timed out.";
+
+  state_ = State::kDisconnected;
+  ResolvePromise(std::move(connection_promise_), /* success= */ false);
+}
+
+void Socket::Close() {
+  state_ = State::kDisconnected;
+  boost_socket_.close();
+}
+
+}  // namespace socket
+}  // namespace bindings

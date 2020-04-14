@@ -175,30 +175,30 @@ void SocketOpenCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  if (!arguments[1]->IsString()) {
-    ThrowException("unable to call open(): expected a string for the second argument.");
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to call open(): expected a string for the first argument.");
     return;
   }
 
-  if (!arguments[2]->IsNumber()) {
+  if (!arguments[1]->IsNumber()) {
     ThrowException("unable to call open(): expected a number for the second argument.");
     return;
   }
 
-  if (arguments.Length() >= 3 && !arguments[3]->IsNumber()) {
+  if (arguments.Length() >= 3 && !arguments[2]->IsNumber()) {
     ThrowException("unable to call open(): expected a number for the optional third argument.");
     return;
   }
 
-  std::string ip = toString(arguments[1]);
-  int32_t port = arguments[2]->Int32Value(context).ToChecked();
-  int32_t timeout = arguments.Length() >= 3 ? arguments[3]->Int32Value(context).ToChecked()
+  std::string ip = toString(arguments[0]);
+  uint16_t port = static_cast<uint16_t>(arguments[1]->Uint32Value(context).ToChecked());
+  int32_t timeout = arguments.Length() >= 3 ? arguments[2]->Int32Value(context).ToChecked()
                                             : kDefaultTimeoutSec;
 
   std::unique_ptr<Promise> promise = std::make_unique<Promise>();
   v8::Local<v8::Promise> v8Promise = promise->GetPromise();
 
-  socket->open(ip, port, timeout, std::move(promise));
+  socket->Open(ip, port, timeout, std::move(promise));
 
   arguments.GetReturnValue().Set(v8Promise);
 }
@@ -212,10 +212,10 @@ void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
 
   socket::Socket* socket = instance->socket();
-  if (!socket || !socket->canClose())
+  if (!socket || !socket->CanClose())
     return;
 
-  socket->close();
+  socket->Close();
 }
 
 // Socket.prototype.protocol [getter]
