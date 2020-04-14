@@ -28,6 +28,7 @@ class Event;
 class MySQLModule;
 class PawnInvoke;
 class Runtime;
+class SocketModule;
 class StreamerModule;
 
 // The global scope object represents and owns the global scope of the Runtime instance that owns
@@ -124,11 +125,14 @@ class GlobalScope {
   // Weak reference to the PluginController servicing this global scope.
   plugin::PluginController* plugin_controller_;
 
-  // The Streamer module, which enables lower-level streaming operations from JavaScript.
-  std::unique_ptr<StreamerModule> streamer_module_;
-
   // The MySQL module, which grants access to MySQL connections from JavaScript.
   std::unique_ptr<MySQLModule> mysql_module_;
+
+  // The Socket module enables JavaScript code to open up connections with other services.
+  std::unique_ptr<SocketModule> socket_module_;
+
+  // The Streamer module, which enables lower-level streaming operations from JavaScript.
+  std::unique_ptr<StreamerModule> streamer_module_;
 
   // Map of callback names to the Event* instance that defines their interface.
   std::unordered_map<std::string, std::unique_ptr<Event>> events_;

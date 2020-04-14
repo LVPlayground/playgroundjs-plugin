@@ -13,8 +13,9 @@
 #include "bindings/console.h"
 #include "bindings/exception_handler.h"
 #include "bindings/global_callbacks.h"
-#include "bindings/modules/streamer_module.h"
 #include "bindings/modules/mysql_module.h"
+#include "bindings/modules/socket_module.h"
+#include "bindings/modules/streamer_module.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/promise.h"
 #include "bindings/runtime.h"
@@ -31,8 +32,9 @@ GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
       console_(new Console),
       pawn_invoke_(new PawnInvoke(plugin_controller)),
       plugin_controller_(plugin_controller),
-      streamer_module_(new StreamerModule),
-      mysql_module_(new MySQLModule)
+      mysql_module_(std::make_unique< MySQLModule>()),
+      socket_module_(std::make_unique<SocketModule>()),
+      streamer_module_(std::make_unique< StreamerModule>())
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
     , logstash_socket_(logstash_io_service_)
 #endif
@@ -81,6 +83,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   console_->InstallPrototype(global);
 
   mysql_module_->InstallPrototypes(global);
+  socket_module_->InstallPrototypes(global);
   streamer_module_->InstallPrototypes(global);
 
   // Install the interfaces associated with each of the dynamically created events.
