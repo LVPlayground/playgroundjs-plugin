@@ -13,6 +13,12 @@
 
 #include "base/file_path.h"
 
+namespace boost {
+namespace asio {
+class io_context;
+}
+}
+
 namespace plugin {
 class PluginController;
 }
@@ -94,6 +100,10 @@ class Runtime {
   // tremendously help developers towards solving the problems.
   ExceptionHandler* GetExceptionHandler() { return exception_handler_.get(); }
 
+  // Returns the Boost IO Context. Ownership belongs to this object, but the context itself can be
+  // modified by any user, as this is a requirement for asynchronous posting tasks to it.
+  boost::asio::io_context& io_context() { return *io_context_; }
+
   // Encapsulates both the source-code of a script and the origin filename.
   struct ScriptSource {
     ScriptSource() = default;
@@ -147,6 +157,10 @@ class Runtime {
 
   // The exception handler for handling unhandled exceptions.
   std::unique_ptr<ExceptionHandler> exception_handler_;
+
+  // The server's IO Context, allowing asynchronous Boost functionality to work. A single tick
+  // of work is allowed to happen during each OnFrame() invocation.
+  std::unique_ptr<boost::asio::io_context> io_context_;
 
   // Flag indicating whether the JavaScript code has properly loaded.
   bool is_ready_;

@@ -10,6 +10,7 @@
 #include <thread>
 #include <unordered_map>
 
+#include <boost/asio/io_context.hpp>
 #include <include/libplatform/libplatform.h>
 
 #include "base/logging.h"
@@ -127,6 +128,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
     : global_scope_(new GlobalScope(plugin_controller)),
       runtime_delegate_(runtime_delegate),
       platform_(v8::platform::NewDefaultPlatform()),
+      io_context_(std::make_unique<boost::asio::io_context>()),
       is_ready_(false),
       frame_counter_start_(::base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
@@ -229,6 +231,8 @@ void Runtime::OnFrame() {
   timer_queue_->Run(current_time);
 
   isolate_->RunMicrotasks();
+
+  io_context_->run_one();
 
   if (exception_handler_->HasQueuedMessages()) {
     v8::HandleScope handle_scope(isolate_);
