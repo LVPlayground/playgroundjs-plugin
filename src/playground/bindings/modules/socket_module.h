@@ -16,10 +16,19 @@ namespace bindings {
 // The |protocol| has to be either "tcp" or "udp", insensitive to casing. Timeouts, where given,
 // are in seconds.
 //
+// The "close" and "message" events are supported by the module. They get the following properties
+// in the resulting dictionaries:
+//
+//   close     { }
+//   message   { }
+//
 // [Constructor(string protocol)]
 // interface Socket {
 //     Promise<boolean> open(string ip, number port[, number timeout]);
 //     void             close();
+//
+//     void             addEventListener(string event, function listener);
+//     void             removeEventListener(string event, function listener);
 //
 //     readonly attribute string protocol;
 //     readonly attribute string state;

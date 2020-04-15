@@ -20,7 +20,12 @@ const int32_t kDefaultTimeoutSec = 30;
 // Bindings class bridging lifetime between the JavaScript Socket object and the C++ one.
 class SocketBindings {
  public:
-  SocketBindings(socket::Protocol protocol)
+  enum class EventType {
+    kClose,
+    kMessage,
+  };
+
+  explicit SocketBindings(socket::Protocol protocol)
       : socket_(std::make_unique<socket::Socket>(protocol)) {}
 
   ~SocketBindings() = default;
@@ -35,6 +40,31 @@ class SocketBindings {
     object_.SetWeak(this, OnGarbageCollected, v8::WeakCallbackType::kParameter);
   }
 
+  // Adds the given |listener| as an event listener of the given |type|.
+  void addEventListener(EventType type, v8::Local<v8::Function> listener) {
+    std::vector<v8PersistentFunctionReference>& listeners =
+        type == EventType::kClose ? close_event_listeners_
+                                  : message_event_listeners_;
+
+    listeners.push_back(v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));
+  }
+
+  // Removes the given |listener| as an event listener of the given |type|.
+  void removeEventListener(EventType type, v8::Local<v8::Function> listener) {
+    std::vector<v8PersistentFunctionReference>& listeners =
+        type == EventType::kClose ? close_event_listeners_
+                                  : message_event_listeners_;
+
+    for (auto iter = listeners.begin(); iter != listeners.end();) {
+      const v8PersistentFunctionReference& ref = *iter;
+
+      if (ref == listener)
+        iter = listeners.erase(iter);
+      else
+        iter++;
+    }
+  }
+  
  private:
   // Called when a Streamer instance has been garbage collected by the v8 engine.
   static void OnGarbageCollected(const v8::WeakCallbackInfo<SocketBindings>& data) {
@@ -47,6 +77,12 @@ class SocketBindings {
   std::unique_ptr<socket::Socket> socket_;
 
   std::unique_ptr<Promise> connection_promise_;
+
+  using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
+
+  // Map of event type to list of event listeners, stored as persistent references to v8 functions.
+  std::vector<v8PersistentFunctionReference> close_event_listeners_;
+  std::vector<v8PersistentFunctionReference> message_event_listeners_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketBindings);
 };
@@ -121,6 +157,26 @@ bool ConvertStateToString(socket::State state, v8::Local<v8::String>* string) {
     case socket::State::kDisconnected:
       *string = v8String("disconnected");
       return true;
+  }
+
+  return false;
+}
+
+bool ConvertStringToEventType(v8::Local<v8::Value> value, SocketBindings::EventType* event_type) {
+  if (!value->IsString())
+    return false;
+
+  std::string event_type_str = toString(value);
+  std::transform(event_type_str.begin(), event_type_str.end(), event_type_str.begin(), ::tolower);
+
+  if (event_type_str == "close") {
+    *event_type = SocketBindings::EventType::kClose;
+    return true;
+  }
+
+  if (event_type_str == "message") {
+    *event_type = SocketBindings::EventType::kMessage;
+    return true;
   }
 
   return false;
@@ -218,6 +274,79 @@ void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   socket->Close();
 }
 
+// Socket.prototype.addEventListener(string event, function listener);
+void SocketAddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
+  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
+  if (!instance)
+    return;
+
+  if (arguments.Length() < 2) {
+    ThrowException("unable to call addEventListener(): 2 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to call addEventListener(): expected a string for the first argument.");
+    return;
+  }
+
+  if (!arguments[1]->IsFunction()) {
+    ThrowException("unable to call addEventListener(): expected a function for the second "
+                   "argument.");
+    return;
+  }
+
+  v8::Local<v8::Function> listener = v8::Local<v8::Function>::Cast(arguments[1]);
+
+  SocketBindings::EventType event_type;
+  if (!ConvertStringToEventType(arguments[0], &event_type)) {
+    ThrowException("unable to call addEventListener(): invalid event tpye given for argument 1");
+    return;
+  }
+
+  instance->addEventListener(event_type, listener);
+}
+
+// Socket.prototype.removeEventListener(string event, function listener);
+void SocketRemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
+  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
+  if (!instance)
+    return;
+
+  if (arguments.Length() < 2) {
+    ThrowException("unable to call removeEventListener(): 2 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to call removeEventListener(): expected a string for the first "
+                   "argument.");
+    return;
+  }
+
+  if (!arguments[1]->IsFunction()) {
+    ThrowException("unable to call removeEventListener(): expected a function for the second "
+      "argument.");
+    return;
+  }
+
+  v8::Local<v8::Function> listener = v8::Local<v8::Function>::Cast(arguments[1]);
+
+  SocketBindings::EventType event_type;
+  if (!ConvertStringToEventType(arguments[0], &event_type)) {
+    ThrowException("unable to call removeEventListener(): invalid event tpye given for argument 1");
+    return;
+  }
+
+  instance->removeEventListener(event_type, listener);
+}
+
 // Socket.prototype.protocol [getter]
 void SocketProtocolGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
   socket::Socket* instance = GetSocketFromObject(info.This());
@@ -262,6 +391,8 @@ void SocketModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
   prototype_template->Set(v8String("open"), v8::FunctionTemplate::New(isolate, SocketOpenCallback));
   prototype_template->Set(v8String("close"), v8::FunctionTemplate::New(isolate, SocketCloseCallback));
+  prototype_template->Set(v8String("addEventListener"), v8::FunctionTemplate::New(isolate, SocketAddEventListenerCallback));
+  prototype_template->Set(v8String("removeEventListener"), v8::FunctionTemplate::New(isolate, SocketRemoveEventListenerCallback));
 
   prototype_template->SetAccessor(v8String("protocol"), SocketProtocolGetter);
   prototype_template->SetAccessor(v8String("state"), SocketStateGetter);
