@@ -115,10 +115,10 @@ void Socket::OnRead(const boost::system::error_code& ec, std::size_t bytes_trans
     
     // Don't tell the observer if the socket already had been closed.
     if (previous_state == State::kConnected)
-      observer_->OnClose();
+      observer_->OnClose(ec.value(), ec.message());
 
   } else {
-    observer_->OnMessage(read_buffer_, bytes_transferred);
+    observer_->OnMessage(&read_buffer_.front(), bytes_transferred);
 
     boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
                                   boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,

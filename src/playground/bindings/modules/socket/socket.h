@@ -40,8 +40,8 @@ class Socket {
 
   class SocketObserver {
    public:
-    virtual void OnClose() = 0;
-    virtual void OnMessage(const ReadBuffer& buffer, std::size_t bytes) = 0;
+    virtual void OnClose(int code, const std::string& message) = 0;
+    virtual void OnMessage(void* data, std::size_t bytes) = 0;
   };
 
   Socket(Protocol protocol, SocketObserver* observer);

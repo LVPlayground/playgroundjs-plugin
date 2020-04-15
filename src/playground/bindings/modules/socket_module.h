@@ -19,8 +19,8 @@ namespace bindings {
 // The "close" and "message" events are supported by the module. They get the following properties
 // in the resulting dictionaries:
 //
-//   close     { }
-//   message   { }
+//   close     Event { code (number), message (string) }
+//   message   Event { data (ArrayBuffer) }
 //
 // [Constructor(string protocol)]
 // interface Socket {

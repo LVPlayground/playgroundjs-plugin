@@ -6,8 +6,10 @@
 
 #include <algorithm>
 
+#include "base/logging.h"
 #include "bindings/modules/socket/socket.h"
 #include "bindings/promise.h"
+#include "bindings/runtime_operations.h"
 #include "bindings/utilities.h"
 
 namespace bindings {
@@ -41,12 +43,22 @@ class SocketBindings : public socket::Socket::SocketObserver {
   }
 
   // socket::Socket::SocketObserver implementation:
-  void OnClose() override {
-
+  void OnClose(int code, const std::string& message) override {
+    InvokeListeners(close_event_listeners_, [code, message](v8::Isolate* isolate,
+                                                            v8::Local<v8::Context> context,
+                                                            v8::Local<v8::Object> event_obj) {
+      event_obj->Set(context, v8String("code"), v8::Integer::New(isolate, code));
+      event_obj->Set(context, v8String("message"), v8String(message));
+    });
   }
 
-  void OnMessage(const socket::Socket::ReadBuffer& buffer, std::size_t bytes) override {
-
+  void OnMessage(void* data, std::size_t bytes) override {
+    InvokeListeners(message_event_listeners_, [data, bytes](v8::Isolate* isolate,
+                                                            v8::Local<v8::Context> context,
+                                                            v8::Local<v8::Object> event_obj) {
+      v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data, bytes);
+      event_obj->Set(context, v8String("data"), buffer);
+    });
   }
 
   // Adds the given |listener| as an event listener of the given |type|.
@@ -75,6 +87,8 @@ class SocketBindings : public socket::Socket::SocketObserver {
   }
   
  private:
+  using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
+
   // Called when a Streamer instance has been garbage collected by the v8 engine.
   static void OnGarbageCollected(const v8::WeakCallbackInfo<SocketBindings>& data) {
     SocketBindings* instance = data.GetParameter();
@@ -82,12 +96,47 @@ class SocketBindings : public socket::Socket::SocketObserver {
     delete instance;
   }
 
+  // Calls the |listeners|. The event object can be created by the |object_builder|, which will be
+  // called under a valid handle and context scope.
+  void InvokeListeners(std::vector<v8PersistentFunctionReference>& listeners,
+                       std::function<void (v8::Isolate* isolate,
+                                           v8::Local<v8::Context> context,
+                                           v8::Local<v8::Object> event_obj)> object_builder) {
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+    ScopedExceptionSource source("socket event");
+    {
+      std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
+      if (!runtime)
+        return;  // the runtime is being shut down
+
+      v8::HandleScope handle_scope(runtime->isolate());
+
+      v8::Local<v8::Context> context = runtime->context();
+      v8::Context::Scope context_scope(context);
+
+      v8::Local<v8::Object> event_obj = v8::Object::New(isolate);
+      object_builder(isolate, context, event_obj);
+
+      v8::Local<v8::Value> arguments[1];
+      arguments[0] = event_obj;
+
+      for (const v8PersistentFunctionReference& ref : message_event_listeners_) {
+        v8::Local<v8::Function> function = v8::Local<v8::Function>::New(isolate, ref);
+        if (function.IsEmpty()) {
+          LOG(WARNING) << "[v8] Unable to coerce the persistent funtion to a local for socket event";
+          continue;
+        }
+
+        Call(isolate, function, arguments, 1u);
+      }
+    }
+  }
+
   v8::Persistent<v8::Object> object_;
   std::unique_ptr<socket::Socket> socket_;
 
   std::unique_ptr<Promise> connection_promise_;
-
-  using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
 
   // Map of event type to list of event listeners, stored as persistent references to v8 functions.
   std::vector<v8PersistentFunctionReference> close_event_listeners_;
