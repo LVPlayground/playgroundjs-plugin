@@ -330,14 +330,17 @@ void SocketWriteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  if (!arguments[0]->IsArrayBuffer()) {
-    ThrowException("unable to call write(): expected an ArrayBuffer for the first argument.");
+  v8::ArrayBuffer::Contents contents;
+  if (arguments[0]->IsArrayBuffer()) {
+    contents = v8::Local<v8::ArrayBuffer>::Cast(arguments[0])->GetContents();
+  } else if (arguments[0]->IsTypedArray()) {
+    contents = v8::Local<v8::TypedArray>::Cast(arguments[0])->Buffer()->GetContents();
+  } else {
+    ThrowException("unable to call write(): expected an ArrayBuffer or TypedArray for the first "
+                   "argument.");
     return;
   }
 
-  v8::Local<v8::ArrayBuffer> buffer = v8::Local<v8::ArrayBuffer>::Cast(arguments[0]);
-  v8::ArrayBuffer::Contents contents = buffer->GetContents();
-  
   std::unique_ptr<Promise> promise = std::make_unique<Promise>();
   v8::Local<v8::Promise> v8Promise = promise->GetPromise();
 
