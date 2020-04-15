@@ -7,7 +7,6 @@
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
-#include "base/logging.h"
 #include "bindings/exception_handler.h"
 #include "bindings/runtime.h"
 
@@ -16,8 +15,8 @@ namespace socket {
 
 namespace {
 
-// Global Connection ID counter.
-int64_t gConnectionId = 1;
+// Message to display when the connection attempt has timed out.
+const char kConnectionTimeoutError[] = "the connection attempt has timed out";
 
 template <typename T>
 void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
@@ -40,7 +39,6 @@ Socket::Socket(Protocol protocol, SocketObserver* observer)
     : protocol_(protocol),
       state_(State::kDisconnected),
       observer_(observer),
-      connection_id_(0),
       io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
       boost_deadline_timer_(io_context_),
       boost_socket_(io_context_) {}
@@ -51,11 +49,7 @@ Socket::~Socket() {
 }
 
 void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
-  connection_id_ = gConnectionId++;
   connection_promise_ = std::move(promise);
-
-  LOG(INFO) << "[Socket][#" << connection_id_ << "] Opening connection to "
-            << ip << ":" << port << "...";
 
   boost::asio::ip::tcp::endpoint endpoint{
       boost::asio::ip::address_v4::from_string(ip),
@@ -63,26 +57,22 @@ void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::un
 
   boost_socket_.async_connect(
       endpoint,
-      boost::bind(&Socket::OnConnect, this, ip, port, boost::asio::placeholders::error));
+      boost::bind(&Socket::OnConnect, this, boost::asio::placeholders::error));
 
   boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(timeout));
-  boost_deadline_timer_.async_wait(boost::bind(&Socket::OnConnectTimeout, this, ip, port));
+  boost_deadline_timer_.async_wait(boost::bind(&Socket::OnConnectTimeout, this));
 
   state_ = State::kConnecting;
 }
 
-void Socket::OnConnect(const std::string& ip, uint16_t port, const boost::system::error_code& ec) {
+void Socket::OnConnect(const boost::system::error_code& ec) {
   if (ec) {
-    LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
-              << " has failed (" << ec.value() << "): " << ec.message();
+    observer_->OnError(ec.value(), ec.message());
 
     state_ = State::kDisconnected;
     boost_socket_.close();
 
   } else {
-    LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
-              << " has been established.";
-  
     state_ = State::kConnected;
     boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
                                   boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,
@@ -92,12 +82,11 @@ void Socket::OnConnect(const std::string& ip, uint16_t port, const boost::system
   ResolvePromise(std::move(connection_promise_), /* success= */ !ec);
 }
 
-void Socket::OnConnectTimeout(const std::string& ip, uint16_t port) {
+void Socket::OnConnectTimeout() {
   if (this->state_ != State::kConnecting)
     return;
 
-  LOG(INFO) << "[Socket][#" << connection_id_ << "] Connection to " << ip << ":" << port
-            << " has timed out.";
+  observer_->OnError(boost::asio::error::timed_out, kConnectionTimeoutError);
 
   state_ = State::kDisconnected;
   ResolvePromise(std::move(connection_promise_), /* success= */ false);
@@ -105,17 +94,7 @@ void Socket::OnConnectTimeout(const std::string& ip, uint16_t port) {
 
 void Socket::OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred) {
   if (ec) {
-    LOG(INFO) << "[Socket][#" << connection_id_ << "] Read operation has failed ("
-              << ec.value() << "): " << ec.message();
-
-    State previous_state = state_;
-    state_ = State::kDisconnected;
-
-    boost_socket_.close();
-    
-    // Don't tell the observer if the socket already had been closed.
-    if (previous_state == State::kConnected)
-      observer_->OnClose(ec.value(), ec.message());
+    observer_->OnError(ec.value(), ec.message());
 
   } else {
     observer_->OnMessage(&read_buffer_.front(), bytes_transferred);
@@ -143,10 +122,8 @@ void Socket::Write(uint8_t* data, size_t bytes, std::unique_ptr<Promise> promise
 void Socket::OnWrite(const boost::system::error_code& ec,
                      std::size_t bytes_transferred,
                      std::shared_ptr<WriteData> write_data) {
-  if (ec) {
-    LOG(INFO) << "[Socket][#" << connection_id_ << "] Write operation has failed ("
-              << ec.value() << "): " << ec.message();
-  }
+  if (ec)
+    observer_->OnError(ec.value(), ec.message());
 
   ResolvePromise(std::move(write_data->promise), /* success= */ !ec);
 }

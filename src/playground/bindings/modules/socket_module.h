@@ -16,10 +16,10 @@ namespace bindings {
 // The |protocol| has to be either "tcp" or "udp", insensitive to casing. Timeouts, where given,
 // are in seconds.
 //
-// The "close" and "message" events are supported by the module. They get the following properties
+// The "error" and "message" events are supported by the module. They get the following properties
 // in the resulting dictionaries:
 //
-//   close     Event { code (number), message (string) }
+//   error     Event { code (number), message (string) }
 //   message   Event { data (ArrayBuffer) }
 //
 // [Constructor(string protocol)]

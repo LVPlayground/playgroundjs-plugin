@@ -40,7 +40,7 @@ class Socket {
 
   class SocketObserver {
    public:
-    virtual void OnClose(int code, const std::string& message) = 0;
+    virtual void OnError(int code, const std::string& message) = 0;
     virtual void OnMessage(void* data, std::size_t bytes) = 0;
   };
 
@@ -83,10 +83,10 @@ class Socket {
   };
 
   // To be called by Boost when the connection attempt has a result.
-  void OnConnect(const std::string& ip, uint16_t port, const boost::system::error_code& ec);
+  void OnConnect(const boost::system::error_code& ec);
 
   // To be called by Boost when the connection timeout timer has fired.
-  void OnConnectTimeout(const std::string& ip, uint16_t port);
+  void OnConnectTimeout();
 
   // To be called by Boost when data has been received over the socket.
   void OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred);
@@ -100,9 +100,6 @@ class Socket {
   State state_;
 
   SocketObserver* observer_;
-
-  // Global counter indicating the current connection Id.
-  int64_t connection_id_;
 
   // The connection promise that is pending for the current connection attempt.
   std::unique_ptr<Promise> connection_promise_;
