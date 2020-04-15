@@ -18,7 +18,7 @@ namespace {
 const int32_t kDefaultTimeoutSec = 30;
 
 // Bindings class bridging lifetime between the JavaScript Socket object and the C++ one.
-class SocketBindings {
+class SocketBindings : public socket::Socket::SocketObserver {
  public:
   enum class EventType {
     kClose,
@@ -26,7 +26,7 @@ class SocketBindings {
   };
 
   explicit SocketBindings(socket::Protocol protocol)
-      : socket_(std::make_unique<socket::Socket>(protocol)) {}
+      : socket_(std::make_unique<socket::Socket>(protocol, this)) {}
 
   ~SocketBindings() = default;
 
@@ -38,6 +38,15 @@ class SocketBindings {
   void WeakBind(v8::Isolate* isolate, v8::Local<v8::Object> object) {
     object_.Reset(isolate, object);
     object_.SetWeak(this, OnGarbageCollected, v8::WeakCallbackType::kParameter);
+  }
+
+  // socket::Socket::SocketObserver implementation:
+  void OnClose() override {
+
+  }
+
+  void OnMessage(const socket::Socket::ReadBuffer& buffer, std::size_t bytes) override {
+
   }
 
   // Adds the given |listener| as an event listener of the given |type|.

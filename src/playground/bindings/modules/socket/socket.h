@@ -5,6 +5,7 @@
 #ifndef PLAYGROUND_BINDINGS_MODULES_SOCKET_SOCKET_H_
 #define PLAYGROUND_BINDINGS_MODULES_SOCKET_SOCKET_H_
 
+#include <array>
 #include <memory>
 #include <stdint.h>
 #include <string>
@@ -34,7 +35,15 @@ enum class State {
 // that are provided by the SocketModule implementation.
 class Socket {
  public:
-  explicit Socket(Protocol protocol);
+  using ReadBuffer = std::array<char, 4096>;
+
+  class SocketObserver {
+   public:
+    virtual void OnClose() = 0;
+    virtual void OnMessage(const ReadBuffer& buffer, std::size_t bytes) = 0;
+  };
+
+  Socket(Protocol protocol, SocketObserver* observer);
   ~Socket();
 
   // Opens a connection with the given parameters. A promise is included that should be resolved
@@ -61,8 +70,13 @@ class Socket {
   // To be called by Boost when the connection timeout timer has fired.
   void OnConnectTimeout(const std::string& ip, uint16_t port);
 
+  // To be called by Boost when data has been received over the socket.
+  void OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred);
+
   Protocol protocol_;
   State state_;
+
+  SocketObserver* observer_;
 
   // Global counter indicating the current connection Id.
   int64_t connection_id_;
@@ -76,6 +90,9 @@ class Socket {
   // The underlying Boost socket that powers this instance.
   boost::asio::deadline_timer boost_deadline_timer_;
   boost::asio::ip::tcp::socket boost_socket_;
+
+  // Buffer for the incoming message(s).
+  ReadBuffer read_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };

@@ -36,9 +36,10 @@ void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
 
 }  // namespace
 
-Socket::Socket(Protocol protocol)
+Socket::Socket(Protocol protocol, SocketObserver* observer)
     : protocol_(protocol),
       state_(State::kDisconnected),
+      observer_(observer),
       connection_id_(0),
       io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
       boost_deadline_timer_(io_context_),
@@ -83,6 +84,9 @@ void Socket::OnConnect(const std::string& ip, uint16_t port, const boost::system
               << " has been established.";
   
     state_ = State::kConnected;
+    boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
+                                  boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,
+                                              boost::asio::placeholders::bytes_transferred));
   }
 
   ResolvePromise(std::move(connection_promise_), /* success= */ !ec);
@@ -97,6 +101,29 @@ void Socket::OnConnectTimeout(const std::string& ip, uint16_t port) {
 
   state_ = State::kDisconnected;
   ResolvePromise(std::move(connection_promise_), /* success= */ false);
+}
+
+void Socket::OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred) {
+  if (ec) {
+    LOG(INFO) << "[Socket][#" << connection_id_ << "] Read operation has failed ("
+              << ec.value() << "): " << ec.message();
+
+    State previous_state = state_;
+    state_ = State::kDisconnected;
+
+    boost_socket_.close();
+    
+    // Don't tell the observer if the socket already had been closed.
+    if (previous_state == State::kConnected)
+      observer_->OnClose();
+
+  } else {
+    observer_->OnMessage(read_buffer_, bytes_transferred);
+
+    boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
+                                  boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,
+                                              boost::asio::placeholders::bytes_transferred));
+  }
 }
 
 void Socket::Close() {
