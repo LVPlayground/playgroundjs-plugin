@@ -25,6 +25,7 @@ namespace bindings {
 // [Constructor(string protocol)]
 // interface Socket {
 //     Promise<boolean> open(string ip, number port[, number timeout]);
+//     Promise<boolean> write(ArrayBuffer data);
 //     void             close();
 //
 //     void             addEventListener(string event, function listener);

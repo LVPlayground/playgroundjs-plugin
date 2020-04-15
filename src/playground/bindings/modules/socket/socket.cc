@@ -126,6 +126,31 @@ void Socket::OnRead(const boost::system::error_code& ec, std::size_t bytes_trans
   }
 }
 
+void Socket::Write(uint8_t* data, size_t bytes, std::unique_ptr<Promise> promise) {
+  std::unique_ptr<std::vector<uint8_t>> buffer =
+      std::make_unique<std::vector<uint8_t>>(data, data + bytes);
+
+  auto boost_buffer = boost::asio::buffer(*buffer);
+
+  std::shared_ptr<WriteData> write_data =
+      std::make_shared<WriteData>(std::move(promise), std::move(buffer));
+
+  boost_socket_.async_send(boost_buffer,
+                           boost::bind(&Socket::OnWrite, this, boost::asio::placeholders::error,
+                                       boost::asio::placeholders::bytes_transferred, write_data));
+}
+
+void Socket::OnWrite(const boost::system::error_code& ec,
+                     std::size_t bytes_transferred,
+                     std::shared_ptr<WriteData> write_data) {
+  if (ec) {
+    LOG(INFO) << "[Socket][#" << connection_id_ << "] Write operation has failed ("
+              << ec.value() << "): " << ec.message();
+  }
+
+  ResolvePromise(std::move(write_data->promise), /* success= */ !ec);
+}
+
 void Socket::Close() {
   state_ = State::kDisconnected;
   boost_socket_.close();

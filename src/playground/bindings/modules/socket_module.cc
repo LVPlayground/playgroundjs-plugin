@@ -268,6 +268,35 @@ void SocketOpenCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   arguments.GetReturnValue().Set(v8Promise);
 }
 
+// Promise<boolean> Socket.prototype.write(ArrayBuffer data);
+void SocketWriteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
+  socket::Socket* socket = GetSocketFromObject(arguments.Holder());
+  if (!socket)
+    return;
+
+  if (arguments.Length() < 1) {
+    ThrowException("unable to call write(): 1 argument required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsArrayBuffer()) {
+    ThrowException("unable to call write(): expected an ArrayBuffer for the first argument.");
+    return;
+  }
+
+  v8::Local<v8::ArrayBuffer> buffer = v8::Local<v8::ArrayBuffer>::Cast(arguments[0]);
+  v8::ArrayBuffer::Contents contents = buffer->GetContents();
+  
+  std::unique_ptr<Promise> promise = std::make_unique<Promise>();
+  v8::Local<v8::Promise> v8Promise = promise->GetPromise();
+
+  socket->Write((uint8_t*)contents.Data(), contents.ByteLength(), std::move(promise));
+
+  arguments.GetReturnValue().Set(v8Promise);
+}
+
 // void Socket.prototype.close()
 void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
@@ -399,6 +428,7 @@ void SocketModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
   prototype_template->Set(v8String("open"), v8::FunctionTemplate::New(isolate, SocketOpenCallback));
+  prototype_template->Set(v8String("write"), v8::FunctionTemplate::New(isolate, SocketWriteCallback));
   prototype_template->Set(v8String("close"), v8::FunctionTemplate::New(isolate, SocketCloseCallback));
   prototype_template->Set(v8String("addEventListener"), v8::FunctionTemplate::New(isolate, SocketAddEventListenerCallback));
   prototype_template->Set(v8String("removeEventListener"), v8::FunctionTemplate::New(isolate, SocketRemoveEventListenerCallback));

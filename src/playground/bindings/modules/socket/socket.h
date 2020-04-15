@@ -9,6 +9,7 @@
 #include <memory>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include <boost/asio.hpp>
 
@@ -50,6 +51,10 @@ class Socket {
   // when the connection either has been established, failed or timed out.
   void Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<Promise> promise);
 
+  // Writes the given |data| (of length |bytes|) to the socket. The given |promise| will be resolved
+  // with a boolean on whether the write operation has succeeded.
+  void Write(uint8_t* data, size_t bytes, std::unique_ptr<Promise> promise);
+
   // Immediately closes the connection currently held by this socket.
   void Close();
 
@@ -64,6 +69,19 @@ class Socket {
   State state() const { return state_; }
 
  private:
+  class WriteData {
+   public:
+    WriteData(std::unique_ptr<Promise> promise, std::unique_ptr<std::vector<uint8_t>> buffer)
+        : promise(std::move(promise)), buffer(std::move(buffer)) {}
+    ~WriteData() = default;
+
+    std::unique_ptr<Promise> promise;
+    std::unique_ptr<std::vector<uint8_t>> buffer;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(WriteData);
+  };
+
   // To be called by Boost when the connection attempt has a result.
   void OnConnect(const std::string& ip, uint16_t port, const boost::system::error_code& ec);
 
@@ -72,6 +90,11 @@ class Socket {
 
   // To be called by Boost when data has been received over the socket.
   void OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred);
+
+  // To be called by Boost when data has been written to the socket.
+  void OnWrite(const boost::system::error_code& ec,
+               std::size_t bytes_transferred,
+               std::shared_ptr<WriteData> write_data);
 
   Protocol protocol_;
   State state_;
