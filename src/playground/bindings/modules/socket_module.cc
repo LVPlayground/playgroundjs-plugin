@@ -121,7 +121,7 @@ class SocketBindings : public socket::Socket::SocketObserver {
       v8::Local<v8::Value> arguments[1];
       arguments[0] = event_obj;
 
-      for (const v8PersistentFunctionReference& ref : message_event_listeners_) {
+      for (const v8PersistentFunctionReference& ref : listeners) {
         v8::Local<v8::Function> function = v8::Local<v8::Function>::New(isolate, ref);
         if (function.IsEmpty()) {
           LOG(WARNING) << "[v8] Unable to coerce the persistent funtion to a local for socket event";
