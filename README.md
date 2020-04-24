@@ -24,6 +24,8 @@ The PlaygroundJS plugin requires a series of dependencies to be available on the
   * [libmysql 5.7](https://dev.mysql.com/doc/refman/5.7/en/)
   * [OpenSSL 1.1.1g](https://www.openssl.org/source/) or later.
 
+It should take a couple of hours to set this up on a Windows 10 machine with Visual Studio 2019.
+
 # Further reading
 This repository contains the source code of [the plugin](plugin/src) as well as the source code of our JavaScript-based [gamemode](javascript/). All code is available under a friendly [MIT license](LICENSE.md), although we do ask you to give us some attribution.
 

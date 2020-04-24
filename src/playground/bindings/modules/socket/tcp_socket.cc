@@ -6,6 +6,7 @@
 #include "bindings/runtime.h"
 
 #include <boost/bind/bind.hpp>
+#include <boost/asio/ssl.hpp>
 
 namespace bindings {
 namespace socket {
