@@ -78,42 +78,6 @@ static cell AMX_NATIVE_CALL n_IsPlayerMinimized(AMX* amx, cell* params) {
   return 0;
 }
 
-// native SendEchoMessage(destinationIp[], destinationPort, message[]);
-static cell AMX_NATIVE_CALL n_SendEchoMessage(AMX* amx, cell* params) {
-  CHECK_PARAMS(3);
-
-  std::string destination_ip;
-  if (!GetStringFromPawnArg(amx, params[1], &destination_ip)) {
-    LOG(WARNING) << "[SendEchoMessage] Error: empty destination IP given.";
-    return 0;
-  }
-
-  uint16_t destination_port = static_cast<uint16_t>(params[2]);
-
-  std::string message;
-  if (!GetStringFromPawnArg(amx, params[3], &message)) {
-    LOG(WARNING) << "[SendEchoMessage] Error: empty message given.";
-    return 0;
-  }
-
-  boost::asio::io_service io_service;
-  boost::asio::ip::udp::endpoint remote{
-    boost::asio::ip::address::from_string(destination_ip),
-    destination_port };
-
-  try {
-    boost::asio::ip::udp::socket socket(io_service);
-    socket.open(boost::asio::ip::udp::v4());
-    socket.send_to(boost::asio::buffer(message), remote);
-    
-  } catch (const boost::system::system_error& exception) {
-    LOG(WARNING) << "Unable to distribute an error message: "
-                 << exception.what() << " (" << exception.code() << ")";
-  }
-
-  return 1;
-}
-
 }  // namespace
 
 PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports() {
@@ -146,7 +110,6 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
 
   // Register the static native functions provided by the plugin's C++ code.
   g_plugin_controller->native_parser()->SetStaticNative(/* index= */ 0, "IsPlayerMinimized", n_IsPlayerMinimized);
-  g_plugin_controller->native_parser()->SetStaticNative(/* index= */ 1, "SendEchoMessage", n_SendEchoMessage);
 
   return true;
 }
