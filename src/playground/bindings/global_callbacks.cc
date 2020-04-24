@@ -220,35 +220,6 @@ void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
   arguments.GetReturnValue().Set(global->IsPlayerMinimized(arguments[0]->Int32Value(context).ToChecked()));
 }
 
-// void logstash(string message[, string endpoint = null]);
-void LogstashCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
-
-  if (arguments.Length() == 0) {
-    ThrowException("unable to execute logstash(): 1 argument required, but only 0 provided.");
-    return;
-  }
-
-  if (!arguments[0]->IsString()) {
-    ThrowException("unable to execute logstash(): expected a string for argument 1.");
-    return;
-  }
-
-  std::string message = toString(arguments[0]);
-  std::string endpoint;
-
-  if (arguments.Length() >= 2) {
-    if (!arguments[1]->IsString()) {
-      ThrowException("unable to execute logstash(): expected a string for argument 2.");
-      return;
-    }
-
-    endpoint = toString(arguments[1]);
-  }
-
-  global->logstash(message, endpoint);
-}
-
 // void notifyReady();
 void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   Runtime::FromIsolate(arguments.GetIsolate())->SetReady();

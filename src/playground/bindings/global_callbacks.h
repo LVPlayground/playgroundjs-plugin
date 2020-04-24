@@ -21,7 +21,6 @@ void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
-void LogstashCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

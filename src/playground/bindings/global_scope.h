@@ -11,7 +11,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <boost/asio.hpp>
 #include <include/v8.h>
 
 #include "base/macros.h"
@@ -142,13 +141,6 @@ class GlobalScope {
 
   // Map of event type to list of event listeners, stored as persistent references to v8 functions.
   std::unordered_map<std::string, v8PersistentFunctionVector> event_listeners_;
-
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-  boost::asio::io_service logstash_io_service_;
-  boost::asio::local::stream_protocol::socket logstash_socket_;
-
-  std::string logstash_socket_endpoint_;
-#endif
 
   bool has_shown_warning_ = false;
 

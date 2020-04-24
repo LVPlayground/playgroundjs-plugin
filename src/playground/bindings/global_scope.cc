@@ -35,13 +35,10 @@ GlobalScope::GlobalScope(plugin::PluginController* plugin_controller)
       mysql_module_(std::make_unique< MySQLModule>()),
       socket_module_(std::make_unique<SocketModule>()),
       streamer_module_(std::make_unique< StreamerModule>())
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-    , logstash_socket_(logstash_io_service_)
-#endif
 {
 }
 
-GlobalScope::~GlobalScope() {}
+GlobalScope::~GlobalScope() = default;
 
 void GlobalScope::RegisterEvent(const std::string& type, std::unique_ptr<Event> event) {
   events_[type].swap(event);
@@ -77,7 +74,6 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   // TODO(Russell): Provide some kind of filesystem module.
   InstallFunction(global, "glob", GlobCallback);
   InstallFunction(global, "readFile", ReadFileCallback);
-  InstallFunction(global, "logstash", LogstashCallback);
 
   // Install the Console and MySQL interfaces.
   console_->InstallPrototype(global);
@@ -200,33 +196,6 @@ void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Fun
     else
       event_listener_iter++;
   }
-}
-
-void GlobalScope::logstash(const std::string& message, const std::string& endpoint) {
-#if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-  try {
-    if (!endpoint.empty() && (logstash_socket_endpoint_ != endpoint || !logstash_socket_.is_open())) {
-      logstash_socket_endpoint_ = endpoint;
-
-      if (logstash_socket_.is_open())
-        logstash_socket_.close();
-
-      logstash_socket_.connect(boost::asio::local::stream_protocol::endpoint(endpoint));
-      if (!logstash_socket_.is_open())
-        LOG(WARNING) << "Unable to connect to the logstash daemon.";
-    }
-
-    if (logstash_socket_.is_open())
-      boost::asio::write(logstash_socket_, boost::asio::buffer(message));
-  } catch (std::exception& e) {
-    LOG(WARNING) << "Exception thrown: " << e.what();
-  }
-#else
-  if (!endpoint.empty() && !has_shown_warning_) {
-    LOG(INFO) << "logstash() is not available on Windows, ignoring socket update.";
-    has_shown_warning_ = true;
-  }
-#endif
 }
 
 std::string GlobalScope::ReadFile(const std::string& filename) const {
