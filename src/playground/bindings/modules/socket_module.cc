@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "bindings/modules/socket/socket.h"
+#include "bindings/modules/socket/tcp_socket.h"
 #include "bindings/promise.h"
 #include "bindings/runtime_operations.h"
 #include "bindings/utilities.h"
@@ -27,8 +28,8 @@ class SocketBindings : public socket::Socket::SocketObserver {
     kMessage,
   };
 
-  explicit SocketBindings(socket::Protocol protocol)
-      : socket_(std::make_unique<socket::Socket>(protocol, this)) {}
+  explicit SocketBindings(std::unique_ptr<socket::BaseSocket> engine)
+      : socket_(std::make_unique<socket::Socket>(std::move(engine), this)) {}
 
   ~SocketBindings() = default;
 
@@ -180,11 +181,6 @@ bool ConvertStringToProtocol(v8::Local<v8::Value> value, socket::Protocol* proto
     return true;
   }
 
-  if (protocol_string == "udp") {
-    *protocol = socket::Protocol::kUdp;
-    return true;
-  }
-
   return false;
 }
 
@@ -192,10 +188,6 @@ bool ConvertProtocolToString(socket::Protocol protocol, v8::Local<v8::String>* s
   switch (protocol) {
     case socket::Protocol::kTcp:
       *string = v8String("tcp");
-      return true;
-
-    case socket::Protocol::kUdp:
-      *string = v8String("udp");
       return true;
   }
 
@@ -256,14 +248,42 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  socket::Protocol protocol;
-
-  if (!ConvertStringToProtocol(arguments[0], &protocol)) {
-    ThrowException("unable to construct Socket: invalid protocol given for argument 1");
+  if (!arguments[0]->IsObject()) {
+    ThrowException("unable to construct Socket: argument 1 is expected to be an object.");
     return;
   }
 
-  SocketBindings* instance = new SocketBindings(protocol);
+  v8::Local<v8::Object> options = arguments[0].As<v8::Object>();
+  
+  socket::Protocol protocol;
+  {
+    v8::MaybeLocal<v8::Value> maybe_protocol = options->Get(context, v8String("protocol"));
+
+    v8::Local<v8::Value> v8_protocol;
+    if (!maybe_protocol.ToLocal(&v8_protocol)) {
+      ThrowException("unable to construct Socket: unable to read `options.protocol`.");
+      return;
+    }
+
+    if (!ConvertStringToProtocol(v8_protocol, &protocol)) {
+      ThrowException("unable to construct Socket: invalid protocol given for argument 1");
+      return;
+    }
+  }
+
+  std::unique_ptr<socket::BaseSocket> socket;
+  switch (protocol) {
+    case socket::Protocol::kTcp:
+      socket = std::make_unique<socket::TcpSocket>();
+      break;
+  }
+
+  CHECK(socket);
+
+  if (!socket->ParseOptions(options))
+    return;
+
+  SocketBindings* instance = new SocketBindings(std::move(socket));
   instance->WeakBind(v8::Isolate::GetCurrent(), arguments.Holder());
 
   arguments.Holder()->SetAlignedPointerInInternalField(0, instance);
@@ -444,7 +464,7 @@ void SocketProtocolGetter(v8::Local<v8::String> name, const v8::PropertyCallback
     return;
 
   v8::Local<v8::String> protocol;
-  if (ConvertProtocolToString(instance->protocol(), &protocol))
+  if (ConvertProtocolToString(instance->engine()->protocol(), &protocol))
     info.GetReturnValue().Set(protocol);
   else
     info.GetReturnValue().SetNull();

@@ -30,6 +30,7 @@
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
     <ClCompile Include="bindings\modules\socket\socket.cc" />
+    <ClCompile Include="bindings\modules\socket\tcp_socket.cc" />
     <ClCompile Include="bindings\modules\socket_module.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer_test.cc" />
@@ -85,6 +86,8 @@
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />
     <ClInclude Include="bindings\modules\socket\socket.h" />
+    <ClInclude Include="bindings\modules\socket\base_socket.h" />
+    <ClInclude Include="bindings\modules\socket\tcp_socket.h" />
     <ClInclude Include="bindings\modules\socket_module.h" />
     <ClInclude Include="bindings\modules\streamer\streamer.h" />
     <ClInclude Include="bindings\modules\streamer\streamer_delegate.h" />

@@ -35,9 +35,8 @@ void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
 
 }  // namespace
 
-Socket::Socket(Protocol protocol, SocketObserver* observer)
-    : protocol_(protocol),
-      state_(State::kDisconnected),
+Socket::Socket(std::unique_ptr<BaseSocket> engine, SocketObserver* observer)
+    : state_(State::kDisconnected),
       observer_(observer),
       io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
       boost_deadline_timer_(io_context_),

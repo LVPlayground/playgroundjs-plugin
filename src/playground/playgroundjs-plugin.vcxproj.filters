@@ -165,6 +165,9 @@
     <ClCompile Include="bindings\modules\socket\socket.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\modules\socket\tcp_socket.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -342,6 +345,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\socket\socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\socket\tcp_socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\socket\base_socket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,16 +14,11 @@
 #include <boost/asio.hpp>
 
 #include "base/macros.h"
+#include "bindings/modules/socket/base_socket.h"
 #include "bindings/promise.h"
 
 namespace bindings {
 namespace socket {
-
-// Network protocol that should be used by a created socket.
-enum class Protocol {
-  kTcp,
-  kUdp
-};
 
 // State of the socket. Its behaviour is asynchronous, so there are transitional states.
 enum class State {
@@ -44,7 +39,7 @@ class Socket {
     virtual void OnMessage(void* data, std::size_t bytes) = 0;
   };
 
-  Socket(Protocol protocol, SocketObserver* observer);
+  Socket(std::unique_ptr<BaseSocket> engine, SocketObserver* observer);
   ~Socket();
 
   // Opens a connection with the given parameters. A promise is included that should be resolved
@@ -65,7 +60,7 @@ class Socket {
   }
 
   // Getters to the fixed data properties of this socket.
-  Protocol protocol() const { return protocol_; }
+  BaseSocket* engine() const { return engine_.get(); }
   State state() const { return state_; }
 
  private:
@@ -96,7 +91,9 @@ class Socket {
                std::size_t bytes_transferred,
                std::shared_ptr<WriteData> write_data);
 
-  Protocol protocol_;
+  // The engine that powers this socket connection.
+  std::unique_ptr<BaseSocket> engine_;
+
   State state_;
 
   SocketObserver* observer_;

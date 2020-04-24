@@ -13,7 +13,20 @@ namespace bindings {
 // for example to open (and maintain) echo or IRC connections. The class is implemented on top of
 // the Boost ASIO library.
 //
-// The |protocol| has to be either "tcp" or "udp", insensitive to casing. Timeouts, where given,
+// When constructing a new Socket object, an |options| dictionary has to be passed in which
+// indicates the environment that should apply to the connection. It has the following fields,
+// some shared, some specific to a particular protocol.
+//
+// dictionary SocketOptions {
+//   // The protocol to use for this socket. Required. Must be set to "tcp".
+//   string protocol = "tcp";
+//
+//   // Options specific to protocol: TCP
+//   boolean security = "none" | "auto" | "ssl" | "sslv3" | "tls" | "tlsv1" | "tlsv11"
+//                               "tlsv12" | "tlsv13";
+// }
+
+// The |protocol| has be either "tcp" or "udp", insensitive to casing. Timeouts, where given,
 // are in seconds.
 //
 // The "error" and "message" events are supported by the module. They get the following properties
@@ -22,7 +35,7 @@ namespace bindings {
 //   error     Event { code (number), message (string) }
 //   message   Event { data (ArrayBuffer) }
 //
-// [Constructor(string protocol)]
+// [Constructor(SocketOptions options)]
 // interface Socket {
 //     Promise<boolean> open(string ip, number port[, number timeout]);
 //     Promise<boolean> write(ArrayBuffer data);
