@@ -33,6 +33,7 @@ class Socket {
  public:
   class SocketObserver {
    public:
+    virtual void OnClose() = 0;
     virtual void OnError(int code, const std::string& message) = 0;
     virtual void OnMessage(void* data, std::size_t bytes) = 0;
   };

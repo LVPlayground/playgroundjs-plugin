@@ -24,6 +24,7 @@ const int32_t kDefaultTimeoutSec = 30;
 class SocketBindings : public socket::Socket::SocketObserver {
  public:
   enum class EventType {
+    kClose,
     kError,
     kMessage,
   };
@@ -44,6 +45,12 @@ class SocketBindings : public socket::Socket::SocketObserver {
   }
 
   // socket::Socket::SocketObserver implementation:
+  void OnClose() override {
+    InvokeListeners(close_event_listeners_, [](v8::Isolate* isolate,
+                                               v8::Local<v8::Context> context,
+                                               v8::Local<v8::Object> event_obj) {});
+  }
+
   void OnError(int code, const std::string& message) override {
     InvokeListeners(error_event_listeners_, [code, message](v8::Isolate* isolate,
                                                             v8::Local<v8::Context> context,
@@ -64,24 +71,48 @@ class SocketBindings : public socket::Socket::SocketObserver {
 
   // Adds the given |listener| as an event listener of the given |type|.
   void addEventListener(EventType type, v8::Local<v8::Function> listener) {
-    std::vector<v8PersistentFunctionReference>& listeners =
-        type == EventType::kError ? error_event_listeners_
-                                  : message_event_listeners_;
+    std::vector<v8PersistentFunctionReference>* listeners = nullptr;
 
-    listeners.push_back(v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));
+    switch (type) {
+      case EventType::kClose:
+        listeners = &close_event_listeners_;
+        break;
+      case EventType::kError:
+        listeners = &error_event_listeners_;
+        break;
+      case EventType::kMessage:
+        listeners = &message_event_listeners_;
+        break;
+    }
+
+    CHECK(listeners);
+
+    listeners->push_back(v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));
   }
 
   // Removes the given |listener| as an event listener of the given |type|.
   void removeEventListener(EventType type, v8::Local<v8::Function> listener) {
-    std::vector<v8PersistentFunctionReference>& listeners =
-        type == EventType::kError ? error_event_listeners_
-                                  : message_event_listeners_;
+    std::vector<v8PersistentFunctionReference>* listeners = nullptr;
 
-    for (auto iter = listeners.begin(); iter != listeners.end();) {
+    switch (type) {
+      case EventType::kClose:
+        listeners = &close_event_listeners_;
+        break;
+      case EventType::kError:
+        listeners = &error_event_listeners_;
+        break;
+      case EventType::kMessage:
+        listeners = &message_event_listeners_;
+        break;
+    }
+
+    CHECK(listeners);
+
+    for (auto iter = listeners->begin(); iter != listeners->end();) {
       const v8PersistentFunctionReference& ref = *iter;
 
       if (ref == listener)
-        iter = listeners.erase(iter);
+        iter = listeners->erase(iter);
       else
         iter++;
     }
@@ -140,6 +171,7 @@ class SocketBindings : public socket::Socket::SocketObserver {
   std::unique_ptr<Promise> connection_promise_;
 
   // Map of event type to list of event listeners, stored as persistent references to v8 functions.
+  std::vector<v8PersistentFunctionReference> close_event_listeners_;
   std::vector<v8PersistentFunctionReference> error_event_listeners_;
   std::vector<v8PersistentFunctionReference> message_event_listeners_;
 
@@ -218,6 +250,11 @@ bool ConvertStringToEventType(v8::Local<v8::Value> value, SocketBindings::EventT
 
   std::string event_type_str = toString(value);
   std::transform(event_type_str.begin(), event_type_str.end(), event_type_str.begin(), ::tolower);
+
+  if (event_type_str == "close") {
+    *event_type = SocketBindings::EventType::kClose;
+    return true;
+  }
 
   if (event_type_str == "error") {
     *event_type = SocketBindings::EventType::kError;

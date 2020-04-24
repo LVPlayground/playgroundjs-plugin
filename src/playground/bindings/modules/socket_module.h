@@ -32,6 +32,7 @@ namespace bindings {
 // The "error" and "message" events are supported by the module. They get the following properties
 // in the resulting dictionaries:
 //
+//   close     Event { }
 //   error     Event { code (number), message (string) }
 //   message   Event { data (ArrayBuffer) }
 //

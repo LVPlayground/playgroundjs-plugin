@@ -36,7 +36,8 @@ void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
 }  // namespace
 
 Socket::Socket(std::unique_ptr<BaseSocket> engine, SocketObserver* observer)
-    : state_(State::kDisconnected),
+    : engine_(std::move(engine)),
+      state_(State::kDisconnected),
       observer_(observer) {}
 
 Socket::~Socket() = default;
@@ -113,6 +114,8 @@ void Socket::OnWrite(const boost::system::error_code& ec,
 void Socket::Close() {
   engine_->Close();
   state_ = State::kDisconnected;
+
+  observer_->OnClose();
 }
 
 }  // namespace socket
