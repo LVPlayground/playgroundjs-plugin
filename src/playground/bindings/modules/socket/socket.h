@@ -31,8 +31,6 @@ enum class State {
 // that are provided by the SocketModule implementation.
 class Socket {
  public:
-  using ReadBuffer = std::array<char, 4096>;
-
   class SocketObserver {
    public:
     virtual void OnError(int code, const std::string& message) = 0;
@@ -44,7 +42,8 @@ class Socket {
 
   // Opens a connection with the given parameters. A promise is included that should be resolved
   // when the connection either has been established, failed or timed out.
-  void Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<Promise> promise);
+  void Open(const std::string& ip, uint16_t port, int32_t timeout,
+            std::unique_ptr<Promise> promise);
 
   // Writes the given |data| (of length |bytes|) to the socket. The given |promise| will be resolved
   // with a boolean on whether the write operation has succeeded.
@@ -81,10 +80,13 @@ class Socket {
   void OnConnect(const boost::system::error_code& ec);
 
   // To be called by Boost when the connection timeout timer has fired.
-  void OnConnectTimeout();
+  void OnConnectTimeout(const boost::system::error_code& ec);
 
   // To be called by Boost when data has been received over the socket.
-  void OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred);
+  void OnRead(void* data, std::size_t bytes);
+
+  // To be called by Boost when a data reading error has occurred.
+  void OnError(const boost::system::error_code& ec);
 
   // To be called by Boost when data has been written to the socket.
   void OnWrite(const boost::system::error_code& ec,
@@ -95,21 +97,10 @@ class Socket {
   std::unique_ptr<BaseSocket> engine_;
 
   State state_;
-
   SocketObserver* observer_;
 
   // The connection promise that is pending for the current connection attempt.
   std::unique_ptr<Promise> connection_promise_;
-
-  // The IO Context, owned by the bindings Runtime, on which to post tasks.
-  boost::asio::io_context& io_context_;
-
-  // The underlying Boost socket that powers this instance.
-  boost::asio::deadline_timer boost_deadline_timer_;
-  boost::asio::ip::tcp::socket boost_socket_;
-
-  // Buffer for the incoming message(s).
-  ReadBuffer read_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(Socket);
 };

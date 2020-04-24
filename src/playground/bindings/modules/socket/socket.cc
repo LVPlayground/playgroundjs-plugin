@@ -37,29 +37,19 @@ void ResolvePromise(std::unique_ptr<Promise> promise, T value) {
 
 Socket::Socket(std::unique_ptr<BaseSocket> engine, SocketObserver* observer)
     : state_(State::kDisconnected),
-      observer_(observer),
-      io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
-      boost_deadline_timer_(io_context_),
-      boost_socket_(io_context_) {}
+      observer_(observer) {}
 
-Socket::~Socket() {
-  if (state_ != State::kDisconnected)
-    boost_socket_.close();
-}
+Socket::~Socket() = default;
 
-void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::unique_ptr<bindings::Promise> promise) {
+void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout,
+                  std::unique_ptr<bindings::Promise> promise) {
   connection_promise_ = std::move(promise);
 
-  boost::asio::ip::tcp::endpoint endpoint{
-      boost::asio::ip::address_v4::from_string(ip),
-      port };
+  // TODO: Resolve |ip| if it's not an IP address.
 
-  boost_socket_.async_connect(
-      endpoint,
-      boost::bind(&Socket::OnConnect, this, boost::asio::placeholders::error));
-
-  boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(timeout));
-  boost_deadline_timer_.async_wait(boost::bind(&Socket::OnConnectTimeout, this));
+  engine_->Open(ip, port, timeout, 
+                boost::bind(&Socket::OnConnect, this, boost::asio::placeholders::error),
+                boost::bind(&Socket::OnConnectTimeout, this, boost::asio::placeholders::error));
 
   state_ = State::kConnecting;
 }
@@ -67,21 +57,21 @@ void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout, std::un
 void Socket::OnConnect(const boost::system::error_code& ec) {
   if (ec) {
     observer_->OnError(ec.value(), ec.message());
+    engine_->Close();
 
     state_ = State::kDisconnected;
-    boost_socket_.close();
 
   } else {
     state_ = State::kConnected;
-    boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
-                                  boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,
-                                              boost::asio::placeholders::bytes_transferred));
+
+    engine_->Read(boost::bind(&Socket::OnRead, this, boost::placeholders::_1, boost::asio::placeholders::bytes_transferred),
+                  boost::bind(&Socket::OnError, this, boost::asio::placeholders::error));
   }
 
   ResolvePromise(std::move(connection_promise_), /* success= */ !ec);
 }
 
-void Socket::OnConnectTimeout() {
+void Socket::OnConnectTimeout(const boost::system::error_code& ec) {
   if (this->state_ != State::kConnecting)
     return;
 
@@ -91,31 +81,24 @@ void Socket::OnConnectTimeout() {
   ResolvePromise(std::move(connection_promise_), /* success= */ false);
 }
 
-void Socket::OnRead(const boost::system::error_code& ec, std::size_t bytes_transferred) {
-  if (ec) {
-    observer_->OnError(ec.value(), ec.message());
+void Socket::OnRead(void* data, std::size_t bytes) {
+  observer_->OnMessage(data, bytes);
+}
 
-  } else {
-    observer_->OnMessage(&read_buffer_.front(), bytes_transferred);
-
-    boost_socket_.async_read_some(boost::asio::buffer(read_buffer_),
-                                  boost::bind(&Socket::OnRead, this, boost::asio::placeholders::error,
-                                              boost::asio::placeholders::bytes_transferred));
-  }
+void Socket::OnError(const boost::system::error_code& ec) {
+  observer_->OnError(ec.value(), ec.message());
 }
 
 void Socket::Write(uint8_t* data, size_t bytes, std::unique_ptr<Promise> promise) {
   std::unique_ptr<std::vector<uint8_t>> buffer =
       std::make_unique<std::vector<uint8_t>>(data, data + bytes);
 
-  auto boost_buffer = boost::asio::buffer(*buffer);
-
   std::shared_ptr<WriteData> write_data =
       std::make_shared<WriteData>(std::move(promise), std::move(buffer));
 
-  boost_socket_.async_send(boost_buffer,
-                           boost::bind(&Socket::OnWrite, this, boost::asio::placeholders::error,
-                                       boost::asio::placeholders::bytes_transferred, write_data));
+  engine_->Write(&write_data->buffer->front(), write_data->buffer->size(),
+                 boost::bind(&Socket::OnWrite, this, boost::asio::placeholders::error,
+                             boost::asio::placeholders::bytes_transferred, write_data));
 }
 
 void Socket::OnWrite(const boost::system::error_code& ec,
@@ -128,8 +111,8 @@ void Socket::OnWrite(const boost::system::error_code& ec,
 }
 
 void Socket::Close() {
+  engine_->Close();
   state_ = State::kDisconnected;
-  boost_socket_.close();
 }
 
 }  // namespace socket
