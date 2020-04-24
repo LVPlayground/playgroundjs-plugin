@@ -17,6 +17,13 @@ Las Venturas Playground does not have the development resources to rewrite the e
 
 Therefore, JavaScript may be used _in addition_ of the existing Pawn gamemode, and not _instead_ of it. A powerful [event model](docs/events.md) enables all SA-MP callbacks to be used and all [native functions](docs/natives.md) are available from JavaScript as well.
 
+# Dependencies
+The PlaygroundJS plugin requires a series of dependencies to be available on the host. When compiling the plugin, both binaries and source must be available.
+
+  * [Boost 1.72](https://www.boost.org/) or later.
+  * [libmysql 5.7](https://dev.mysql.com/doc/refman/5.7/en/)
+  * [OpenSSL 1.1.1g](https://www.openssl.org/source/) or later.
+
 # Further reading
 This repository contains the source code of [the plugin](plugin/src) as well as the source code of our JavaScript-based [gamemode](javascript/). All code is available under a friendly [MIT license](LICENSE.md), although we do ask you to give us some attribution.
 
