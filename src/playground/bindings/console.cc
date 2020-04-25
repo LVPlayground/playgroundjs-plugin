@@ -19,10 +19,16 @@ namespace bindings {
 
 namespace {
 
+// Returns if the |value| is of a type that can simply be printed as a string.
+bool IsSimpleKeyType(v8::Local<v8::Value> value) {
+  return value->IsString() ||
+         value->IsNumber();
+}
+
 class ValueStringBuilder {
  public:
-  ValueStringBuilder() {}
-  ~ValueStringBuilder() {}
+  explicit ValueStringBuilder(v8::Local<v8::Context> context) : context_(context) {}
+  ~ValueStringBuilder() = default;
 
   const size_t kIndentStep = 2;
 
@@ -55,16 +61,23 @@ class ValueStringBuilder {
   }
 
   void WriteArray(v8::Local<v8::Value> value, size_t indent) {
-    v8::Local<v8::Array> array_value = v8::Local<v8::Array>::Cast(value);
-    auto context = GetContext();
+    v8::Local<v8::Array> array = v8::Local<v8::Array>::Cast(value);
 
     const std::string prefix(indent, ' ');
     const std::string new_prefix(indent + kIndentStep, ' ');
 
     stream_ << "[\n";
-    for (size_t index = 0; index < array_value->Length(); ++index) {
+    for (size_t index = 0; index < array->Length(); ++index) {
+      v8::MaybeLocal<v8::Value> maybe_entry = array->Get(context_, index);
+      v8::Local<v8::Value> entry;
+
       stream_ << new_prefix;
-      Write(array_value->Get(context, indent + kIndentStep).ToLocalChecked());
+      if (maybe_entry.IsEmpty() || !maybe_entry.ToLocal(&entry)) {
+        stream_ << "undefined";
+      } else {
+        Write(entry, indent + kIndentStep);
+      }
+
       stream_ << ",\n";
     }
 
@@ -73,24 +86,29 @@ class ValueStringBuilder {
 
   void WriteObject(v8::Local<v8::Value> value, size_t indent) {
     v8::Local<v8::Object> object_value = v8::Local<v8::Object>::Cast(value);
-    auto context = GetContext();
 
     const std::string prefix(indent, ' ');
     const std::string new_prefix(indent + kIndentStep, ' ');
 
     stream_ << "{\n";
 
-    v8::Local<v8::Array> properties = object_value->GetOwnPropertyNames(context).ToLocalChecked();
+    v8::Local<v8::Array> properties = object_value->GetOwnPropertyNames(context_).ToLocalChecked();
     for (size_t index = 0; index < properties->Length(); ++index) {
-      v8::Local<v8::Value> member_key = properties->Get(context, index).ToLocalChecked();
-      v8::Local<v8::Value> member_value = object_value->Get(context, member_key).ToLocalChecked();
+      v8::Local<v8::Value> member_key = properties->Get(context_, index).ToLocalChecked();
+      v8::Local<v8::Value> member_value = object_value->Get(context_, member_key).ToLocalChecked();
 
-      if (member_value->StrictEquals(value) || !member_key->IsString())
-        continue;  // TODO: Implement printing of non-string values. Symbols?
+      if (!IsSimpleKeyType(member_key))
+        continue;  // TODO: Implement printing of more key types.
 
       stream_ << new_prefix;
       Write(member_key, 0);
       stream_ << " => ";
+
+      if (member_value->StrictEquals(value)) {
+        stream_ << "[recursion],\n";
+        continue;
+      }
+      
       Write(member_value, indent + kIndentStep);
       stream_ << ",\n";
     }
@@ -99,20 +117,34 @@ class ValueStringBuilder {
   }
 
   void WriteGeneric(v8::Local<v8::Value> value) {
-    v8::String::Utf8Value string(GetIsolate(), value);
-    if (*string == nullptr) {
+    v8::MaybeLocal<v8::String> maybe_string = value->ToString(context_);
+    v8::Local<v8::String> string;
+
+    if (maybe_string.IsEmpty() || !maybe_string.ToLocal(&string)) {
       stream_ << "[unknown]";
       return;
     }
 
-    if (value->IsString()) stream_ << "\"";
-    stream_ << std::string(*string, string.length());
-    if (value->IsString()) stream_ << "\"";
+    v8::String::Utf8Value utf8_string(GetIsolate(), string);
+    if (!*utf8_string) {
+      stream_ << "[unknown]";
+      return;
+    }
+
+    if (value->IsString())
+      stream_ << "\"";
+
+    stream_ << std::string(*utf8_string, utf8_string.length());
+
+    if (value->IsString())
+      stream_ << "\"";
   }
 
   std::string str() { return stream_.str(); }
 
  private:
+  v8::Local<v8::Context> context_;
+
   std::stringstream stream_;
 };
 
@@ -160,7 +192,7 @@ void Console::OutputValue(v8::Local<v8::Value> value) const {
     return;
   }
 
-  ValueStringBuilder builder;
+  ValueStringBuilder builder(runtime->context());
   builder.Write(value);
 
   runtime->delegate()->OnScriptOutput(builder.str());
