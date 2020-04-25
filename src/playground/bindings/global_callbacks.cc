@@ -339,7 +339,11 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
 
 // void killServer();
 void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+#if defined(WIN32)
+  abort();
+#else
   exit(-1);
+#endif
 }
 
 // void startTrace();
