@@ -326,6 +326,29 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   arguments.Holder()->SetAlignedPointerInInternalField(0, instance);
 }
 
+// void Socket.prototype.setOptions(object socketOptions);
+void SocketSetOptionsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
+  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
+  if (!instance)
+    return;
+
+  if (arguments.Length() < 1) {
+    ThrowException("unable to call setOptions(): 1 argument required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsObject()) {
+    ThrowException("unable to call setOptions(): argument 1 is expected to be an object.");
+    return;
+  }
+
+  v8::Local<v8::Object> options = arguments[0].As<v8::Object>();
+
+  instance->socket()->engine()->ParseOptions(context, options);
+}
+
 // Promise<boolean> Socket.prototype.open(string ip, number port[, number timeout])
 void SocketOpenCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
@@ -536,6 +559,7 @@ void SocketModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   instance_template->SetInternalFieldCount(1 /** for the native instance **/);
 
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
+  prototype_template->Set(v8String("setOptions"), v8::FunctionTemplate::New(isolate, SocketSetOptionsCallback));
   prototype_template->Set(v8String("open"), v8::FunctionTemplate::New(isolate, SocketOpenCallback));
   prototype_template->Set(v8String("write"), v8::FunctionTemplate::New(isolate, SocketWriteCallback));
   prototype_template->Set(v8String("close"), v8::FunctionTemplate::New(isolate, SocketCloseCallback));

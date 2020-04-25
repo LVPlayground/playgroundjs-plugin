@@ -37,9 +37,11 @@ namespace bindings {
 //
 // [Constructor(SocketOptions options)]
 // interface Socket {
+//     void             setOptions(SocketOptions options);
+//
 //     Promise<boolean> open(string ip, number port[, number timeout]);
 //     Promise<boolean> write(ArrayBuffer data);
-//     void             close();
+//     Promise<void>    close();
 //
 //     void             addEventListener(string event, function listener);
 //     void             removeEventListener(string event, function listener);
