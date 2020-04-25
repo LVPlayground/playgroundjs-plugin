@@ -185,11 +185,20 @@ void TcpSocket::OnWrite(WriteCallback write_callback,
   }
 }
 
-void TcpSocket::Close() {
-  if (security_ == Security::kNone)
+void TcpSocket::Close(CloseCallback close_callback) {
+  if (security_ == Security::kNone) {
     boost_tcp_socket_.close();
-  else
-    boost_ssl_socket_->lowest_layer().close();
+
+    close_callback();
+    return;
+  }
+
+  boost_ssl_socket_->async_shutdown(
+      boost::bind(&TcpSocket::OnClose, this, close_callback, boost::asio::placeholders::error));
+}
+
+void TcpSocket::OnClose(CloseCallback close_callback, const boost::system::error_code& ec) {
+  close_callback();
 }
 
 Protocol TcpSocket::protocol() const {

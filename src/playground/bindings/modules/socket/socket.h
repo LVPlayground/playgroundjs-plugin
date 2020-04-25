@@ -51,7 +51,7 @@ class Socket {
   void Write(uint8_t* data, size_t bytes, std::unique_ptr<Promise> promise);
 
   // Immediately closes the connection currently held by this socket.
-  void Close();
+  void Close(std::shared_ptr<Promise> promise);
 
   // Returns whether the socket can be closed, depending on its current state.
   bool CanClose() const {
@@ -93,6 +93,9 @@ class Socket {
   void OnWrite(const boost::system::error_code& ec,
                std::size_t bytes_transferred,
                std::shared_ptr<WriteData> write_data);
+
+  // To be called by Boost when the connection has been closed.
+  void OnClose(std::shared_ptr<Promise> promise);
 
   // The engine that powers this socket connection.
   std::unique_ptr<BaseSocket> engine_;

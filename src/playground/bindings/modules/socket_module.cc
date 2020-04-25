@@ -429,7 +429,7 @@ void SocketWriteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   arguments.GetReturnValue().Set(v8Promise);
 }
 
-// void Socket.prototype.close()
+// Promise<void> Socket.prototype.close()
 void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
@@ -441,7 +441,12 @@ void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   if (!socket || !socket->CanClose())
     return;
 
-  socket->Close();
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
+  v8::Local<v8::Promise> v8Promise = promise->GetPromise();
+
+  socket->Close(std::move(promise));
+
+  arguments.GetReturnValue().Set(v8Promise);
 }
 
 // Socket.prototype.addEventListener(string event, function listener);

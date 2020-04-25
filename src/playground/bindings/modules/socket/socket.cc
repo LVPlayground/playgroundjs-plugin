@@ -59,7 +59,6 @@ void Socket::Open(const std::string& ip, uint16_t port, int32_t timeout,
 void Socket::OnConnect(const boost::system::error_code& ec) {
   if (ec) {
     observer_->OnError(ec.value(), ec.message());
-    engine_->Close();
 
     state_ = State::kDisconnected;
 
@@ -118,8 +117,11 @@ void Socket::OnWrite(const boost::system::error_code& ec,
   ResolvePromise(std::move(write_data->promise), /* success= */ !ec);
 }
 
-void Socket::Close() {
-  engine_->Close();
+void Socket::Close(std::shared_ptr<Promise> promise) {
+  engine_->Close(boost::bind(&Socket::OnClose, this, std::move(promise)));
+}
+
+void Socket::OnClose(std::shared_ptr<Promise> promise) {
   state_ = State::kDisconnected;
 
   observer_->OnClose();

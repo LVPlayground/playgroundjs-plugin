@@ -26,6 +26,7 @@ enum class Protocol {
 class BaseSocket {
  public:
   // Callback signatures that should be passed to some of the socket methods.
+  using CloseCallback = boost::function<void()>;
   using ErrorCallback = boost::function<void(const boost::system::error_code& ec)>;
   using OpenCallback = boost::function<void(const boost::system::error_code& ec)>;
   using ReadCallback = boost::function<void(void* data, std::size_t size)>;
@@ -55,7 +56,7 @@ class BaseSocket {
   virtual void Write(void* data, size_t bytes, WriteCallback write_callback) = 0;
 
   // Closes the connection that's been established by this socket, if any.
-  virtual void Close() = 0;
+  virtual void Close(CloseCallback close_callback) = 0;
 
   // Returns the protocol that this socket engine implements.
   virtual socket::Protocol protocol() const = 0;

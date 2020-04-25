@@ -51,7 +51,7 @@ class TcpSocket : public BaseSocket {
             TimeoutCallback timeout_callback) override;
   void Read(ReadCallback read_callback, ErrorCallback error_callback) override;;
   void Write(void* data, size_t bytes, WriteCallback write_callback) override;
-  void Close() override;
+  void Close(CloseCallback close_callback) override;
   Protocol protocol() const override;
 
  private:
@@ -75,6 +75,9 @@ class TcpSocket : public BaseSocket {
   void OnWrite(WriteCallback write_callback,
                const boost::system::error_code& ec,
                std::size_t bytes_transferred);
+
+  // Called when the socket has been closed.
+  void OnClose(CloseCallback close_callback, const boost::system::error_code& ec);
 
   // Level of security that should be applied to the socket.
   Security security_;
