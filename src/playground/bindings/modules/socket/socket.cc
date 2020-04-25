@@ -7,6 +7,7 @@
 #include <boost/bind/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 
+#include "base/logging.h"
 #include "bindings/exception_handler.h"
 #include "bindings/runtime.h"
 
@@ -69,16 +70,22 @@ void Socket::OnConnect(const boost::system::error_code& ec) {
                   boost::bind(&Socket::OnError, this, boost::asio::placeholders::error));
   }
 
+  CHECK(connection_promise_);
   ResolvePromise(std::move(connection_promise_), /* success= */ !ec);
 }
 
 void Socket::OnConnectTimeout(const boost::system::error_code& ec) {
+  if (ec.value() == boost::asio::error::operation_aborted)
+    return;
+
   if (this->state_ != State::kConnecting)
     return;
 
   observer_->OnError(boost::asio::error::timed_out, kConnectionTimeoutError);
 
   state_ = State::kDisconnected;
+
+  CHECK(connection_promise_);
   ResolvePromise(std::move(connection_promise_), /* success= */ false);
 }
 

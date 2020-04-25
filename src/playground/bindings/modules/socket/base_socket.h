@@ -32,11 +32,11 @@ class BaseSocket {
   using TimeoutCallback = boost::function<void(const boost::system::error_code& ec)>;
   using WriteCallback = boost::function<void(const boost::system::error_code& ec, std::size_t bytes)>;
 
-  virtual ~BaseSocket() {}
+  virtual ~BaseSocket() = default;
 
   // Parses the given |options|, which are specific to the kind of socket. State should be stared
   // locally in socket, but does not have to be reflected on the object later on.
-  virtual bool ParseOptions(const v8::Local<v8::Object>& options) = 0;
+  virtual bool ParseOptions(v8::Local<v8::Context> context, v8::Local<v8::Object> options) = 0;
 
   // Opens a connection to the given |ip| and |port|. If the connection has not been established
   // after |timeout| seconds, the attempt will be considered as a failed one.

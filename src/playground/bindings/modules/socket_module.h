@@ -21,9 +21,8 @@ namespace bindings {
 //   // The protocol to use for this socket. Required. Must be set to "tcp".
 //   string protocol = "tcp";
 //
-//   // Options specific to protocol: TCP
-//   boolean security = "none" | "auto" | "ssl" | "sslv3" | "tls" | "tlsv1" | "tlsv11"
-//                               "tlsv12" | "tlsv13";
+//   // Options specific to TCP protocol:
+//   boolean ssl = "none" | "auto" | "ssl" | "tls" | "tlsv11" | "tlsv12" | "tlsv13";
 // }
 
 // The |protocol| has be either "tcp" or "udp", insensitive to casing. Timeouts, where given,

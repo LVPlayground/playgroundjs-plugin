@@ -317,7 +317,7 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
 
   CHECK(socket);
 
-  if (!socket->ParseOptions(options))
+  if (!socket->ParseOptions(context, options))
     return;
 
   SocketBindings* instance = new SocketBindings(std::move(socket));
