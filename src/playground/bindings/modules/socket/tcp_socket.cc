@@ -8,84 +8,44 @@
 #include "bindings/utilities.h"
 
 #include <boost/bind/bind.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp>
 
 namespace bindings {
 namespace socket {
 
 TcpSocket::TcpSocket()
-    : security_(Security::kNone),
-      io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
+    : io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
       boost_deadline_timer_(io_context_),
-      boost_tcp_socket_(io_context_),
-      active_write_(false) {}
+      boost_tcp_socket_(io_context_) {}
 
-TcpSocket::~TcpSocket() {
-  if (boost_tcp_socket_.is_open())
-    boost_tcp_socket_.close();
-}
+TcpSocket::~TcpSocket() = default;
 
-bool TcpSocket::ParseOptions(v8::Local<v8::Context> context, v8::Local<v8::Object> options) {
-  v8::MaybeLocal<v8::Value> maybe_security_value = options->Get(context, v8String("ssl"));
-  v8::Local<v8::Value> security_value;
-
-  if (!maybe_security_value.IsEmpty() && maybe_security_value.ToLocal(&security_value)) {
-    if (!security_value->IsString()) {
-      ThrowException("unable to construct Socket: expected a string for the `ssl` option.");
-      return false;
-    }
-
-    std::string security = toString(security_value);
-    if (security == "none") {
-      security_ = Security::kNone;
-    } else if (security == "auto") {
-      security_ = Security::kAuto;
-    } else if (security == "sslv3") {
-      security_ = Security::kSSLv3;
-    } else if (security == "tls") {
-      security_ = Security::kTLS;
-    } else if (security == "tls11") {
-      security_ = Security::kTLSv11;
-    } else if (security == "tls12") {
-      security_ = Security::kTLSv12;
-    } else if (security == "tls13") {
-      security_ = Security::kTLSv13;
-    } else {
-      ThrowException("unable to construct Socket: invalid value given for the `ssl` option.");
-      return false;
-    }
-  }
-
-  return true;
-}
-
-void TcpSocket::Open(const std::string& ip,
-                     uint16_t port,
-                     int32_t timeout,
-                     OpenCallback open_callback,
-                     TimeoutCallback timeout_callback) {
+void TcpSocket::Open(SocketOpenOptions options, OpenCallback open_callback) {
   boost::asio::ip::tcp::endpoint endpoint{
-      boost::asio::ip::address_v4::from_string(ip),
-      port };
+      boost::asio::ip::address_v4::from_string(options.ip),
+      static_cast<uint16_t>(options.port) };
 
-  if (security_ != Security::kNone) {
+  ssl_mode_ = options.ssl;
+
+  if (ssl_mode_ != SocketSSLMode::kNone) {
     auto method = boost::asio::ssl::context::tls;
-    switch (security_) {
-      case Security::kAuto:
+    switch (ssl_mode_) {
+      case SocketSSLMode::kAuto:
         method = boost::asio::ssl::context::sslv23;
         break;
-      case Security::kSSLv3:
+      case SocketSSLMode::kSSL:
         method = boost::asio::ssl::context::sslv3;
         break;
-      case Security::kTLS:
+      case SocketSSLMode::kTLS:
         method = boost::asio::ssl::context::tls;
         break;
-      case Security::kTLSv11:
+      case SocketSSLMode::kTLSv11:
         method = boost::asio::ssl::context::tlsv11;
         break;
-      case Security::kTLSv12:
+      case SocketSSLMode::kTLSv12:
         method = boost::asio::ssl::context::tlsv12;
         break;
-      case Security::kTLSv13:
+      case SocketSSLMode::kTLSv13:
         method = boost::asio::ssl::context::tlsv13;
         break;
     }
@@ -102,14 +62,17 @@ void TcpSocket::Open(const std::string& ip,
         endpoint, boost::bind(&TcpSocket::OnConnected, this, boost::asio::placeholders::error,
                               open_callback));
   }
-  
-  boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(timeout));
-  boost_deadline_timer_.async_wait(std::move(timeout_callback));
+ 
+  // Regardless of security mode, set a timer for the attempt to time out.
+  boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(options.timeout));
+  boost_deadline_timer_.async_wait(
+      boost::bind(&TcpSocket::OnConnectionTimeout, this, boost::asio::placeholders::error,
+                  open_callback));
 }
 
 void TcpSocket::OnConnected(const boost::system::error_code& ec,
                             OpenCallback open_callback) {
-  if (ec || security_ == Security::kNone) {
+  if (ec || ssl_mode_ == SocketSSLMode::kNone) {
     boost_deadline_timer_.cancel();
     open_callback(ec);
     return;
@@ -121,6 +84,21 @@ void TcpSocket::OnConnected(const boost::system::error_code& ec,
                   open_callback));
 }
 
+void TcpSocket::OnConnectionTimeout(const boost::system::error_code& ec,
+                                    OpenCallback open_callback) {
+  if (ec.value() == boost::asio::error::operation_aborted)
+    return;  // the timer was cancelled
+
+  // Forcefully close the socket to make sure that the active connection attempt has been stopped
+  // as well. This also solves a potential issue where the Promise gets resolved twice.
+  if (ssl_mode_ == SocketSSLMode::kNone)
+    boost_tcp_socket_.close();
+  else
+    boost_ssl_socket_->lowest_layer().close();
+
+  open_callback(boost::asio::error::timed_out);
+}
+
 void TcpSocket::OnHandshakeCompleted(const boost::system::error_code& ec,
                                      OpenCallback open_callback) {
   boost_deadline_timer_.cancel();
@@ -128,11 +106,11 @@ void TcpSocket::OnHandshakeCompleted(const boost::system::error_code& ec,
 }
 
 void TcpSocket::Read(ReadCallback read_callback, ErrorCallback error_callback) {
-  auto callback = boost::bind(&TcpSocket::OnRead, this, std::move(read_callback),
-                              std::move(error_callback), boost::asio::placeholders::error,
+  auto callback = boost::bind(&TcpSocket::OnRead, this, read_callback, error_callback,
+                              boost::asio::placeholders::error,
                               boost::asio::placeholders::bytes_transferred);
 
-  if (security_ == Security::kNone)
+  if (ssl_mode_ == SocketSSLMode::kNone)
     boost_tcp_socket_.async_read_some(boost::asio::buffer(read_buffer_), callback);
   else
     boost_ssl_socket_->async_read_some(boost::asio::buffer(read_buffer_), callback);
@@ -153,7 +131,7 @@ void TcpSocket::OnRead(ReadCallback read_callback,
 
 void TcpSocket::Write(void* data, size_t bytes, WriteCallback write_callback) {
   if (active_write_) {
-    write_buffer_.push(boost::bind(&TcpSocket::Write, this, data, bytes, write_callback));
+    write_queue_.push(boost::bind(&TcpSocket::Write, this, data, bytes, write_callback));
     return;
   }
 
@@ -164,7 +142,7 @@ void TcpSocket::Write(void* data, size_t bytes, WriteCallback write_callback) {
                               boost::asio::placeholders::error,
                               boost::asio::placeholders::bytes_transferred);
 
-  if (security_ == Security::kNone)
+  if (ssl_mode_ == SocketSSLMode::kNone)
     boost_tcp_socket_.async_send(buffer, callback);
   else
     boost_ssl_socket_->async_write_some(buffer, callback);
@@ -177,32 +155,30 @@ void TcpSocket::OnWrite(WriteCallback write_callback,
 
   active_write_ = false;
 
-  if (!write_buffer_.empty()) {
-    auto callback = write_buffer_.front();
-    write_buffer_.pop();
+  if (!write_queue_.empty()) {
+    auto callback = write_queue_.front();
+    write_queue_.pop();
 
     callback();
   }
 }
 
 void TcpSocket::Close(CloseCallback close_callback) {
-  if (security_ == Security::kNone) {
+  if (ssl_mode_ == SocketSSLMode::kNone) {
     boost_tcp_socket_.close();
 
     close_callback();
     return;
   }
 
+  // Shutdown of SSL sockets is asynchronous, because a TLS closing handshake has to be issued
+  // and responded to by the server. We won't be able to do this when deconstructing.
   boost_ssl_socket_->async_shutdown(
       boost::bind(&TcpSocket::OnClose, this, close_callback, boost::asio::placeholders::error));
 }
 
 void TcpSocket::OnClose(CloseCallback close_callback, const boost::system::error_code& ec) {
   close_callback();
-}
-
-Protocol TcpSocket::protocol() const {
-  return Protocol::kTcp;
 }
 
 }  // namespace socket

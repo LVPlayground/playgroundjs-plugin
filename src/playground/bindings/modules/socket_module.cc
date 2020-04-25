@@ -8,6 +8,8 @@
 
 #include "base/logging.h"
 #include "bindings/modules/socket/socket.h"
+#include "bindings/modules/socket/socket_open_options.h"
+#include "bindings/modules/socket/socket_protocol.h"
 #include "bindings/modules/socket/tcp_socket.h"
 #include "bindings/promise.h"
 #include "bindings/runtime_operations.h"
@@ -199,33 +201,6 @@ socket::Socket* GetSocketFromObject(v8::Local<v8::Object> object) {
 
 // -------------------------------------------------------------------------------------------------
 
-// Conversion: socket::Protocol <--> string
-bool ConvertStringToProtocol(v8::Local<v8::Value> value, socket::Protocol* protocol) {
-  if (!value->IsString())
-    return false;
-
-  std::string protocol_string = toString(value);
-  std::transform(
-      protocol_string.begin(), protocol_string.end(), protocol_string.begin(), ::tolower);
-
-  if (protocol_string == "tcp") {
-    *protocol = socket::Protocol::kTcp;
-    return true;
-  }
-
-  return false;
-}
-
-bool ConvertProtocolToString(socket::Protocol protocol, v8::Local<v8::String>* string) {
-  switch (protocol) {
-    case socket::Protocol::kTcp:
-      *string = v8String("tcp");
-      return true;
-  }
-
-  return false;
-}
-
 bool ConvertStateToString(socket::State state, v8::Local<v8::String>* string) {
   switch (state) {
     case socket::State::kConnected:
@@ -234,6 +209,10 @@ bool ConvertStateToString(socket::State state, v8::Local<v8::String>* string) {
 
     case socket::State::kConnecting:
       *string = v8String("connecting");
+      return true;
+
+    case socket::State::kDisconnecting:
+      *string = v8String("disconnecting");
       return true;
 
     case socket::State::kDisconnected:
@@ -285,40 +264,18 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  if (!arguments[0]->IsObject()) {
-    ThrowException("unable to construct Socket: argument 1 is expected to be an object.");
+  socket::SocketProtocol protocol;
+  if (!socket::ParseSocketProtocol(arguments[0], &protocol)) {
+    ThrowException("unable to construct Socket: invalid protocol given for argument 1");
     return;
-  }
-
-  v8::Local<v8::Object> options = arguments[0].As<v8::Object>();
-  
-  socket::Protocol protocol;
-  {
-    v8::MaybeLocal<v8::Value> maybe_protocol = options->Get(context, v8String("protocol"));
-
-    v8::Local<v8::Value> v8_protocol;
-    if (!maybe_protocol.ToLocal(&v8_protocol)) {
-      ThrowException("unable to construct Socket: unable to read `options.protocol`.");
-      return;
-    }
-
-    if (!ConvertStringToProtocol(v8_protocol, &protocol)) {
-      ThrowException("unable to construct Socket: invalid protocol given for argument 1");
-      return;
-    }
   }
 
   std::unique_ptr<socket::BaseSocket> socket;
   switch (protocol) {
-    case socket::Protocol::kTcp:
+    case socket::SocketProtocol::kTCP:
       socket = std::make_unique<socket::TcpSocket>();
       break;
   }
-
-  CHECK(socket);
-
-  if (!socket->ParseOptions(context, options))
-    return;
 
   SocketBindings* instance = new SocketBindings(std::move(socket));
   instance->WeakBind(v8::Isolate::GetCurrent(), arguments.Holder());
@@ -326,73 +283,32 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   arguments.Holder()->SetAlignedPointerInInternalField(0, instance);
 }
 
-// void Socket.prototype.setOptions(object socketOptions);
-void SocketSetOptionsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  auto context = arguments.GetIsolate()->GetCurrentContext();
-
-  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
-  if (!instance)
-    return;
-
-  if (arguments.Length() < 1) {
-    ThrowException("unable to call setOptions(): 1 argument required, but none provided.");
-    return;
-  }
-
-  if (!arguments[0]->IsObject()) {
-    ThrowException("unable to call setOptions(): argument 1 is expected to be an object.");
-    return;
-  }
-
-  v8::Local<v8::Object> options = arguments[0].As<v8::Object>();
-
-  instance->socket()->engine()->ParseOptions(context, options);
-}
-
-// Promise<boolean> Socket.prototype.open(string ip, number port[, number timeout])
+// Promise<boolean> Socket.prototype.open(SocketOpenOptions options)
 void SocketOpenCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
-  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
-  if (!instance)
+  socket::Socket* socket = GetSocketFromObject(arguments.Holder());
+  if (!socket)
     return;
 
-  socket::Socket* socket = instance->socket();
   if (socket->state() != socket::State::kDisconnected) {
     ThrowException("unable to call open(): the socket is already connected.");
     return;
   }
 
-  if (arguments.Length() < 2) {
-    ThrowException("unable to call open(): 2 arguments required, but only " +
-                   std::to_string(arguments.Length()) + " provided.");
+  if (arguments.Length() < 1) {
+    ThrowException("unable to call open(): 1 arguments required, but none provided.");
     return;
   }
 
-  if (!arguments[0]->IsString()) {
-    ThrowException("unable to call open(): expected a string for the first argument.");
+  socket::SocketOpenOptions options;
+  if (!socket::ParseSocketOpenOptions(arguments[0], &options))
     return;
-  }
 
-  if (!arguments[1]->IsNumber()) {
-    ThrowException("unable to call open(): expected a number for the second argument.");
-    return;
-  }
-
-  if (arguments.Length() >= 3 && !arguments[2]->IsNumber()) {
-    ThrowException("unable to call open(): expected a number for the optional third argument.");
-    return;
-  }
-
-  std::string ip = toString(arguments[0]);
-  uint16_t port = static_cast<uint16_t>(arguments[1]->Uint32Value(context).ToChecked());
-  int32_t timeout = arguments.Length() >= 3 ? arguments[2]->Int32Value(context).ToChecked()
-                                            : kDefaultTimeoutSec;
-
-  std::unique_ptr<Promise> promise = std::make_unique<Promise>();
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
   v8::Local<v8::Promise> v8Promise = promise->GetPromise();
 
-  socket->Open(ip, port, timeout, std::move(promise));
+  socket->Open(std::move(options), std::move(promise));
 
   arguments.GetReturnValue().Set(v8Promise);
 }
@@ -421,7 +337,7 @@ void SocketWriteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  std::unique_ptr<Promise> promise = std::make_unique<Promise>();
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
   v8::Local<v8::Promise> v8Promise = promise->GetPromise();
 
   socket->Write((uint8_t*)contents.Data(), contents.ByteLength(), std::move(promise));
@@ -433,12 +349,8 @@ void SocketWriteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 void SocketCloseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
-  SocketBindings* instance = GetBindingsFromObject(arguments.Holder());
-  if (!instance)
-    return;
-
-  socket::Socket* socket = instance->socket();
-  if (!socket || !socket->CanClose())
+  socket::Socket* socket = GetSocketFromObject(arguments.Holder());
+  if (!socket)
     return;
 
   std::shared_ptr<Promise> promise = std::make_shared<Promise>();
@@ -522,27 +434,14 @@ void SocketRemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>
   instance->removeEventListener(event_type, listener);
 }
 
-// Socket.prototype.protocol [getter]
-void SocketProtocolGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  socket::Socket* instance = GetSocketFromObject(info.This());
-  if (!instance)
-    return;
-
-  v8::Local<v8::String> protocol;
-  if (ConvertProtocolToString(instance->engine()->protocol(), &protocol))
-    info.GetReturnValue().Set(protocol);
-  else
-    info.GetReturnValue().SetNull();
-}
-
 // Socket.prototype.state [getter]
 void SocketStateGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  socket::Socket* instance = GetSocketFromObject(info.This());
-  if (!instance)
+  socket::Socket* socket = GetSocketFromObject(info.This());
+  if (!socket)
     return;
 
   v8::Local<v8::String> state;
-  if (ConvertStateToString(instance->state(), &state))
+  if (ConvertStateToString(socket->state(), &state))
     info.GetReturnValue().Set(state);
   else
     info.GetReturnValue().SetNull();
@@ -564,14 +463,13 @@ void SocketModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   instance_template->SetInternalFieldCount(1 /** for the native instance **/);
 
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
-  prototype_template->Set(v8String("setOptions"), v8::FunctionTemplate::New(isolate, SocketSetOptionsCallback));
   prototype_template->Set(v8String("open"), v8::FunctionTemplate::New(isolate, SocketOpenCallback));
   prototype_template->Set(v8String("write"), v8::FunctionTemplate::New(isolate, SocketWriteCallback));
   prototype_template->Set(v8String("close"), v8::FunctionTemplate::New(isolate, SocketCloseCallback));
+
   prototype_template->Set(v8String("addEventListener"), v8::FunctionTemplate::New(isolate, SocketAddEventListenerCallback));
   prototype_template->Set(v8String("removeEventListener"), v8::FunctionTemplate::New(isolate, SocketRemoveEventListenerCallback));
 
-  prototype_template->SetAccessor(v8String("protocol"), SocketProtocolGetter);
   prototype_template->SetAccessor(v8String("state"), SocketStateGetter);
 
   global->Set(v8String("Socket"), function_template);

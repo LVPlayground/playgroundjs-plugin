@@ -10,6 +10,7 @@
 
 #include "base/macros.h"
 #include "bindings/modules/socket/base_socket.h"
+#include "bindings/modules/socket/socket_ssl_mode.h"
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -17,51 +18,35 @@
 namespace bindings {
 namespace socket {
 
-// Type of secure context to establish with the socket. Only applicable to TCP sockets.
-enum class Security {
-  // No security should be applied over the socket.
-  kNone,
-
-  // Automatically negotiate the best option for the connection.
-  kAuto,
-
-  // The socket should only connect using any version of TLS.
-  kTLS,
-
-  // Specific algorithms that may be chosen.
-  kSSLv3,
-  kTLSv11,
-  kTLSv12,
-  kTLSv13,
-};
-
 // Implementation of the BaseSocket that provides TCP networking abilities.
 class TcpSocket : public BaseSocket {
  public:
-  using ReadBuffer = std::array<char, 4096>;
-  using WriteBuffer = std::queue<boost::function<void()>>;
-  using SecureSocketType = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;
-
   TcpSocket();
   ~TcpSocket() override;
 
   // BaseSocket implementation:
-  bool ParseOptions(v8::Local<v8::Context> context, v8::Local<v8::Object> options) override;
-  void Open(const std::string& ip, uint16_t port, int32_t timeout, OpenCallback open_callback,
-            TimeoutCallback timeout_callback) override;
+  void Open(SocketOpenOptions options, OpenCallback open_callback) override;
   void Read(ReadCallback read_callback, ErrorCallback error_callback) override;;
-  void Write(void* data, size_t bytes, WriteCallback write_callback) override;
+  void Write(void* data, std::size_t bytes, WriteCallback write_callback) override;
   void Close(CloseCallback close_callback) override;
-  Protocol protocol() const override;
 
  private:
-  // Called when the socket has connected. Acts as a trampoline towards the callback.
+  using ReadBuffer = std::array<char, 4096>;  
+  using SecureSocketType = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;
+  using WriteQueue = std::queue<boost::function<void()>>;
+
+  // Called when the socket has connected. Sockets with a security context will start performing
+  // the handshake, whereas regular, non-secure sockets are hereafter considered active.
   void OnConnected(const boost::system::error_code& ec,
                    OpenCallback open_callback);
 
-  // Called when the connection handshake has completed for secure connections.
-  void OnHandshakeCompleted(const boost::system::error_code& ec,
-                            OpenCallback open_callback);
+  // Called when the socket connection has timed out. The method may be called with an |ec| of
+  // operation aborted, which happens when the deadline timer gets cancelled instead.
+  void OnConnectionTimeout(const boost::system::error_code& ec, OpenCallback open_callback);
+
+  // Called when the connection handshake has completed for secure connections. For secured
+  // connections, this signals the point at which the connection is ready for use.
+  void OnHandshakeCompleted(const boost::system::error_code& ec, OpenCallback open_callback);
 
   // Called when data has been received over the socket, or an error occurred.
   void OnRead(ReadCallback read_callback,
@@ -80,7 +65,7 @@ class TcpSocket : public BaseSocket {
   void OnClose(CloseCallback close_callback, const boost::system::error_code& ec);
 
   // Level of security that should be applied to the socket.
-  Security security_;
+  SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
 
   // The IO Context, owned by the bindings Runtime, on which to post tasks.
   boost::asio::io_context& io_context_;
@@ -96,9 +81,9 @@ class TcpSocket : public BaseSocket {
   // Buffer for the incoming message(s).
   ReadBuffer read_buffer_;
 
-  // Buffer for the outgoing message(s), and a flag on whether there's a pending write.
-  WriteBuffer write_buffer_;
-  bool active_write_;
+  // Queue for the outgoing message(s), and a flag on whether there's a pending write.
+  WriteQueue write_queue_;
+  bool active_write_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(TcpSocket);
 };
