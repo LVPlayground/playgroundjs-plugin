@@ -6,8 +6,8 @@ $(shell [ -d "out" ] || mkdir -p out)
 $(shell [ -d "out/obj/" ] || mkdir -p out/obj)
 $(shell [ -d "out/obj.test_runner/" ] || mkdir -p out/obj.test_runner)
 
-BOOST_HEADERS=/opt/boost_1_70_0_32bit
-BOOST_LIBS=/opt/boost_1_70_0_32bit/lib
+BOOST_HEADERS=/opt/boost_1_73_0_32bit
+BOOST_LIBS=/opt/boost_1_73_0_32bit/stage/lib
 
 V8_HEADERS_A=v8
 V8_HEADERS_B=v8/include
@@ -19,7 +19,7 @@ CC_INCLUDE=-I$(BOOST_HEADERS) -I$(V8_HEADERS_A) -I$(V8_HEADERS_B) -I$(MYSQL_HEAD
 
 C=gcc
 CC=g++
-CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++11 -w -DLINUX -DNDEBUG -I. -Iplayground $(CC_INCLUDE)
+CFLAGSBASE=-c -m32 -fPIC -O3 -std=c++17 -w -DLINUX -DNDEBUG -I. -Iplayground $(CC_INCLUDE)
 CFLAGS=$(CFLAGSBASE) -DPLAYGROUND_IMPLEMENTATION
 FLAGS=-c -m32 -fPIC -O3 -w -DLINUX -I. -Iplayground -Iv8
 
@@ -65,13 +65,22 @@ playground_bindings_mysql:
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/query_result.cc -o out/obj/playground_bindings_modules_mysql_query_result.o
 	$(CC) $(CFLAGS) playground/bindings/modules/mysql/thread.cc -o out/obj/playground_bindings_modules_mysql_thread.o
 
+# Target: /playground/bindings/modules/socket/
+playground_bindings_socket:
+	$(CC) $(CFLAGS) playground/bindings/modules/socket_module.cc -o out/obj/playground_bindings_modules_socket_module.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket.cc -o out/obj/playground_bindings_modules_socket_socket.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket_open_options.cc -o out/obj/playground_bindings_modules_socket_socket_open_options.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket_protocol.cc -o out/obj/playground_bindings_modules_socket_socket_protocol.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket_ssl_mode.cc -o out/obj/playground_bindings_modules_socket_socket_ssl_mode.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/tcp_socket.cc -o out/obj/playground_bindings_modules_socket_tcp_socket.o
+
 # Target: /playground/bindings/modules/streamer/
 playground_bindings_streamer:
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer_module.cc -o out/obj/playground_bindings_modules_streamer_module.o
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer.cc -o out/obj/playground_bindings_modules_streamer_streamer.o
 
 # Target: /playground/bindings/
-playground_bindings: playground_bindings_mysql playground_bindings_streamer
+playground_bindings: playground_bindings_mysql playground_bindings_streamer playground_bindings_socket
 	$(CC) $(CFLAGS) playground/bindings/console.cc -o out/obj/playground_bindings_console.o
 	$(CC) $(CFLAGS) playground/bindings/event.cc -o out/obj/playground_bindings_event.o
 	$(CC) $(CFLAGS) playground/bindings/exception_handler.cc -o out/obj/playground_bindings_exception_handler.o
@@ -121,7 +130,7 @@ playground_third_party: playground_third_party_subhook
 
 # Link playground.so
 link:
-	$(CC) -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
+	$(CC) -L${BOOST_LIBS} -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
 		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lmysqlclient \
 		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
 

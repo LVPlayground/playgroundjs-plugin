@@ -9,15 +9,13 @@
 #include <string>
 #include <unordered_set>
 
+#include <boost/asio.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/thread/thread.hpp>
+
 #include <include/v8.h>
 
 #include "base/file_path.h"
-
-namespace boost {
-namespace asio {
-class io_context;
-}
-}
 
 namespace plugin {
 class PluginController;
@@ -100,9 +98,11 @@ class Runtime {
   // tremendously help developers towards solving the problems.
   ExceptionHandler* GetExceptionHandler() { return exception_handler_.get(); }
 
-  // Returns the Boost IO Context. Ownership belongs to this object, but the context itself can be
-  // modified by any user, as this is a requirement for asynchronous posting tasks to it.
-  boost::asio::io_context& io_context() { return *io_context_; }
+  // Returns the Boost IO Contexts. Ownership belongs to this object, but the context itself can be
+  // modified by any user, as this is a requirement for asynchronous posting tasks to it. There's
+  // one for the main thread, on which JavaScript is ran, and one for background work.
+  boost::asio::io_context& main_thread_io_context() { return main_thread_io_context_; }
+  boost::asio::io_context& background_io_context() { return background_io_context_; }
 
   // Encapsulates both the source-code of a script and the origin filename.
   struct ScriptSource {
@@ -160,7 +160,16 @@ class Runtime {
 
   // The server's IO Context, allowing asynchronous Boost functionality to work. A single tick
   // of work is allowed to happen during each OnFrame() invocation.
-  std::unique_ptr<boost::asio::io_context> io_context_;
+  boost::asio::io_context main_thread_io_context_;
+
+  // The server's background IO context, allowing more expensive operations to be scheduled in
+  // the background. This includes socket I/O work, which may take time.
+  boost::asio::io_context background_io_context_;
+  boost::asio::executor_work_guard<boost::asio::io_context::executor_type>
+      background_thread_guard_;
+  
+  // The server's background thread. Owned by the Runtime instance.
+  std::unique_ptr<boost::thread> background_thread_;
 
   // Flag indicating whether the JavaScript code has properly loaded.
   bool is_ready_;

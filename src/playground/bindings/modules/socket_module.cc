@@ -5,6 +5,7 @@
 #include "bindings/modules/socket_module.h"
 
 #include <algorithm>
+#include <memory>
 
 #include "base/logging.h"
 #include "bindings/modules/socket/socket.h"

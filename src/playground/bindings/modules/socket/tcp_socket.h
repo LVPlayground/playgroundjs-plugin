@@ -35,6 +35,10 @@ class TcpSocket : public BaseSocket {
   using SecureSocketType = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;
   using WriteQueue = std::queue<boost::function<void()>>;
 
+  // Schedules the given |function| to be called on the main thread. Will be aligned with SA-MP
+  // server frames. This is necessary because Socket I/O is done on a background thread.
+  void CallOnMainThread(boost::function<void()> function);
+
   // Called when the socket has connected. Sockets with a security context will start performing
   // the handshake, whereas regular, non-secure sockets are hereafter considered active.
   void OnConnected(const boost::system::error_code& ec,
@@ -67,8 +71,9 @@ class TcpSocket : public BaseSocket {
   // Level of security that should be applied to the socket.
   SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
 
-  // The IO Context, owned by the bindings Runtime, on which to post tasks.
-  boost::asio::io_context& io_context_;
+  // The IO Contexts, owned by the bindings Runtime, on which to post tasks.
+  boost::asio::io_context& main_thread_io_context_;
+  boost::asio::io_context& background_io_context_;
 
   // The SSL context to use with this socket.
   std::unique_ptr<boost::asio::ssl::context> boost_ssl_context_;

@@ -77,7 +77,7 @@ class Socket {
   void OnClose(std::shared_ptr<Promise> promise);
 
   // Called when data has been received from the socket.
-  void OnRead(void* data, std::size_t bytes);
+  void OnRead(std::shared_ptr<std::vector<uint8_t>> data);
 
   // Called when an error has occurred on the socket.
   void OnError(const boost::system::error_code& ec);

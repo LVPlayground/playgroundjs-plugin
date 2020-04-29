@@ -72,8 +72,7 @@ void Socket::OnConnect(const boost::system::error_code& ec, std::shared_ptr<Prom
 
     // Begin consuming information from the socket. This is an asynchronous process that will
     // continue for the socket's lifetime. `message` events will fire upon data availability.
-    engine_->Read(boost::bind(&Socket::OnRead, this, boost::placeholders::_1,
-                              boost::asio::placeholders::bytes_transferred),
+    engine_->Read(boost::bind(&Socket::OnRead, this, boost::placeholders::_1),
                   boost::bind(&Socket::OnError, this, boost::asio::placeholders::error));
   }
   
@@ -132,8 +131,8 @@ void Socket::OnClose(std::shared_ptr<Promise> promise) {
   observer_->OnClose();
 }
 
-void Socket::OnRead(void* data, std::size_t bytes) {
-  observer_->OnMessage(data, bytes);
+void Socket::OnRead(std::shared_ptr<std::vector<uint8_t>> data) {
+  observer_->OnMessage(&data->front(), data->size());
 }
 
 void Socket::OnError(const boost::system::error_code& ec) {

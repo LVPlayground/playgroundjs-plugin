@@ -13,12 +13,25 @@
 namespace bindings {
 namespace socket {
 
+namespace {
+
+std::shared_ptr<bindings::Runtime> Runtime() {
+  return bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent());
+}
+
+}  // namespace
+
 TcpSocket::TcpSocket()
-    : io_context_(bindings::Runtime::FromIsolate(v8::Isolate::GetCurrent())->io_context()),
-      boost_deadline_timer_(io_context_),
-      boost_tcp_socket_(io_context_) {}
+    : main_thread_io_context_(Runtime()->main_thread_io_context()),
+      background_io_context_(Runtime()->background_io_context()),
+      boost_deadline_timer_(background_io_context_),
+      boost_tcp_socket_(background_io_context_) {}
 
 TcpSocket::~TcpSocket() = default;
+
+void TcpSocket::CallOnMainThread(boost::function<void()> function) {
+  main_thread_io_context_.post(function);
+}
 
 void TcpSocket::Open(SocketOpenOptions options, OpenCallback open_callback) {
   boost::asio::ip::tcp::endpoint endpoint{
@@ -53,7 +66,8 @@ void TcpSocket::Open(SocketOpenOptions options, OpenCallback open_callback) {
     boost_ssl_context_ = std::make_unique<boost::asio::ssl::context>(method);
     boost_ssl_context_->set_verify_mode(boost::asio::ssl::verify_none);
 
-    boost_ssl_socket_ = std::make_unique<SecureSocketType>(io_context_, *boost_ssl_context_);
+    boost_ssl_socket_ =
+        std::make_unique<SecureSocketType>(background_io_context_, *boost_ssl_context_);
     boost_ssl_socket_->next_layer().async_connect(
         endpoint, boost::bind(&TcpSocket::OnConnected, this, boost::asio::placeholders::error,
                               open_callback));
@@ -74,7 +88,7 @@ void TcpSocket::OnConnected(const boost::system::error_code& ec,
                             OpenCallback open_callback) {
   if (ec || ssl_mode_ == SocketSSLMode::kNone) {
     boost_deadline_timer_.cancel();
-    open_callback(ec);
+    CallOnMainThread(boost::bind(open_callback, ec));
     return;
   }
 
@@ -96,20 +110,19 @@ void TcpSocket::OnConnectionTimeout(const boost::system::error_code& ec,
   else
     boost_ssl_socket_->lowest_layer().close();
 
-  open_callback(boost::asio::error::timed_out);
+  CallOnMainThread(boost::bind(open_callback, boost::asio::error::timed_out));
 }
 
 void TcpSocket::OnHandshakeCompleted(const boost::system::error_code& ec,
                                      OpenCallback open_callback) {
   boost_deadline_timer_.cancel();
-  open_callback(ec);
+  CallOnMainThread(boost::bind(open_callback, ec));
 }
 
 void TcpSocket::Read(ReadCallback read_callback, ErrorCallback error_callback) {
   auto callback = boost::bind(&TcpSocket::OnRead, this, read_callback, error_callback,
                               boost::asio::placeholders::error,
                               boost::asio::placeholders::bytes_transferred);
-
   if (ssl_mode_ == SocketSSLMode::kNone)
     boost_tcp_socket_.async_read_some(boost::asio::buffer(read_buffer_), callback);
   else
@@ -121,11 +134,15 @@ void TcpSocket::OnRead(ReadCallback read_callback,
                        const boost::system::error_code& ec,
                        std::size_t bytes_transferred) {
   if (ec) {
-    error_callback(ec);
+    CallOnMainThread(boost::bind(error_callback, ec));
     return;
   }
 
-  read_callback(&read_buffer_.front(), bytes_transferred);
+  auto data = std::make_shared<std::vector<uint8_t>>();
+  data->assign(&read_buffer_.front(),
+               &read_buffer_.front() + bytes_transferred);
+
+  CallOnMainThread(boost::bind(read_callback, data));
   Read(read_callback, error_callback);
 }
 
@@ -151,7 +168,7 @@ void TcpSocket::Write(void* data, size_t bytes, WriteCallback write_callback) {
 void TcpSocket::OnWrite(WriteCallback write_callback,
                         const boost::system::error_code& ec,
                         std::size_t bytes_transferred) {
-  write_callback(ec, bytes_transferred);
+  CallOnMainThread(boost::bind(write_callback, ec, bytes_transferred));
 
   active_write_ = false;
 
@@ -167,7 +184,7 @@ void TcpSocket::Close(CloseCallback close_callback) {
   if (ssl_mode_ == SocketSSLMode::kNone) {
     boost_tcp_socket_.close();
 
-    close_callback();
+    CallOnMainThread(close_callback);
     return;
   }
 
@@ -178,7 +195,7 @@ void TcpSocket::Close(CloseCallback close_callback) {
 }
 
 void TcpSocket::OnClose(CloseCallback close_callback, const boost::system::error_code& ec) {
-  close_callback();
+  CallOnMainThread(close_callback);
 }
 
 }  // namespace socket

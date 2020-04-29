@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 #include "bindings/modules/socket/socket_open_options.h"
 
@@ -25,7 +26,7 @@ class BaseSocket {
   using CloseCallback = boost::function<void()>;
   using ErrorCallback = boost::function<void(const boost::system::error_code& ec)>;
   using OpenCallback = boost::function<void(const boost::system::error_code& ec)>;
-  using ReadCallback = boost::function<void(void* data, std::size_t size)>;
+  using ReadCallback = boost::function<void(std::shared_ptr<std::vector<uint8_t>>)>;
   using WriteCallback = boost::function<void(const boost::system::error_code& ec, std::size_t bytes)>;
 
   virtual ~BaseSocket() = default;

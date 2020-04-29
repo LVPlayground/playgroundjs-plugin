@@ -128,7 +128,11 @@ Runtime::Runtime(Delegate* runtime_delegate,
     : global_scope_(new GlobalScope(plugin_controller)),
       runtime_delegate_(runtime_delegate),
       platform_(v8::platform::NewDefaultPlatform()),
-      io_context_(std::make_unique<boost::asio::io_context>()),
+      main_thread_io_context_(),
+      background_io_context_(),
+      background_thread_guard_(boost::asio::make_work_guard(background_io_context_)),
+      background_thread_(std::make_unique<boost::thread>(boost::bind(&boost::asio::io_context::run,
+                                                                     &background_io_context_))),
       is_ready_(false),
       frame_counter_start_(::base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
@@ -161,6 +165,10 @@ Runtime::Runtime(Delegate* runtime_delegate,
 }
 
 Runtime::~Runtime() {
+  background_thread_guard_.reset();
+  if (background_thread_)
+    background_thread_->join();
+
   global_scope_.reset();
   timer_queue_.reset();
   modulator_.reset();
@@ -232,7 +240,7 @@ void Runtime::OnFrame() {
 
   isolate_->RunMicrotasks();
 
-  io_context_->run_one();
+  main_thread_io_context_.run_one();
 
   if (exception_handler_->HasQueuedMessages()) {
     v8::HandleScope handle_scope(isolate_);
