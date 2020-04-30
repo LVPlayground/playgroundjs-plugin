@@ -177,6 +177,18 @@
     <ClCompile Include="bindings\modules\socket\socket_protocol.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\modules\fs_module.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\modules\buffer_module.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\modules\os_module.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\modules\path_module.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -369,6 +381,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\socket\socket_protocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\fs_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\path_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\os_module.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\buffer_module.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
