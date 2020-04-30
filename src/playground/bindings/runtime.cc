@@ -166,8 +166,6 @@ Runtime::Runtime(Delegate* runtime_delegate,
 
 Runtime::~Runtime() {
   background_thread_guard_.reset();
-  if (background_thread_)
-    background_thread_->join();
 
   global_scope_.reset();
   timer_queue_.reset();
@@ -239,6 +237,9 @@ void Runtime::OnFrame() {
   timer_queue_->Run(current_time);
 
   isolate_->RunMicrotasks();
+
+  if (main_thread_io_context_.stopped())
+    main_thread_io_context_.restart();
 
   main_thread_io_context_.run_one();
 
