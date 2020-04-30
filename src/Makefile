@@ -131,7 +131,7 @@ playground_third_party: playground_third_party_subhook
 # Link playground.so
 link:
 	$(CC) -L${BOOST_LIBS} -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
-		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lmysqlclient \
+		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lboost_thread -lmysqlclient \
 		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
 
 # Move libv8.so
