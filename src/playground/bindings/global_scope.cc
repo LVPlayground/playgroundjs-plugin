@@ -59,6 +59,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "provideNative", ProvideNativeCallback);
+  InstallFunction(global, "require", RequireCallback);
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
   InstallFunction(global, "wait", WaitCallback);

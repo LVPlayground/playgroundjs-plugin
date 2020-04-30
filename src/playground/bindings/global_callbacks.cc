@@ -274,6 +274,58 @@ void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
     ThrowException("unable to execute provideNative(): the native could not be registered.");
 }
 
+class SyntheticModuleRegistrarRequireImpl : public RuntimeModulator::SyntheticModuleRegistrar {
+ public:
+  explicit SyntheticModuleRegistrarRequireImpl(v8::Local<v8::Context> context, v8::Local<v8::Object> result)
+      : context_(context), result_(result) {}
+  ~SyntheticModuleRegistrarRequireImpl() override = default;
+
+  // RuntimeModulator::SyntheticModuleRegistrar implementation:
+  void RegisterExport(const std::string& name, v8::Local<v8::Value> value) {
+    result_->Set(context_, v8String(name), value);
+  }
+
+ private:
+  v8::Local<v8::Context> context_;
+  v8::Local<v8::Object> result_;
+};
+
+// any require(string specifier);
+void RequireCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  v8::Isolate* isolate = arguments.GetIsolate();
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
+
+  if (arguments.Length() == 0) {
+    ThrowException("unable to execute require(): 1 argument required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute require(): expected a string for argument 1.");
+    return;
+  }
+
+  const std::string specifier = toString(arguments[0]);
+
+  RuntimeModulator* modulator = runtime->GetModulator();
+  RuntimeModulator::SyntheticModule* module = modulator->GetSyntheticModulePtr(specifier);
+
+  if (!module) {
+    ThrowException("unable to execute require(): unrecognized module specifier.");
+    return;
+  }
+
+  v8::Local<v8::Context> context = runtime->context();
+  v8::Local<v8::Object> result = v8::Object::New(isolate);
+  
+  std::unique_ptr<RuntimeModulator::SyntheticModuleRegistrar> registrar =
+      std::make_unique<SyntheticModuleRegistrarRequireImpl>(context, result);
+
+  module->RegisterExports(context, registrar.get());
+
+  arguments.GetReturnValue().Set(result);
+}
+
 // string readFile(string filename);
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   GlobalScope* global = Runtime::FromIsolate(arguments.GetIsolate())->GetGlobalScope();
