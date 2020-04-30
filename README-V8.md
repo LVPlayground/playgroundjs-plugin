@@ -44,7 +44,7 @@ Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.
 
 Further, Boost will have to be built. After running the bootstrap, the following command is of use:
 
-    $ b2.exe architecture=x86 --with-filesystem --with-system --with-regex --with-date_time
+    $ b2.exe architecture=x86 --with-filesystem --with-system --with-regex --with-date_time --with-thread
 
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.
