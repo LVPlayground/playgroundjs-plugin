@@ -48,7 +48,6 @@ v8::MaybeLocal<v8::Module> ResolveModuleCallback(
 }  // namespace
 
 // static
-// Powers dynamic import() calls rather than static, compile-time ones.
 v8::MaybeLocal<v8::Promise> RuntimeModulator::ImportModuleDynamicallyCallback(
   v8::Local<v8::Context> context,
   v8::Local<v8::ScriptOrModule> referrer,
@@ -69,12 +68,6 @@ RuntimeModulator::RuntimeModulator(v8::Isolate* isolate, const base::FilePath& r
 
 RuntimeModulator::~RuntimeModulator() = default;
 
-void RuntimeModulator::AddSyntheticModule(
-    const std::string& name,
-    std::unique_ptr<RuntimeModulator::SyntheticModule> module) {
-  synthetic_modules_[name] = std::move(module);
-}
-
 v8::MaybeLocal<v8::Promise> RuntimeModulator::LoadModule(
   v8::Local<v8::Context> context,
   const base::FilePath& referrer,
@@ -94,9 +87,6 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::GetModule(
     v8::Local<v8::Context> context,
     v8::Local<v8::Module> referrer,
     const std::string& specifier) {
-  if (IsSyntheticModule(specifier))
-    return GetSyntheticModule(specifier);
-
   // Find the |referrer| in the list of loaded modules, where it is expected to
   // be, and use it to resolve the path of the |specifier| that is to be loaded.
   for (const auto& pair : modules_) {
@@ -142,20 +132,15 @@ void RuntimeModulator::ResolveOrCreateModule(
 
   base::FilePath path;
 
-  const bool is_synthetic = IsSyntheticModule(specifier);
-
   // Resolve the path of the module that is to be loaded. It is considered a
   // fatal error when we cannot resolve the path.
-  if (!is_synthetic && !ResolveModulePath(referrer, specifier, &path)) {
+  if (!ResolveModulePath(referrer, specifier, &path)) {
     resolver->Reject(context, try_catch.Exception());
     return;
   }
 
   // (1) Reuse a previously loaded module if it exists.
-  v8::MaybeLocal<v8::Module> existing_module =
-      is_synthetic ? GetSyntheticModule(specifier)
-                   : GetModule(path);
-
+  v8::MaybeLocal<v8::Module> existing_module = GetModule(path);
   if (!existing_module.ToLocal(&module)) {
     // (2) Attempt to create a new module for the given |path|.
     if (!CreateModule(context, path).ToLocal(&module)) {
@@ -220,7 +205,6 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
 
   for (int i = 0; i < module->GetModuleRequestsLength(); ++i) {
     const std::string specifier = toString(module->GetModuleRequest(i));
-    const bool is_synthetic = IsSyntheticModule(specifier);
 
     ScopedExceptionAttribution attribution(
         path, module->GetModuleRequestLocation(i).GetLineNumber());
@@ -232,9 +216,6 @@ v8::MaybeLocal<v8::Module> RuntimeModulator::CreateModule(
       ThrowException("Serving modules over HTTP(s) is not supported: " + specifier);
       return v8::Local<v8::Module>();
     }
-
-    if (is_synthetic)
-      continue;  // identity already verified
 
     base::FilePath request_path;
     if (!ResolveModulePath(path, specifier, &request_path))
@@ -294,88 +275,6 @@ bool RuntimeModulator::ReadFile(const base::FilePath& path,
 
   *contents = v8String(source_stream.str());
   return true;
-}
-
-v8::MaybeLocal<v8::Module> RuntimeModulator::GetSyntheticModule(const std::string& specifier) {
-  v8::Isolate* isolate = v8::Isolate::GetCurrent();
-
-  auto cached_iter = loaded_synthetic_modules_.find(specifier);
-  if (cached_iter != loaded_synthetic_modules_.end())
-    return cached_iter->second.Get(isolate);
-
-  auto module_iter = synthetic_modules_.find(specifier);
-  CHECK(module_iter != synthetic_modules_.end());
-
-  auto* synthetic_module = module_iter->second.get();
-
-  std::vector<v8::Local<v8::String>> export_names;
-  for (const std::string& export_name : synthetic_module->GetExportNames())
-    export_names.push_back(v8String(export_name));
-
-  v8::Local<v8::Module> module =
-      v8::Module::CreateSyntheticModule(isolate, v8String(specifier), export_names,
-                                        RuntimeModulator::EvaluateSyntheticModule);
-
-  loaded_synthetic_modules_.emplace(specifier, v8::Global<v8::Module>(isolate, module));
-  return module;
-}
-
-class SyntheticModuleRegistrarModuleImpl : public RuntimeModulator::SyntheticModuleRegistrar {
- public:
-  SyntheticModuleRegistrarModuleImpl(v8::Local<v8::Context> context, v8::Local<v8::Module> module)
-      : context_(context), module_(module) {}
-
-  ~SyntheticModuleRegistrarModuleImpl() override = default;
-
-  // RuntimeModulator::SyntheticModuleRegistrar implementation:
-  void RegisterExport(const std::string& name, v8::Local<v8::Value> value) {
-    module_->SetSyntheticModuleExport(context_->GetIsolate(), v8String(name), value);
-  }
-
- private:
-  v8::Local<v8::Context> context_;
-  v8::Local<v8::Module> module_;
-};
-
-// static
-v8::MaybeLocal<v8::Value> RuntimeModulator::EvaluateSyntheticModule(v8::Local<v8::Context> context,
-                                                                    v8::Local<v8::Module> module) {
-  v8::Isolate* isolate = context->GetIsolate();
-
-  RuntimeModulator* instance = Runtime::FromIsolate(isolate)->GetModulator();
-  SyntheticModule* synthetic_module = nullptr;
-
-  for (const auto& iter : instance->loaded_synthetic_modules_) {
-    if (iter.second.Get(isolate)->GetIdentityHash() != module->GetIdentityHash())
-      continue;
-
-    auto module_iter = instance->synthetic_modules_.find(iter.first);
-    CHECK(module_iter != instance->synthetic_modules_.end());
-
-    synthetic_module = module_iter->second.get();
-    break;
-  }
-
-  CHECK(synthetic_module);
-
-  std::unique_ptr<SyntheticModuleRegistrar> registrar =
-      std::make_unique<SyntheticModuleRegistrarModuleImpl>(context, module);
-
-  synthetic_module->RegisterExports(context, registrar.get());
-
-  return v8::Undefined(isolate);
-}
-
-bool RuntimeModulator::IsSyntheticModule(const std::string& specifier) const {
-  return synthetic_modules_.find(specifier) != synthetic_modules_.end();
-}
-
-RuntimeModulator::SyntheticModule* RuntimeModulator::GetSyntheticModulePtr(const std::string& specifier) const {
-  auto module_iter = synthetic_modules_.find(specifier);
-  if (module_iter == synthetic_modules_.end())
-    return nullptr;
-
-  return module_iter->second.get();
 }
 
 }  // namespace bindings

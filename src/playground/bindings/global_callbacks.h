@@ -25,7 +25,6 @@ void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void PawnInvokeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
-void RequireCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
