@@ -18,10 +18,6 @@
 #include "bindings/exception_handler.h"
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
-#include "bindings/modules/buffer_module.h"
-#include "bindings/modules/fs_module.h"
-#include "bindings/modules/os_module.h"
-#include "bindings/modules/path_module.h"
 #include "bindings/profiler.h"
 #include "bindings/runtime_modulator.h"
 #include "bindings/timer_queue.h"
@@ -201,10 +197,6 @@ void Runtime::Initialize() {
   context_.Reset(isolate_, context);
 
   modulator_.reset(new RuntimeModulator(isolate_, source_directory_));
-  modulator_->AddSyntheticModule("buffer", std::make_unique<BufferModule>());
-  modulator_->AddSyntheticModule("fs", std::make_unique<FsModule>());
-  modulator_->AddSyntheticModule("os", std::make_unique<OsModule>());
-  modulator_->AddSyntheticModule("path", std::make_unique<PathModule>());
   modulator_->LoadModule(context, /* referrer= */ base::FilePath(), "main.js");
 }
 
