@@ -327,6 +327,8 @@ void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
 
   auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
 
+  runtime->GetGlobalScope()->VerifyNoEventHandlersLeft();
+
   Runtime::Delegate* runtime_delegate = runtime->delegate();
   if (runtime_delegate)
     runtime_delegate->OnScriptTestsDone(total_tests, failed_tests);

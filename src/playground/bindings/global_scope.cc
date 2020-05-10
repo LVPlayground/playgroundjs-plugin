@@ -117,6 +117,24 @@ Event* GlobalScope::GetEvent(const std::string& type) {
   return event_iter->second.get();
 }
 
+void GlobalScope::VerifyNoEventHandlersLeft() {
+  size_t warnings = 0;
+
+  for (const auto& iter : event_listeners_) {
+    const size_t count = iter.second.size();
+    if (!count)
+      continue;
+
+    LOG(WARNING) << "The event " << iter.first << " still has " << count << " attached listeners.";
+    ++warnings;
+  }
+
+  if (warnings > 0)
+    LOG(WARNING) << "Not clearing the event listener map.";
+  else
+    event_listeners_.clear();
+}
+
 void GlobalScope::AddEventListener(const std::string& type, v8::Local<v8::Function> listener) {
   event_listeners_[type].push_back(
       v8::Persistent<v8::Function>(v8::Isolate::GetCurrent(), listener));

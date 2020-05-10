@@ -64,8 +64,8 @@ class GlobalScope {
   // Accessor providing access to the instances of created event types.
   Event* GetEvent(const std::string& type);
 
-  // Function providing access to the logstash interface.
-  void logstash(const std::string& message, const std::string& socket);
+  // Verifies that there are no more event handlers left registered, once testing has finished.
+  void VerifyNoEventHandlersLeft();
 
   // Accessors providing access to global object instances.
   ProvidedNatives* GetProvidedNatives() { return &natives_;  }
