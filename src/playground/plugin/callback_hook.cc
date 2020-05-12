@@ -77,14 +77,15 @@ int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
   } else if (index == AMX_EXEC_MAIN) {
     OnGamemodeLoaded(amx);
   } else if (gamemode_ == amx) {
-    if (index == on_player_update_index_)
-      return DoInterceptPlayerUpdate(amx);
-
-    auto interceptor_iter = intercept_indices_.find(index);
-    if (interceptor_iter != intercept_indices_.end()) {
-      ScopedReentrancyLock reentrancy_lock;
-      if (DoIntercept(amx, retval, *interceptor_iter->second))
-        return AMX_ERR_NONE;
+    if (index != on_player_update_index_) {
+      auto interceptor_iter = intercept_indices_.find(index);
+      if (interceptor_iter != intercept_indices_.end()) {
+        ScopedReentrancyLock reentrancy_lock;
+        if (DoIntercept(amx, retval, *interceptor_iter->second))
+          return AMX_ERR_NONE;
+      }
+    } else {
+      DoInterceptPlayerUpdate(amx);
     }
   }
 
