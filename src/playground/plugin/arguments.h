@@ -21,9 +21,12 @@ class Arguments {
  public:
   Arguments();
   Arguments(const Arguments&) = delete;
+  Arguments(Arguments&&);
   ~Arguments();
 
   void operator=(const Arguments&) = delete;
+
+  Arguments Copy() const;
 
   void AddInteger(const std::string& name, int value);
   void AddFloat(const std::string& name, float value);

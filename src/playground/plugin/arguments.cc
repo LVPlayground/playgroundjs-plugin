@@ -18,7 +18,18 @@ const std::string g_empty_string;
 
 Arguments::Arguments() = default;
 
+Arguments::Arguments(Arguments&& other) {
+  values_ = std::move(other.values_);
+}
+
 Arguments::~Arguments() = default;
+
+Arguments Arguments::Copy() const {
+  Arguments copy;
+  copy.values_ = values_;
+
+  return copy;
+}
 
 void Arguments::AddInteger(const std::string& name, int value) {
   values_[name] = std::make_any<int32_t>(value);
