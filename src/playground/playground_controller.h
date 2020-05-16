@@ -31,7 +31,8 @@ class PlaygroundController : public plugin::PluginDelegate,
   // plugin::PluginDelete implementation.
   void OnCallbacksAvailable(const std::vector<plugin::Callback>& callbacks) override;
   bool OnCallbackIntercepted(const std::string& callback,
-                             const plugin::Arguments& arguments) override;
+                             const plugin::Arguments& arguments,
+                             bool deferred) override;
   void OnGamemodeLoaded() override;
   void OnServerFrame() override;
 

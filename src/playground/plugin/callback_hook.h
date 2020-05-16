@@ -38,7 +38,7 @@ class CallbackHook {
 
     // Called when a callback to the gamemode has been intercepted. Returning true will block
     // the callback from being invoked in the Pawn runtime.
-    virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments) = 0;
+    virtual bool OnCallbackIntercepted(const std::string& callback, const Arguments& arguments, bool deferred) = 0;
   };
 
   // Place this on the stack to ignore interceptable callbacks until it goes out of scope.

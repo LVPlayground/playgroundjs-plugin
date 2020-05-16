@@ -139,8 +139,9 @@ void PluginController::OnPlayerUpdate(int player_id) {
 }
 
 bool PluginController::OnCallbackIntercepted(const std::string& callback,
-                                             const Arguments& arguments) {
-  return plugin_delegate_->OnCallbackIntercepted(callback, arguments);
+                                             const Arguments& arguments,
+                                             bool deferred) {
+  return plugin_delegate_->OnCallbackIntercepted(callback, arguments, deferred);
 }
 
 }  // namespace plugin

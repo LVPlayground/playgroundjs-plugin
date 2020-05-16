@@ -17,6 +17,7 @@ namespace {
 
 // The known annotations as they will be parsed by ParseAnnotations().
 const char kAnnotationCancelable[] = "Cancelable";
+const char kAnnotationDeferred[] = "Deferred";
 const char kAnnotationReturnOne[] = "ReturnOne";
 
 // The whitespace characters as specified by CSS 2.1.
@@ -63,10 +64,17 @@ bool ParseAnnotations(base::StringPiece* line, Callback* callback) {
   for (const auto& annotation : annotations) {
     if (annotation == kAnnotationCancelable)
       callback->cancelable = true;
+    else if (annotation == kAnnotationDeferred)
+      callback->deferred = true;
     else if (annotation == kAnnotationReturnOne)
       callback->return_value = 1;
 
     // TODO: Parse additional annotations here.
+  }
+
+  if (callback->cancelable && callback->deferred) {
+    LOG(WARNING) << "Callbacks cannot be both cancelable and deferred.";
+    return false;
   }
 
   if ((*line)[index] != ']')

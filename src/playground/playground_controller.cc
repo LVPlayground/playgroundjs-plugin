@@ -34,7 +34,8 @@ void PlaygroundController::OnCallbacksAvailable(const std::vector<plugin::Callba
 }
 
 bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
-                                                 const plugin::Arguments& arguments) {
+                                                 const plugin::Arguments& arguments,
+                                                 bool deferred) {
   // Convert the |callback| name to the associated idiomatic JavaScript event type.
   const std::string& type = bindings::Event::ToEventType(callback);
 

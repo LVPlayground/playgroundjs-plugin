@@ -27,6 +27,7 @@ struct Callback {
     name = other.name;
     arguments = other.arguments;
     cancelable = other.cancelable;
+    deferred = other.deferred;
     return_value = other.return_value;
   }
 
@@ -34,6 +35,7 @@ struct Callback {
   std::vector<std::pair<std::string, CallbackArgumentType>> arguments;
 
   bool cancelable = false;
+  bool deferred = false;
   int return_value = 0;
 };
 

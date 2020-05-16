@@ -64,7 +64,8 @@ class PluginController : public CallbackHook::Delegate {
   void OnGamemodeChanged(AMX* gamemode) override;
   void OnPlayerUpdate(int player_id) override;
   bool OnCallbackIntercepted(const std::string& callback,
-                             const Arguments& arguments) override;
+                             const Arguments& arguments,
+                             bool deferred) override;
 
   NativeParser* native_parser() { return native_parser_.get(); }
 

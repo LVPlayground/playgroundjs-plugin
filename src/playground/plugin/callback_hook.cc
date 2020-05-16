@@ -128,7 +128,7 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
     ++index;
   }
 
-  const bool result = delegate_->OnCallbackIntercepted(callback.name, arguments);
+  const bool result = delegate_->OnCallbackIntercepted(callback.name, arguments, callback.deferred);
   if (result && retval)
     *retval = callback.return_value;
 
