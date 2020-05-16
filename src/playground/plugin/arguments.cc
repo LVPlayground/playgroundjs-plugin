@@ -14,46 +14,46 @@ namespace {
 
 const std::string g_empty_string;
 
-}
+}  // namespace
 
-Arguments::Arguments() {}
+Arguments::Arguments() = default;
 
-Arguments::~Arguments() {}
+Arguments::~Arguments() = default;
 
 void Arguments::AddInteger(const std::string& name, int value) {
-  integer_values_[name] = value;
+  values_[name] = std::make_any<int32_t>(value);
 }
 
 void Arguments::AddFloat(const std::string& name, float value) {
-  float_values_[name] = value;
+  values_[name] = std::make_any<float>(value);
 }
 
 void Arguments::AddString(const std::string& name, const std::string& value) {
-  string_values_[name] = value;
+  values_[name] = std::make_any<std::string>(value);
 }
 
 int Arguments::GetInteger(const std::string& name) const {
-  auto value_iter = integer_values_.find(name);
-  if (value_iter == integer_values_.end())
+  auto value_iter = values_.find(name);
+  if (value_iter == values_.end() || value_iter->second.type() != typeid(int32_t))
     return -1;
 
-  return value_iter->second;
+  return std::any_cast<int32_t>(value_iter->second);
 }
 
 float Arguments::GetFloat(const std::string& name) const {
-  auto value_iter = float_values_.find(name);
-  if (value_iter == float_values_.end())
+  auto value_iter = values_.find(name);
+  if (value_iter == values_.end() || value_iter->second.type() != typeid(float))
     return -1.0;
 
-  return value_iter->second;
+  return std::any_cast<float>(value_iter->second);
 }
 
 const std::string& Arguments::GetString(const std::string& name) const {
-  auto value_iter = string_values_.find(name);
-  if (value_iter == string_values_.end())
+  auto value_iter = values_.find(name);
+  if (value_iter == values_.end() || value_iter->second.type() != typeid(std::string))
     return g_empty_string;
 
-  return value_iter->second;
+  return std::any_cast<const std::string&>(value_iter->second);
 }
 
 std::string GetCallbackRepresentation(const Callback& callback, const Arguments& arguments) {
