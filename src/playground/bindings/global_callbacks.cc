@@ -7,6 +7,7 @@
 #include "base/file_path.h"
 #include "base/file_search.h"
 #include "base/logging.h"
+#include "bindings/event.h"
 #include "bindings/global_scope.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/profiler.h"
@@ -132,6 +133,25 @@ void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) 
   object->Set(context, v8String("fps"), v8::Number::New(runtime->isolate(), average_fps));
 
   arguments.GetReturnValue().Set(object);
+}
+
+// sequence<object { type, event }> getDeferredEvents();
+void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  v8::Isolate* isolate = arguments.GetIsolate();
+  auto context = isolate->GetCurrentContext();
+
+  GlobalScope* global = Runtime::FromIsolate(isolate)->GetGlobalScope();
+  GlobalScope::DeferredEventMultimapType& deferred_events = global->deferred_events();
+
+  v8::Local<v8::Array> events = v8::Array::New(isolate, deferred_events.size());
+
+  uint32_t index = 0;
+  for (auto& [type, arguments] : deferred_events)
+    events->Set(context, index++, global->GetEvent(type)->NewInstance(arguments));
+
+  deferred_events.clear();
+
+  arguments.GetReturnValue().Set(events);
 }
 
 // sequence<string> glob(string base, string pattern);

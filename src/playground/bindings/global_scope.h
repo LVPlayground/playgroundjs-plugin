@@ -15,6 +15,7 @@
 
 #include "base/macros.h"
 #include "bindings/provided_natives.h"
+#include "plugin/arguments.h"
 
 namespace plugin {
 class PluginController;
@@ -43,6 +44,8 @@ class StreamerModule;
 // it gets deleted before the v8 context or isolate. Failing to do so will result in a SEGFAULT.
 class GlobalScope {
  public:
+  using DeferredEventMultimapType = std::unordered_multimap<std::string, plugin::Arguments>;
+
   explicit GlobalScope(plugin::PluginController* plugin_controller);
   ~GlobalScope();
 
@@ -63,6 +66,9 @@ class GlobalScope {
 
   // Accessor providing access to the instances of created event types.
   Event* GetEvent(const std::string& type);
+
+  // Stores the deferred event of the given |type| with the given |arguments| for later use.
+  void StoreDeferredEvent(const std::string& type, plugin::Arguments arguments);
 
   // Verifies that there are no more event handlers left registered, once testing has finished.
   void VerifyNoEventHandlersLeft();
@@ -103,6 +109,8 @@ class GlobalScope {
   // Returns a promise that will be resolved after |time| milliseconds.
   v8::Local<v8::Promise> Wait(Runtime* runtime, int64_t time);
 
+  DeferredEventMultimapType& deferred_events() { return deferred_events_; }
+
  private:
   // Installs the function named |name| on the |global| template, for which the v8 engine will
   // invoke |callback| upon calls made to the function in JavaScript.
@@ -135,6 +143,9 @@ class GlobalScope {
 
   // Map of callback names to the Event* instance that defines their interface.
   std::unordered_map<std::string, std::unique_ptr<Event>> events_;
+
+  // Map of deferred events that haven't yet been pulled by JavaScript.
+  DeferredEventMultimapType deferred_events_;
 
   using v8PersistentFunctionReference = v8::Persistent<v8::Function, v8::CopyablePersistentTraits<v8::Function>>;
   using v8PersistentFunctionVector = std::vector<v8PersistentFunctionReference>;

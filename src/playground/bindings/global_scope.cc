@@ -56,6 +56,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "captureProfile", CaptureProfileCallback);
   InstallFunction(global, "clearModuleCache", ClearModuleCacheCallback);
   InstallFunction(global, "frameCounter", FrameCounterCallback);
+  InstallFunction(global, "getDeferredEvents", GetDeferredEventsCallback);
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "provideNative", ProvideNativeCallback);
@@ -115,6 +116,10 @@ Event* GlobalScope::GetEvent(const std::string& type) {
     return nullptr;
 
   return event_iter->second.get();
+}
+
+void GlobalScope::StoreDeferredEvent(const std::string& type, plugin::Arguments arguments) {
+  deferred_events_.insert({ type, std::move(arguments) });
 }
 
 void GlobalScope::VerifyNoEventHandlersLeft() {
