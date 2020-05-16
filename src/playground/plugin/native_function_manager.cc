@@ -16,6 +16,15 @@ namespace plugin {
 
 namespace {
 
+// The Incognito streamer unfortunately derives from the [array][array_size] parameters being right
+// next to each other-paradigm, so we need to special case those.
+size_t GetArraySizeOffsetForFunctionName(const std::string& function_name) {
+  if (function_name.rfind("CreateDynamic") == 0)
+    return 5;
+
+  return 1;
+}
+
 // Type definition of the original amx_Register_t function that is being intercepted.
 typedef int AMXAPI(*amx_Register_t)(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number);
 
@@ -103,12 +112,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
   if (!param_count)
     return function_iter->second(amx, params_.data());
 
-  size_t arraySizeParamOffset = 1;
-
-  // The CreateDynamicObjectEx method unfortunately follows a non-sensical parameter order, which
-  // makes it different from every other method that accepts an array (or a string). Thank you.
-  if (param_count == 18 && function_name == "CreateDynamicObjectEx")
-    arraySizeParamOffset = 5;
+  size_t arraySizeParamOffset = GetArraySizeOffsetForFunctionName(function_name);
 
   auto amx_stack = fake_amx_->GetScopedStackModifier();
   DCHECK(arguments);
