@@ -4,6 +4,7 @@
 
 #include "plugin/native_function_manager.h"
 
+#include <set>
 #include <string.h>
 
 #include "base/logging.h"
@@ -16,11 +17,37 @@ namespace plugin {
 
 namespace {
 
+const std::set<std::string> kDynamicEntityFunctions{
+  "CreateDynamic3DTextLabelEx",
+  "CreateDynamicActorEx",
+  "CreateDynamicCPEx",
+  "CreateDynamicMapIconEx",
+  "CreateDynamicObjectEx",
+  "CreateDynamicPickupEx",
+  "CreateDynamicRaceCPEx"
+};
+
+const std::set<std::string> kDynamicAreaFunctions{
+  "CreateDynamicCircleEx",
+  "CreateDynamicCubeEx",
+  "CreateDynamicCuboidEx",
+  "CreateDynamicCylinderEx",
+  "CreateDynamicPolygonEx",
+  "CreateDynamicRectangleEx",
+  "CreateDynamicSphereEx"
+};
+
 // The Incognito streamer unfortunately derives from the [array][array_size] parameters being right
 // next to each other-paradigm, so we need to special case those.
 size_t GetArraySizeOffsetForFunctionName(const std::string& function_name) {
-  if (function_name.rfind("CreateDynamic") == 0)
+  if (function_name.rfind("CreateDynamic") != 0)
+    return 1;
+
+  if (kDynamicEntityFunctions.find(function_name) != kDynamicEntityFunctions.end())
     return 5;
+
+  if (kDynamicAreaFunctions.find(function_name) != kDynamicAreaFunctions.end())
+    return 4;
 
   return 1;
 }
