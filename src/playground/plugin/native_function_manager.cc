@@ -32,7 +32,6 @@ const std::set<std::string> kDynamicAreaFunctions{
   "CreateDynamicCubeEx",
   "CreateDynamicCuboidEx",
   "CreateDynamicCylinderEx",
-  "CreateDynamicPolygonEx",
   "CreateDynamicRectangleEx",
   "CreateDynamicSphereEx"
 };
@@ -139,6 +138,7 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
   if (!param_count)
     return function_iter->second(amx, params_.data());
 
+  bool isCreateDynamicPolygonEx = function_name == "CreateDynamicPolygonEx";
   size_t arraySizeParamOffset = GetArraySizeOffsetForFunctionName(function_name);
 
   auto amx_stack = fake_amx_->GetScopedStackModifier();
@@ -160,6 +160,13 @@ int NativeFunctionManager::CallFunction(const std::string& function_name,
       params_[i + 1] = amx_stack.PushString(reinterpret_cast<char*>(arguments[i]));
       break;
     case 'a':
+      if (isCreateDynamicPolygonEx) {
+        if (i == 0 /* points */)
+          arraySizeParamOffset = 3;
+        else
+          arraySizeParamOffset = 4;
+      }
+
       if (format[i + arraySizeParamOffset] != 'i') {
         LOG(WARNING) << "Cannot invoke " << function_name << ": 'a' parameter must be followed by a 'i'.";
         return -1;
