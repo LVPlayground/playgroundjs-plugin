@@ -144,10 +144,21 @@ void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
   GlobalScope::DeferredEventMultimapType& deferred_events = global->deferred_events();
 
   v8::Local<v8::Array> events = v8::Array::New(isolate, deferred_events.size());
+  v8::Local<v8::Name> names[] = { v8String("type"), v8String("event") };
 
   uint32_t index = 0;
-  for (auto& [type, arguments] : deferred_events)
-    events->Set(context, index++, global->GetEvent(type)->NewInstance(arguments));
+  for (auto& [type, arguments] : deferred_events) {
+    Event* event = global->GetEvent(type);
+    if (!event) {
+      LOG(ERROR) << "Unrecognized event name: " << type << ". Dropping deferred event.";
+      continue;
+    }
+
+    v8::Local<v8::Value> event_values[] = { v8String(type), event->NewInstance(arguments) };
+
+    events->Set(
+        context, index++, v8::Object::New(isolate, v8::Null(isolate), names, event_values, 2));
+  }
 
   deferred_events.clear();
 

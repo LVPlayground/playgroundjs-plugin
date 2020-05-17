@@ -36,17 +36,17 @@ void PlaygroundController::OnCallbacksAvailable(const std::vector<plugin::Callba
 bool PlaygroundController::OnCallbackIntercepted(const std::string& callback,
                                                  const plugin::Arguments& arguments,
                                                  bool deferred) {
-  // Convert the |callback| name to the associated idiomatic JavaScript event type.
-  const std::string& type = bindings::Event::ToEventType(callback);
-
   bindings::GlobalScope* global = runtime_->GetGlobalScope();
 
   // Fast-path where we store a copy of the |arguments| for dispatch later, which we consider to
   // be deferred events. These are faster, can be scheduled, but cannot be responded to.
   if (deferred) {
-    global->StoreDeferredEvent(type, arguments.Copy());
+    global->StoreDeferredEvent(callback, arguments.Copy());
     return false;
   }
+
+  // Convert the |callback| name to the associated idiomatic JavaScript event type.
+  const std::string& type = bindings::Event::ToEventType(callback);
 
   performance::ScopedTrace trace(performance::INTERCEPTED_CALLBACK_TOTAL, type);
 

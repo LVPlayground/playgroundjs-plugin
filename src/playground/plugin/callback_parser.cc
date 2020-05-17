@@ -239,6 +239,7 @@ bool CallbackParser::ParseLine(const base::StringPiece& line, Callback* callback
   callback->name.swap(candidate_callback.name);
   callback->return_value = candidate_callback.return_value;
   callback->cancelable = candidate_callback.cancelable;
+  callback->deferred = candidate_callback.deferred;
 
   return true;
 }
