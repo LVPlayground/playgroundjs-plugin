@@ -56,6 +56,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "captureProfile", CaptureProfileCallback);
   InstallFunction(global, "clearModuleCache", ClearModuleCacheCallback);
   InstallFunction(global, "frameCounter", FrameCounterCallback);
+  InstallFunction(global, "flushExceptionQueue", FlushExceptionQueueCallback);
   InstallFunction(global, "getDeferredEvents", GetDeferredEventsCallback);
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);

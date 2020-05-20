@@ -70,25 +70,25 @@ void FatalErrorCallback(const char* location, const char* message) {
 // Callback for uncaught promise rejection events. Output the exception message to the console
 // after all, so that developers can pick up on the error and deal with it.
 void PromiseRejectCallback(v8::PromiseRejectMessage message) {
-  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(v8::Isolate::GetCurrent());
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
   if (!runtime)
     return;
 
+  auto promise = message.GetPromise();
+  auto value = message.GetValue();
+
   if (message.GetEvent() == v8::kPromiseHandlerAddedAfterReject) {
-    runtime->GetExceptionHandler()->RevokeQueuedMessages(message.GetPromise());
+    runtime->GetExceptionHandler()->RevokeQueuedMessages(promise);
     return;
   }
 
-  v8::Local<v8::Value> value = message.GetValue();
-  if (value.IsEmpty() || !value->IsNativeError())
-    return;
-
-  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(GetIsolate(), value);
+  v8::Local<v8::Message> error_message = v8::Exception::CreateMessage(isolate, value);
   if (error_message.IsEmpty())
     return;
 
   runtime->GetExceptionHandler()->OnMessage(
-      error_message, value, ExceptionHandler::MessageSource::kRejectedPromise, message.GetPromise());
+      error_message, value, ExceptionHandler::MessageSource::kRejectedPromise, promise);
 }
 
 }  // namespace

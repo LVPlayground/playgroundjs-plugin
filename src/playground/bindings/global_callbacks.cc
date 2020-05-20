@@ -135,6 +135,15 @@ void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) 
   arguments.GetReturnValue().Set(object);
 }
 
+// void flushExceptionQueue();
+void FlushExceptionQueueCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
+  auto exception_handler = runtime->GetExceptionHandler();
+
+  if (exception_handler->HasQueuedMessages())
+    exception_handler->FlushMessageQueue();
+}
+
 // sequence<object { type, event }> getDeferredEvents();
 void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   v8::Isolate* isolate = arguments.GetIsolate();
