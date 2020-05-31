@@ -21,7 +21,8 @@ Therefore, JavaScript may be used _in addition_ of the existing Pawn gamemode, a
 The PlaygroundJS plugin requires a series of dependencies to be available on the host. When compiling the plugin, both binaries and source must be available.
 
   * [Boost 1.72](https://www.boost.org/) or later.
-  * [libmysql 5.7](https://dev.mysql.com/doc/refman/5.7/en/)
+  * [ICU 67](http://site.icu-project.org/download) or later.
+  * [libmysql 5.7](https://dev.mysql.com/doc/refman/5.7/en/), but no later version.
   * [OpenSSL 1.1.1g](https://www.openssl.org/source/) or later.
 
 It should take a couple of hours to set this up on a Windows 10 machine with Visual Studio 2019.

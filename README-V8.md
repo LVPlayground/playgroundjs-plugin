@@ -4,9 +4,9 @@ PlaygroundJS uses the [v8 JavaScript engine](https://code.google.com/p/v8/) to e
 ## Current revision
 PlaygroundJS tracks the master branch of v8, and is currently build against the following revision:
 
-    be97f7d25c8a2da44fa888c833eedcd7291fd821
-    "Version 8.3.129"
-    Thursday, April 2nd, 2020
+    8bff3324c9702691f252b91b0511ebdb03ed6e45
+    "Version 8.5.74"
+    Saturday, May 30th, 2020
 
 This is reflected in the [//src/v8](/src/v8) folder, which will load the given revision of the v8 JavaScript engine as a git submodule.
 
@@ -28,7 +28,7 @@ The following preparatory steps have to be executed on all platforms. They check
 
     $ cd src/v8
     $ git pull --rebase
-    $ git checkout 8.3.129
+    $ git checkout 8.5.74
     $ gclient sync
 
 ## Building on Windows
@@ -37,7 +37,7 @@ On Windows, run the following command to create an MSVC-compatible binary:
     $ set DEPOT_TOOLS_WIN_TOOLCHAIN=0
     $ set GYP_MSVS_VERSION=2019
     $ set GYP_CHROMIUM_NO_ACTION=0
-    $ gn gen --ide=vs2019 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_external_startup_data=false v8_enable_i18n_support=false is_clang=false use_custom_libcxx=false" out.gn\x86.release
+    $ gn gen --ide=vs2019 --args="target_cpu=\"x86\" is_component_build=true is_debug=false v8_use_external_startup_data=false is_clang=false use_custom_libcxx=false" out.gn\x86.release
     $ ninja -C out.gn/x86.release v8 v8_libplatform
 
 Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.dll` and `v8_libplatform.dll` that have to be copied to the [//bin](/bin) directory.
@@ -45,6 +45,10 @@ Browse to `src\v8\out.gn\x86.release` where you will find `v8.dll`, `v8_libbase.
 Further, Boost will have to be built. After running the bootstrap, the following command is of use:
 
     $ b2.exe architecture=x86 --with-filesystem --with-system --with-regex --with-date_time --with-thread
+
+Or, on Linux:
+
+    $ ./b2 architecture=x86 address-model=32 link=static runtime-link=static --with-filesystem --with-system --with-regex --with-date_time --with-thread
 
 ## Building on Linux
 On Linux, the following commands should be used to compile v8 completely from the command line.

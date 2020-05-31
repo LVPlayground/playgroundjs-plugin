@@ -37,8 +37,8 @@ const char kRuntimeFlags[] =
     "--use_strict "
 
     // Private methods and weak references
-    "--harmony_string_replaceall "
-    "--harmony_weak_refs";
+    "--harmony_intl_dateformat_day_period "
+    "--harmony_intl_segmenter";
 
 // Returns whether |character| represents a line break.
 bool IsLineBreak(char character) {
@@ -136,7 +136,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
       is_ready_(false),
       frame_counter_start_(::base::monotonicallyIncreasingTime()),
       frame_counter_(0) {
-  v8::V8::InitializeICU();
+  v8::V8::InitializeICU("icudtl.dat");
   v8::V8::InitializePlatform(platform_.get());
   v8::V8::SetFlagsFromString(kRuntimeFlags, sizeof(kRuntimeFlags));
   v8::V8::Initialize();
