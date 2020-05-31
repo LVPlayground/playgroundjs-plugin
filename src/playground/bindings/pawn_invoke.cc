@@ -6,6 +6,7 @@
 
 #include <string.h>
 
+#include "base/encoding.h"
 #include "base/logging.h"
 #include "bindings/provided_natives.h"
 #include "bindings/runtime.h"
@@ -203,8 +204,11 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
           return v8::Local<v8::Value>();
         }
 
-        if (string.length())
-          memcpy(static_buffer_->string_values[argument], *string, string.length());
+        if (string.length()) {
+          const std::string ansiString = toAnsi(*string, string.length());
+          memcpy(static_buffer_->string_values[argument], &ansiString[0], ansiString.length());
+        }
+
         static_buffer_->string_values[argument][string.length()] = 0;
       }
 

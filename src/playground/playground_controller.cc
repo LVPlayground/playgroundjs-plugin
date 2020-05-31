@@ -4,6 +4,7 @@
 
 #include "playground_controller.h"
 
+#include "base/encoding.h"
 #include "base/file_path.h"
 #include "base/logging.h"
 #include "base/time.h"
@@ -78,7 +79,7 @@ void PlaygroundController::OnScriptOutput(const std::string& message) {
   if (!message.length())
     return;
 
-  plugin_controller_->Output(message);
+  plugin_controller_->Output(toAnsi(message));
 }
 
 void PlaygroundController::OnScriptError(const std::string& filename, size_t line_number, const std::string& message) {

@@ -50,6 +50,7 @@ playground_test:
 
 # Target: /playground/base/
 playground_base:
+	$(CC) $(CFLAGS) playground/base/encoding.cc -o out/obj/playground_base_encoding.o
 	$(CC) $(CFLAGS) playground/base/file_path.cc -o out/obj/playground_base_file_path.o
 	$(CC) $(CFLAGS) playground/base/file_search.cc -o out/obj/playground_base_file_search.o
 	$(CC) $(CFLAGS) playground/base/logging.cc -o out/obj/playground_base_logging.o

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <unordered_map>
 
+#include "base/encoding.h"
 #include "base/logging.h"
 #include "base/string_piece.h"
 #include "bindings/utilities.h"
@@ -155,7 +156,7 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
       break;
 
     case plugin::ARGUMENT_TYPE_STRING:
-      instance->Set(context, property, v8String(arguments.GetString(argument.first)));
+      instance->Set(context, property, v8String(fromAnsi(arguments.GetString(argument.first))));
       break;
     }
   }

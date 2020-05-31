@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="base\encoding.cc" />
     <ClCompile Include="base\file_path.cc" />
     <ClCompile Include="base\file_search.cc" />
     <ClCompile Include="base\logging.cc" />
@@ -75,6 +76,7 @@
     <ClCompile Include="third_party\subhook\subhook_x86.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="base\encoding.h" />
     <ClInclude Include="base\export.h" />
     <ClInclude Include="base\file_path.h" />
     <ClInclude Include="base\file_search.h" />
