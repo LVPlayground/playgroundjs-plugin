@@ -5,20 +5,17 @@
 #ifndef PLAYGROUND_BASE_ENCODING_H_
 #define PLAYGROUND_BASE_ENCODING_H_
 
-#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-
-#include <codecvt>
-#include <locale>
 #include <string>
 
 // To be called when encoding behaviour should be initialized.
 void initializeEncoding();
 
 // Converts the given |ansiString| to an UTF-8 string with, optionally, the given |locale|.
-std::string fromAnsi(const std::string& ansiString, const std::locale& locale = std::locale{});
+std::string fromAnsi(const char* ansiString, size_t length);
+std::string fromAnsi(const std::string& ansiString);
 
 // Converts the given |utf8String| to an ANSI string with, optionally, the given |locale|.
-std::string toAnsi(const char* utf8String, size_t length, const std::locale& locale = std::locale{});
-std::string toAnsi(const std::string& utf8String, const std::locale& locale = std::locale{});
+std::string toAnsi(const char* utf8String, size_t length);
+std::string toAnsi(const std::string& utf8String);
 
 #endif  // PLAYGROUND_BASE_ENCODING_H_
