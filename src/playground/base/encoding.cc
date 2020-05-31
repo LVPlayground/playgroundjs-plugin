@@ -54,7 +54,7 @@ std::string convert(UConverter* from, UConverter* to, const char* input, size_t 
 void initializeEncoding() {
   UErrorCode error = U_ZERO_ERROR;
 
-  g_platform_converter = ucnv_open(NULL, &error);
+  g_platform_converter = ucnv_open("ISO-8859-1", &error);
   CHECK(U_SUCCESS(error)) << "Unable to create the ICU Unicode converter";
 
   g_unicode_converter = ucnv_open("UTF8", &error);

@@ -41,13 +41,13 @@ tp_gtest:
 # Target: /playground/
 playground: playground_base playground_bindings playground_performance playground_plugin playground_third_party playground_test
 	$(CC) $(CFLAGS) playground/playground_controller.cc -o out/obj/playground_playground_controller.o
-	$(CC) $(CFLAGS) playground/test_runner.cc -o out/obj/playground_test_runner.o
 
 # Target: /playground/*_test.cc
 playground_test:
 	$(CC) $(CFLAGS) playground/base/encoding_test.cc -o out/obj/playground_base_encoding_test.o
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer_test.cc -o out/obj/playground_bindings_modules_streamer_streamer_test.o
 	$(CC) $(CFLAGS) playground/plugin/callback_parser_test.cc -o out/obj/playground_plugin_callback_parser_test.o
+	$(CC) $(CFLAGS) playground/test_runner.cc -o out/obj/playground_test_runner.o
 
 # Target: /playground/base/
 playground_base:
