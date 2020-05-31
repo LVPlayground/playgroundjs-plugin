@@ -5,6 +5,7 @@
 #include "base/encoding.h"
 #include "base/logging.h"
 
+#include <cmath>
 #include <unicode/ucnv.h>
 
 // Default string buffer size. The buffer is able to resize itself when this is necessary for the
@@ -59,7 +60,8 @@ void initializeEncoding() {
   g_unicode_converter = ucnv_open("UTF8", &error);
   CHECK(U_SUCCESS(error)) << "Unable to create the ICU Unicode converter";
 
-  //
+  // Allocate the conversion buffer with the default size to reduce the number of allocations needed
+  // for each of the conversions, as this is a common operation. Can be resized when needed.
   g_conversion_buffer = new std::string(kDefaultBufferSize, '\0');
 }
 

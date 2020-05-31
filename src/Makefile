@@ -45,6 +45,7 @@ playground: playground_base playground_bindings playground_performance playgroun
 
 # Target: /playground/*_test.cc
 playground_test:
+	$(CC) $(CFLAGS) playground/base/encoding_test.cc -o out/obj/playground_base_encoding_test.o
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer_test.cc -o out/obj/playground_bindings_modules_streamer_streamer_test.o
 	$(CC) $(CFLAGS) playground/plugin/callback_parser_test.cc -o out/obj/playground_plugin_callback_parser_test.o
 
@@ -133,7 +134,7 @@ playground_third_party: playground_third_party_subhook
 link:
 	$(CC) -L${BOOST_LIBS} -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
 		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lboost_thread -lmysqlclient \
-		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
+		-licuuc -licui18n -licudata out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
 
 # Move libv8.so
 move:
@@ -146,9 +147,10 @@ move:
 test_runner:
 	$(CC) $(CFLAGSBASE) runner/logging.cc -o out/obj.test_runner/runner_logging.o
 	$(CC) $(CFLAGSBASE) runner/main.cc -o out/obj.test_runner/runner_main.o
-	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner \
+	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner -L${BOOST_LIBS} \
 		obj.test_runner/*.o \
-		$(OUTFILE) libv8_libplatform.so libv8_libbase.so libv8.so libc++.so /lib/mysql/libmysqlclient.so
+		$(OUTFILE) -lboost_regex -lboost_system -lboost_filesystem -lboost_thread -lmysqlclient \
+		-licuuc -licui18n -licudata libv8_libplatform.so libv8_libbase.so libv8.so
 
 # Clean
 clean:

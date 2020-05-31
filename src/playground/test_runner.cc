@@ -4,12 +4,15 @@
 
 #include "test_runner.h"
 
+#include "base/encoding.h"
 #include "base/file_path.h"
 #include "gtest/gtest.h"
 
 namespace playground {
 
 bool RunPlaygroundTests(int argc, char** argv) {
+  initializeEncoding();
+
   base::FilePath::Initialize();
 
   testing::InitGoogleTest(&argc, argv);
