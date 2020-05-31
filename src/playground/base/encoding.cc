@@ -4,6 +4,15 @@
 
 #include "base/encoding.h"
 
+#include <locale>
+#include <clocale>
+#include <codecvt>
+#include <cstdint>
+
+void initializeEncoding() {
+  std::setlocale(LC_CTYPE, "en_US.UTF-8");
+}
+
 std::string fromAnsi(const std::string& ansiString, const std::locale& locale) {
   using wcvt = std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t>;
   std::u32string wstr(ansiString.size(), U'\0');

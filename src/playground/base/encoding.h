@@ -8,7 +8,11 @@
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include <codecvt>
+#include <locale>
 #include <string>
+
+// To be called when encoding behaviour should be initialized.
+void initializeEncoding();
 
 // Converts the given |ansiString| to an UTF-8 string with, optionally, the given |locale|.
 std::string fromAnsi(const std::string& ansiString, const std::locale& locale = std::locale{});

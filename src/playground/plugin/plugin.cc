@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "base/encoding.h"
 #include "base/file_path.h"
 #include "base/logging.h"
 #include "bindings/provided_natives.h"
@@ -88,6 +89,8 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData) {
   pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
   g_logprintf = (logprintf_t) ppData[PLUGIN_DATA_LOGPRINTF];
   g_did_run_tests = (DidRunTests_t) ppData[PLUGIN_DATA_DID_RUN_TESTS];
+
+  initializeEncoding();
 
   base::FilePath::Initialize();
 
