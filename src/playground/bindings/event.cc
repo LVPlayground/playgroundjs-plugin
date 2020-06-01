@@ -156,7 +156,15 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
       break;
 
     case plugin::ARGUMENT_TYPE_STRING:
-      instance->Set(context, property, v8String(fromAnsi(arguments.GetString(argument.first))));
+      {
+        const std::string before = arguments.GetString(argument.first);
+        const std::string after = fromAnsi(before);
+
+        LOG(INFO) << "Before: [" << before << "]";
+        LOG(INFO) << "After:  [" << after << "]";
+
+        instance->Set(context, property, v8String(after));
+      }
       break;
     }
   }
