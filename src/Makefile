@@ -15,7 +15,10 @@ V8_LIBS=v8/out/x86
 
 MYSQL_HEADERS=/usr/include/mysql
 
-CC_INCLUDE=-I$(BOOST_HEADERS) -I$(V8_HEADERS_A) -I$(V8_HEADERS_B) -I$(MYSQL_HEADERS)
+ICU_COMMON_HEADERS=v8/third_party/icu/source/common
+ICU_I18N_HEADERS=v8/third_party/icu/source/i18n
+
+CC_INCLUDE=-I$(BOOST_HEADERS) -I$(V8_HEADERS_A) -I$(V8_HEADERS_B) -I$(MYSQL_HEADERS) -I$(ICU_COMMON_HEADERS) -I$(ICU_I18N_HEADERS)
 
 C=gcc
 CC=g++
@@ -134,7 +137,7 @@ playground_third_party: playground_third_party_subhook
 link:
 	$(CC) -L${BOOST_LIBS} -O2 -m32 -fshort-wchar -Wl,--export-dynamic -shared -o out/$(OUTFILE) \
 		out/obj/*.o -lboost_regex -lboost_system -lboost_filesystem -lboost_thread -lmysqlclient \
-		-licuuc -licui18n -licudata out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so
+		out/libv8_libplatform.so out/libv8_libbase.so out/libv8.so out/libicui18n.so out/libicuuc.so
 
 # Move libv8.so
 move:
@@ -142,6 +145,9 @@ move:
 	cp v8/out.gn/x86.release/libv8_libbase.so out/libv8_libbase.so
 	cp v8/out.gn/x86.release/libv8_libplatform.so out/libv8_libplatform.so
 	cp v8/out.gn/x86.release/libchrome_zlib.so out/libchrome_zlib.so
+	cp v8/out.gn/x86.release/icudtl.dat out/icudtl.dat
+	cp v8/out.gn/x86.release/libicui18n.so out/libicui18n.so
+	cp v8/out.gn/x86.release/libicuuc.so out/libicuuc.so
 
 # Target: test_runner
 test_runner:
@@ -150,7 +156,7 @@ test_runner:
 	cd out && $(CC) -O2 -m32 -fshort-wchar -o test_runner -L${BOOST_LIBS} \
 		obj.test_runner/*.o \
 		$(OUTFILE) -lboost_regex -lboost_system -lboost_filesystem -lboost_thread -lmysqlclient \
-		-licuuc -licui18n -licudata libv8_libplatform.so libv8_libbase.so libv8.so
+		libv8_libplatform.so libv8_libbase.so libv8.so libicui18n.so libicuuc.so
 
 # Clean
 clean:
