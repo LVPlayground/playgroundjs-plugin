@@ -38,15 +38,12 @@ std::string convert(UConverter* from, UConverter* to, const char* input, size_t 
   if (U_FAILURE(error)) {
     UErrorCode name_error = U_ZERO_ERROR;
     LOG(WARNING) << "Unable to convert string from " << ucnv_getName(from, &name_error) << " to "
-                 << ucnv_getName(to, &name_error) << ": ddfdf";
+                 << ucnv_getName(to, &name_error) << ": " << u_errorName(error);
 
     return "";
   }
 
-  std::string result((target - buffer) + 1, '\0');
-  result.insert(result.begin(), buffer, target);
-
-  return result;
+  return std::string(buffer, target);
 }
 
 }  // namespace
