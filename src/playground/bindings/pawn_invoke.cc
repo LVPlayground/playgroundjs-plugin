@@ -6,7 +6,6 @@
 
 #include <string.h>
 
-#include "base/encoding.h"
 #include "base/logging.h"
 #include "bindings/provided_natives.h"
 #include "bindings/runtime.h"
@@ -194,22 +193,26 @@ v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>&
 
     case SIGNATURE_TYPE_STRING:
       {
-        v8::String::Utf8Value string(isolate, arguments[index]);
+        v8::MaybeLocal<v8::String> maybe = arguments[index]->ToString(context);
+        if (maybe.IsEmpty()) {
+          ThrowException("unable to execute pawnInvoke(): unable to convert argument " +
+                           std::to_string(index) + " to a string.");
+        
+          return v8::Local<v8::Value>();
+        }
 
-        // If the string is longer than our buffer supports, bail out.
-        if (string.length() >= StaticBuffer::kMaxStringLength) {
+        v8::Local<v8::String> string = maybe.ToLocalChecked();
+        if (string->Length() >= StaticBuffer::kMaxStringLength) {
           ThrowException("unable to execute pawnInvoke(): string overflow for argument " +
-                         std::to_string(index));
+                           std::to_string(index));
 
           return v8::Local<v8::Value>();
         }
 
-        if (string.length()) {
-          const std::string ansiString = toAnsi(*string, string.length());
-          memcpy(static_buffer_->string_values[argument], &ansiString[0], ansiString.length());
-        }
+        string->WriteOneByte(
+            isolate, (uint8_t*)&static_buffer_->string_values[argument], 0, string->Length());
 
-        static_buffer_->string_values[argument][string.length()] = 0;
+        static_buffer_->string_values[argument][string->Length()] = 0;
       }
 
       static_buffer_->arguments[argument] = &static_buffer_->string_values[argument];

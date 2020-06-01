@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="base\encoding.cc" />
-    <ClCompile Include="base\encoding_test.cc" />
     <ClCompile Include="base\file_path.cc" />
     <ClCompile Include="base\file_search.cc" />
     <ClCompile Include="base\logging.cc" />

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include "base/encoding.h"
 #include "base/logging.h"
 #include "base/string_piece.h"
 #include "bindings/utilities.h"
@@ -157,13 +156,11 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
 
     case plugin::ARGUMENT_TYPE_STRING:
       {
-        const std::string before = arguments.GetString(argument.first);
-        const std::string after = fromAnsi(before);
+        const std::string& string = arguments.GetString(argument.first);
+        auto maybe = v8::String::NewFromOneByte(
+            isolate, (const uint8_t*) &string[0], v8::NewStringType::kNormal, string.size());
 
-        LOG(INFO) << "Before: [" << before << "]";
-        LOG(INFO) << "After:  [" << after << "]";
-
-        instance->Set(context, property, v8String(after));
+        instance->Set(context, property, maybe.ToLocalChecked());
       }
       break;
     }

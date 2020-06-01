@@ -180,9 +180,6 @@
     <ClCompile Include="base\encoding.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="base\encoding_test.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
