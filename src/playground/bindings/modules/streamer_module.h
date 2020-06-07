@@ -15,6 +15,8 @@ namespace bindings {
 //
 // [Constructor(number maxVisible, number streamingDistance = 300)]
 // interface Streamer {
+//     static setTrackedPlayers(Set playerIds);
+//
 //     void add(unsigned id, double x, double y, double z);
 //     void delete(unsigned id);
 //

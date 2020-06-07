@@ -16,5 +16,9 @@ StreamerHost::~StreamerHost() = default;
 
 void StreamerHost::OnFrame(double current_time) {}
 
+void StreamerHost::SetTrackedPlayers(std::set<uint16_t> tracked_players) {
+  tracked_players_ = std::move(tracked_players);
+}
+
 }  // namespace streamer
 }  // namespace bindings

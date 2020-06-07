@@ -4,9 +4,12 @@
 
 #include "bindings/modules/streamer_module.h"
 
+#include <set>
+
 #include "base/logging.h"
 #include "base/macros.h"
 #include "bindings/modules/streamer/streamer.h"
+#include "bindings/modules/streamer/streamer_host.h"
 #include "bindings/promise.h"
 #include "bindings/utilities.h"
 
@@ -49,6 +52,43 @@ StreamerBindings* GetInstanceFromObject(v8::Local<v8::Object> object) {
   }
 
   return static_cast<StreamerBindings*>(object->GetAlignedPointerFromInternalField(0));
+}
+
+// Streamer.setTrackedPlayers(Set playerIds)
+void StreamerSetTrackedPlayersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 1) {
+    ThrowException("unable to call setTrackedPlayers(): 1 argument required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsSet()) {
+    ThrowException("unable to call setTrackedPlayers(): expected argument 1 to be a Set.");
+    return;
+  }
+
+  auto context = arguments.GetIsolate()->GetCurrentContext();
+
+  v8::Local<v8::Set> players_set = v8::Local<v8::Set>::Cast(arguments[0]);
+  v8::Local<v8::Array> players_array = players_set->AsArray();
+  
+  std::set<uint16_t> players;
+  if (!players_array.IsEmpty() && players_array->Length() > 0) {
+    for (uint32_t index = 0; index < players_array->Length(); ++index) {
+      v8::MaybeLocal<v8::Value> maybe_entry = players_array->Get(context, index);
+      v8::Local<v8::Value> entry;
+
+      if (!maybe_entry.ToLocal(&entry) || !entry->IsNumber())
+        continue;
+
+      v8::Local<v8::Number> entry_number = v8::Local<v8::Number>::Cast(entry);
+      double entry_double = entry_number->Value();
+
+      if (entry_double >= 0 && entry_double <= 1000)
+        players.insert(static_cast<uint16_t>(entry_double));
+    }
+  }
+
+  Runtime::FromIsolate(arguments.GetIsolate())->GetStreamerHost()->SetTrackedPlayers(std::move(players));
 }
 
 // Streamer.prototype.constructor(number maxVisible, number streamDistance = 300)
@@ -240,6 +280,7 @@ void StreamerModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
   v8::Local<v8::FunctionTemplate> function_template = v8::FunctionTemplate::New(isolate, StreamerConstructorCallback);
+  function_template->Set(v8String("setTrackedPlayers"), v8::FunctionTemplate::New(isolate, StreamerSetTrackedPlayersCallback));
 
   v8::Local<v8::ObjectTemplate> instance_template = function_template->InstanceTemplate();
   instance_template->SetInternalFieldCount(1 /** for the native instance **/);

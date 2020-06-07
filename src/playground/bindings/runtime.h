@@ -102,6 +102,9 @@ class Runtime {
   // tremendously help developers towards solving the problems.
   ExceptionHandler* GetExceptionHandler() { return exception_handler_.get(); }
 
+  // Returns the StreamerHost that's servicing the Runtime.
+  streamer::StreamerHost* GetStreamerHost() { return streamer_host_.get(); }
+
   // Returns the Boost IO Contexts. Ownership belongs to this object, but the context itself can be
   // modified by any user, as this is a requirement for asynchronous posting tasks to it. There's
   // one for the main thread, on which JavaScript is ran, and one for background work.
