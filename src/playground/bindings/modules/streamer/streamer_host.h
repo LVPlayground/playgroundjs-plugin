@@ -9,6 +9,7 @@
 #include <boost/function.hpp>
 #include <memory>
 #include <set>
+#include <stdint.h>
 
 #include "base/macros.h"
 
@@ -33,7 +34,13 @@ class StreamerHost {
 
   // -----------------------------------------------------------------------------------------------
 
+  // Creates a new streamer. Returns a globally unique ID for the streamer.
+  uint32_t CreateStreamer(uint16_t max_visible, uint16_t max_distance);
 
+
+
+  // Deletes the streamer that exists with the given |streamer_id|.
+  void DeleteStreamer(uint32_t streamer_id);
 
   // -----------------------------------------------------------------------------------------------
 
@@ -66,6 +73,9 @@ class StreamerHost {
   boost::asio::io_context& background_thread_io_context_;
 
   std::shared_ptr<StreamerWorker> worker_;
+
+  std::set<uint32_t> active_streamer_ids_;
+  uint32_t last_streamer_id_ = 0;
 
   std::set<uint16_t> tracked_players_;
   bool tracked_players_invalidated_ = false;

@@ -14,8 +14,16 @@ StreamerWorker::StreamerWorker(boost::asio::io_context& main_thread_io_context)
 
 StreamerWorker::~StreamerWorker() = default;
 
+void StreamerWorker::Initialize(uint32_t streamer_id, uint16_t max_visible, uint16_t max_distance) {
+  LOG(INFO) << __FUNCTION__;
+}
+
 void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
-  LOG(INFO) << "Updated.";
+  LOG(INFO) << __FUNCTION__;
+}
+
+void StreamerWorker::DeleteAll(uint32_t streamer_id) {
+  LOG(INFO) << __FUNCTION__;
 }
 
 void StreamerWorker::CallOnMainThread(boost::function<void()> function) {

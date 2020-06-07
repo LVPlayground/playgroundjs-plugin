@@ -35,7 +35,25 @@ StreamerHost::~StreamerHost() = default;
 
 // -----------------------------------------------------------------------------------------------
 
+uint32_t StreamerHost::CreateStreamer(uint16_t max_visible, uint16_t max_distance) {
+  active_streamer_ids_.insert(++last_streamer_id_);
 
+  CallOnWorkerThread(boost::bind(&StreamerWorker::Initialize, worker_, last_streamer_id_,
+                                 max_visible, max_distance));
+
+  return last_streamer_id_;
+}
+
+void StreamerHost::DeleteStreamer(uint32_t streamer_id) {
+  if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
+    LOG(WARNING) << "Unable to delete streamer with invalid ID: " << streamer_id;
+    return;
+  }
+
+  CallOnWorkerThread(boost::bind(&StreamerWorker::DeleteAll, worker_, streamer_id));
+
+  active_streamer_ids_.erase(streamer_id);
+}
 
 // -----------------------------------------------------------------------------------------------
 

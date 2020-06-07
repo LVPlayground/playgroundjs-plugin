@@ -22,9 +22,15 @@ class StreamerWorker {
   explicit StreamerWorker(boost::asio::io_context& main_thread_io_context);
   ~StreamerWorker();
 
+  // Initializes a plane and general state for a new streamer with the given |streamer_id|.
+  void Initialize(uint32_t streamer_id, uint16_t max_visible, uint16_t max_distance);
+
   // Called when there are |updates| in regards the the to-be-considered players, their positions,
   // interior Ids and virtual worlds. Will be stored for the next streamer update.
   void Update(std::vector<StreamerUpdate> updates);
+
+  // Deletes all data associated with the given |streamer_id|.
+  void DeleteAll(uint32_t streamer_id);
 
  private:
   // Calls the given |function| on the main thread. All responses and callbacks must be invoked on
