@@ -31,7 +31,7 @@ class TcpSocket : public BaseSocket {
   void Close(CloseCallback close_callback) override;
 
  private:
-  using ReadBuffer = std::array<char, 4096>;  
+  using ReadBuffer = std::array<char, 4096>;
   using SecureSocketType = boost::asio::ssl::stream<boost::asio::ip::tcp::socket>;
   using WriteQueue = std::queue<boost::function<void()>>;
 

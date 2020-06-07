@@ -130,7 +130,32 @@ void WebSocket::OnConnectionTimeout(const boost::system::error_code& ec,
   CallOnMainThread(boost::bind(open_callback, boost::asio::error::timed_out));
 }
 
-void WebSocket::Read(ReadCallback read_callback, ErrorCallback error_callback) {}
+void WebSocket::Read(ReadCallback read_callback, ErrorCallback error_callback) {
+  auto callback = boost::bind(&WebSocket::OnRead, this, read_callback, error_callback,
+                              boost::asio::placeholders::error,
+                              boost::asio::placeholders::bytes_transferred);
+  if (ssl_mode_ == SocketSSLMode::kNone)
+    ws_stream_->async_read_some(boost::asio::buffer(read_buffer_), callback);
+  else
+    wss_stream_->async_read_some(boost::asio::buffer(read_buffer_), callback);
+}
+
+void WebSocket::OnRead(ReadCallback read_callback,
+                       ErrorCallback error_callback,
+                       const boost::system::error_code& ec,
+                       std::size_t bytes_transferred) {
+  if (ec) {
+    CallOnMainThread(boost::bind(error_callback, ec));
+    return;
+  }
+
+  auto data = std::make_shared<std::vector<uint8_t>>();
+  data->assign(&read_buffer_.front(),
+               &read_buffer_.front() + bytes_transferred);
+
+  CallOnMainThread(boost::bind(read_callback, data));
+  Read(read_callback, error_callback);
+}
 
 void WebSocket::Write(void* data, std::size_t bytes, WriteCallback write_callback) {
   if (active_write_) {

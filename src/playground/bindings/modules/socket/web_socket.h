@@ -34,6 +34,7 @@ class WebSocket : public BaseSocket {
   void Close(CloseCallback close_callback) override;
 
  private:
+  using ReadBuffer = std::array<char, 4096>;
   using WriteQueue = std::queue<boost::function<void()>>;
 
   using WsSocketType = boost::beast::websocket::stream<boost::beast::tcp_stream>;
@@ -71,6 +72,12 @@ class WebSocket : public BaseSocket {
   // operation aborted, which happens when the deadline timer gets cancelled instead.
   void OnConnectionTimeout(const boost::system::error_code& ec, OpenCallback open_callback);
 
+  // Called when data has been received over the socket, or an error occurred.
+  void OnRead(ReadCallback read_callback,
+              ErrorCallback error_callback,
+              const boost::system::error_code& ec,
+              std::size_t bytes_transferred);
+
   // Called when a write operation has completed. Particularly in secured connections it's
   // important to wait for completion of one operation before starting the next, so this
   // might continue flushing the queue if any.
@@ -97,6 +104,9 @@ class WebSocket : public BaseSocket {
   // The stream that will be used. Depends on |ssl_mode_| to switch between ws and wss.
   std::unique_ptr<WsSocketType> ws_stream_;
   std::unique_ptr<WssSocketType> wss_stream_;
+
+  // Buffer for the incoming message(s).
+  ReadBuffer read_buffer_;
 
   // Queue for the outgoing message(s), and a flag on whether there's a pending write.
   WriteQueue write_queue_;
