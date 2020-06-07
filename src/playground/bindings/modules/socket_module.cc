@@ -67,7 +67,9 @@ class SocketBindings : public socket::Socket::SocketObserver {
     InvokeListeners(message_event_listeners_, [data, bytes](v8::Isolate* isolate,
                                                             v8::Local<v8::Context> context,
                                                             v8::Local<v8::Object> event_obj) {
-      v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, data, bytes);
+      v8::Local<v8::ArrayBuffer> buffer = v8::ArrayBuffer::New(isolate, bytes);
+      memcpy(buffer->GetBackingStore()->Data(), data, bytes);
+
       event_obj->Set(context, v8String("data"), buffer);
     });
   }
