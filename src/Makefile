@@ -77,6 +77,7 @@ playground_bindings_socket:
 	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket_protocol.cc -o out/obj/playground_bindings_modules_socket_socket_protocol.o
 	$(CC) $(CFLAGS) playground/bindings/modules/socket/socket_ssl_mode.cc -o out/obj/playground_bindings_modules_socket_socket_ssl_mode.o
 	$(CC) $(CFLAGS) playground/bindings/modules/socket/tcp_socket.cc -o out/obj/playground_bindings_modules_socket_tcp_socket.o
+	$(CC) $(CFLAGS) playground/bindings/modules/socket/web_socket.cc -o out/obj/playground_bindings_modules_socket_web_socket.o
 
 # Target: /playground/bindings/modules/streamer/
 playground_bindings_streamer:

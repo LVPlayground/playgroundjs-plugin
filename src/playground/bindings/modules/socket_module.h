@@ -14,7 +14,7 @@ namespace bindings {
 // the Boost ASIO library.
 //
 // When constructing a new Socket object, the protocol backing the socket has to be decided. This
-// cannot change during the lifetime of the socket. Currently, only TCP sockets are implemented.
+// cannot change during the lifetime of the socket. TCP and WebSocket sockets are supported.
 //
 // Connecting to a socket can be done through the `open()` method. This takes a dictionary that,
 // at the very least, must contain the `ip` and `port` fields. Optionally a `timeout` can be
@@ -25,9 +25,6 @@ namespace bindings {
 //    `ip`       The IP address that the socket should be opened to.
 //    `port`     The port number (1-65535) that the socket should be opened to.
 //    `timeout`  Timeout, in seconds, to wait for the socket's connection to succeed.
-//
-// ** Options for TCP sockets
-//
 //    `ssl`      Whether the connection should use SSL. Must be one of the following constants:
 //               "none" | "auto" | "ssl" | "tls" | "tlsv11" | "tlsv12" | "tlsv13"
 //

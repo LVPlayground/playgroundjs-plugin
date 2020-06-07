@@ -20,6 +20,8 @@ bool ParseSocketProtocol(v8::Local<v8::Value> value, SocketProtocol* protocol) {
 
   if (string == "tcp")
     *protocol = SocketProtocol::kTCP;
+  else if (string == "websocket")
+    *protocol = SocketProtocol::kWebSocket;
   else
     return false;
 

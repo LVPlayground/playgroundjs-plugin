@@ -12,6 +12,7 @@
 #include "bindings/modules/socket/socket_open_options.h"
 #include "bindings/modules/socket/socket_protocol.h"
 #include "bindings/modules/socket/tcp_socket.h"
+#include "bindings/modules/socket/web_socket.h"
 #include "bindings/promise.h"
 #include "bindings/runtime_operations.h"
 #include "bindings/utilities.h"
@@ -277,6 +278,9 @@ void SocketBindingsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   switch (protocol) {
     case socket::SocketProtocol::kTCP:
       socket = std::make_unique<socket::TcpSocket>();
+      break;
+    case socket::SocketProtocol::kWebSocket:
+      socket = std::make_unique<socket::WebSocket>();
       break;
   }
 

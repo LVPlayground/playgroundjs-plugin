@@ -35,6 +35,7 @@
     <ClCompile Include="bindings\modules\socket\socket_protocol.cc" />
     <ClCompile Include="bindings\modules\socket\socket_ssl_mode.cc" />
     <ClCompile Include="bindings\modules\socket\tcp_socket.cc" />
+    <ClCompile Include="bindings\modules\socket\web_socket.cc" />
     <ClCompile Include="bindings\modules\socket_module.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer_test.cc" />
@@ -96,6 +97,7 @@
     <ClInclude Include="bindings\modules\socket\socket_protocol.h" />
     <ClInclude Include="bindings\modules\socket\socket_ssl_mode.h" />
     <ClInclude Include="bindings\modules\socket\tcp_socket.h" />
+    <ClInclude Include="bindings\modules\socket\web_socket.h" />
     <ClInclude Include="bindings\modules\socket_module.h" />
     <ClInclude Include="bindings\modules\streamer\streamer.h" />
     <ClInclude Include="bindings\modules\streamer\streamer_delegate.h" />

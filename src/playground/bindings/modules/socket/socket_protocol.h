@@ -11,7 +11,8 @@ namespace bindings {
 namespace socket {
 
 enum class SocketProtocol {
-  kTCP
+  kTCP,
+  kWebSocket
 };
 
 bool ParseSocketProtocol(v8::Local<v8::Value> value, SocketProtocol* protocol);
