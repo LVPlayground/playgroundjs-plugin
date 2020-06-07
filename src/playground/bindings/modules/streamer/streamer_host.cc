@@ -56,6 +56,15 @@ uint32_t StreamerHost::Add(uint32_t streamer_id, float x, float y, float z) {
   return last_entity_id_;
 }
 
+void StreamerHost::Optimise(uint32_t streamer_id) {
+  if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
+    LOG(WARNING) << "Unable to optimise streamer with invalid ID: " << streamer_id;
+    return;
+  }
+
+  CallOnWorkerThread(boost::bind(&StreamerWorker::Optimise, worker_, streamer_id));
+}
+
 bool StreamerHost::Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback) {
   if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
     LOG(WARNING) << "Unable to stream streamer with invalid ID: " << streamer_id;

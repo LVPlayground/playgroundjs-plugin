@@ -180,6 +180,15 @@ void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   arguments.GetReturnValue().Set(entity_id);
 }
 
+// void Streamer.prototype.optimise()
+void StreamerOptimiseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
+  if (!instance)
+    return;
+
+  GetHost()->Optimise(instance->streamer_id());
+}
+
 // void Streamer.prototype.delete(number entityId)
 void StreamerDeleteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
@@ -241,6 +250,7 @@ void StreamerModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
   prototype_template->Set(v8String("add"), v8::FunctionTemplate::New(isolate, StreamerAddCallback));
+  prototype_template->Set(v8String("optimise"), v8::FunctionTemplate::New(isolate, StreamerOptimiseCallback));
   prototype_template->Set(v8String("delete"), v8::FunctionTemplate::New(isolate, StreamerDeleteCallback));
   prototype_template->Set(v8String("stream"), v8::FunctionTemplate::New(isolate, StreamerStreamCallback));
 

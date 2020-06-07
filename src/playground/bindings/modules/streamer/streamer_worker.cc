@@ -22,6 +22,10 @@ void StreamerWorker::Add(uint32_t streamer_id, uint32_t entity_id, float x, floa
   LOG(INFO) << __FUNCTION__;
 }
 
+void StreamerWorker::Optimise(uint32_t streamer_id) {
+  LOG(INFO) << __FUNCTION__;
+}
+
 void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
   LOG(INFO) << __FUNCTION__;
 }

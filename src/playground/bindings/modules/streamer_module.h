@@ -18,6 +18,7 @@ namespace bindings {
 //     static setTrackedPlayers(Set playerIds);
 //
 //     number add(number x, number y, number z);
+//     void optimise();
 //     void delete(number entityId)
 //
 //     Promise<sequence<number>> stream();

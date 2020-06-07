@@ -29,6 +29,9 @@ class StreamerWorker {
   // Adds a new entity to the streamer with the given |x|, |y| and |z| coordinates.
   void Add(uint32_t streamer_id, uint32_t entity_id, float x, float y, float z);
 
+  // Requests the streamer plane to be optimised. Useful after adding a lot of entries.
+  void Optimise(uint32_t streamer_id);
+
   // Called when there are |updates| in regards the the to-be-considered players, their positions,
   // interior Ids and virtual worlds. Will be stored for the next streamer update.
   void Update(std::vector<StreamerUpdate> updates);
