@@ -163,7 +163,7 @@ Runtime::Runtime(Delegate* runtime_delegate,
   timer_queue_.reset(new TimerQueue(this));
 
   streamer_host_ = std::make_unique<streamer::StreamerHost>(
-      main_thread_io_context_, background_io_context_);
+      plugin_controller, main_thread_io_context_, background_io_context_);
 
   source_directory_ = base::FilePath::CurrentDirectory().Append("javascript");
 }
