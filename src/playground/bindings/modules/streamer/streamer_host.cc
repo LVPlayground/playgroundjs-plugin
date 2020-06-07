@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 #include "base/time.h"
+#include "bindings/modules/streamer/streamer_worker.h"
 #include "plugin/plugin_controller.h"
 
 namespace bindings {
@@ -23,12 +24,19 @@ StreamerHost::StreamerHost(plugin::PluginController* plugin_controller,
     : plugin_controller_(plugin_controller),
       main_thread_io_context_(main_thread_io_context),
       background_thread_io_context_(background_thread_io_context),
+      worker_(std::make_shared<StreamerWorker>(main_thread_io_context)),
       last_update_time_(base::monotonicallyIncreasingTime()) {}
 
 StreamerHost::~StreamerHost() = default;
 
+// -----------------------------------------------------------------------------------------------
+
+
+
+// -----------------------------------------------------------------------------------------------
+
 void StreamerHost::OnFrame(double current_time) {
-  if ((current_time - last_update_time_) < kStreamerUpdateIntervalMs)
+  if ((current_time - last_update_time_) > kStreamerUpdateIntervalMs)
     return;
 
   last_update_time_ = current_time;
@@ -36,6 +44,12 @@ void StreamerHost::OnFrame(double current_time) {
 
 void StreamerHost::SetTrackedPlayers(std::set<uint16_t> tracked_players) {
   tracked_players_ = std::move(tracked_players);
+}
+
+// -----------------------------------------------------------------------------------------------
+
+void StreamerHost::CallOnWorkerThread(boost::function<void()> function) {
+  background_thread_io_context_.post(function);
 }
 
 void StreamerHost::GetPlayerPosition(uint32_t playerid, float** position) const {

@@ -7,5 +7,14 @@
 namespace bindings {
 namespace streamer {
 
+StreamerWorker::StreamerWorker(boost::asio::io_context& main_thread_io_context)
+    : main_thread_io_context_(main_thread_io_context) {}
+
+StreamerWorker::~StreamerWorker() = default;
+
+void StreamerWorker::CallOnMainThread(boost::function<void()> function) {
+  main_thread_io_context_.post(function);
+}
+
 }  // namespace streamer
 }  // namespace bindings

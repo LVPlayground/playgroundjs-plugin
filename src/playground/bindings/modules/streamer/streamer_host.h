@@ -6,6 +6,8 @@
 #define PLAYGROUND_BINDINGS_MODULES_STREAMER_STREAMER_HOST_H_
 
 #include <boost/asio.hpp>
+#include <boost/function.hpp>
+#include <memory>
 #include <set>
 
 #include "base/macros.h"
@@ -17,6 +19,8 @@ class PluginController;
 namespace bindings {
 namespace streamer {
 
+class StreamerWorker;
+
 // Host interface for the Streamer. Owned by the Runtime, accessed by both the Runtime and the
 // StreamerModule based on the operation that has to take place. Queues work for the StreamerWorker,
 // which runs on a background thread for performance reasons.
@@ -27,6 +31,12 @@ class StreamerHost {
                boost::asio::io_context& background_thread_io_context);
   ~StreamerHost();
 
+  // -----------------------------------------------------------------------------------------------
+
+
+
+  // -----------------------------------------------------------------------------------------------
+
   // Called for every frame on the server. The host will gather positions of all online players at
   // a particular cadence to be able to better understand positions.
   void OnFrame(double current_time);
@@ -36,6 +46,10 @@ class StreamerHost {
   void SetTrackedPlayers(std::set<uint16_t> tracked_players);
 
  private:
+  // Calls the given |function| on the worker thread. All methods called on the StreamerWorker class
+  // beyond the constructor must be called on that thread for data safety.
+  void CallOnWorkerThread(boost::function<void()> function);
+
   // Utility function to get the position of the given |playerid|. The |position| pointer must point
   // to an array being able to hold at least three floating point values.
   void GetPlayerPosition(uint32_t playerid, float** position) const;
@@ -50,6 +64,8 @@ class StreamerHost {
 
   boost::asio::io_context& main_thread_io_context_;
   boost::asio::io_context& background_thread_io_context_;
+
+  std::shared_ptr<StreamerWorker> worker_;
 
   std::set<uint16_t> tracked_players_;
 
