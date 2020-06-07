@@ -1,74 +1,48 @@
-// Copyright 2016 Las Venturas Playground. All rights reserved.
+// Copyright 2020 Las Venturas Playground. All rights reserved.
 // Use of this source code is governed by the MIT license, a copy of which can
 // be found in the LICENSE file.
 
 #ifndef PLAYGROUND_BINDINGS_MODULES_STREAMER_STREAMER_H_
 #define PLAYGROUND_BINDINGS_MODULES_STREAMER_STREAMER_H_
 
-#include "base/macros.h"
-
-#include <iostream>
-#include <boost/geometry/index/rtree.hpp>
-#include <memory>
+#include <set>
 #include <stdint.h>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
+#include "base/macros.h"
+#include "bindings/modules/streamer/streamer_update.h"
+
+namespace bindings {
 namespace streamer {
 
-// Implementation of the streamer. Takes commands from and delivers results to JavaScript through
-// the bindings provided by the module code.
+// Encapsulates an individual streamer. Fully lives on the background thread, and does not have
+// to worry about thread safety at all.
 class Streamer {
-public:
-  Streamer(uint32_t max_visible, double stream_distance);
-  virtual ~Streamer();
+ public:
+  Streamer(uint16_t max_visible, uint16_t max_distance);
+  ~Streamer();
 
-  // Adds the entity identified by |id| to the tree, with the given parameters.
-  void Add(uint32_t id, double x, double y, double z);
+  // Adds the given |entity_id| at the given |x|, |y|, |z| coordinates to this streamer.
+  void Add(uint32_t entity_id, float x, float y, float z);
 
-  // Optimises the streamer by recreating it using the packing algorithm. Should be done after
-  // inserting any substantial amount of entities randomly throughout the tree.
+  // Optimises the streaming plane by request of the JavaScript code.
   void Optimise();
 
-  // Streams the entities stored in this streamer, returning the |max_visible| closest entities
-  // to the given point that are within |stream_distance|.
-  const std::vector<uint32_t>& Stream(uint32_t visible, double x, double y, double z) const;
+  // Streams all entities part of this streamer given the |updates|. Returns a set with all the
+  // entity IDs that should be present in the world.
+  std::set<uint32_t> Stream(const std::vector<StreamerUpdate>& updates);
 
-  // Deletes the entity identified by |id| from the tree.
-  void Delete(uint32_t id);
+  // Deletes the entity identified by the given |entity_id| from this streamer.
+  void Delete(uint32_t entity_id);
 
-  // Deletes all entities from the tree.
-  void Clear();
-
-  // Returns the number of entities that have been added to the tree.
-  size_t size() const { return entities_.size(); }
-
-private:
-  // Type representing a 3D point in the tree. Must be Boost indexable.
-  using Point = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;
-
-  // Parameters of the tree that will be used to represent the streaming entities. We use an R* tree
-  // with a maximum node count of sixteen. Insertion time is sacrificed for query time.
-  using TreeValue = std::pair<Point, uint32_t>;
-  using TreeType = boost::geometry::index::rstar<32, 16>;
-  using Tree = boost::geometry::index::rtree<TreeValue, TreeType>;
-
-  // The maximum distance from the streaming point selected entities may be.
-  double stream_distance_;
-
-  // The tree that stores the entities created on the plane.
-  Tree tree_;
-
-  // Mapping of the created entities, by their id, to the point they represent.
-  std::unordered_map<uint32_t, Point> entities_;
-
-  // Vector that will be reused to return the results of a streaming operation.
-  mutable std::vector<uint32_t> results_;
+ private:
+  uint16_t max_visible_;
+  uint16_t max_distance_;
 
   DISALLOW_COPY_AND_ASSIGN(Streamer);
 };
 
 }  // namespace streamer
+}  // namespace bindings
 
 #endif  // PLAYGROUND_BINDINGS_MODULES_STREAMER_STREAMER_H_

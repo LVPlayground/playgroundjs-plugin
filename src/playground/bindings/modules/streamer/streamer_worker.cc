@@ -4,7 +4,10 @@
 
 #include "bindings/modules/streamer/streamer_worker.h"
 
+#include <boost/bind/bind.hpp>
+
 #include "base/logging.h"
+#include "bindings/modules/streamer/streamer.h"
 
 namespace bindings {
 namespace streamer {
@@ -15,35 +18,43 @@ StreamerWorker::StreamerWorker(boost::asio::io_context& main_thread_io_context)
 StreamerWorker::~StreamerWorker() = default;
 
 void StreamerWorker::Initialize(uint32_t streamer_id, uint16_t max_visible, uint16_t max_distance) {
-  LOG(INFO) << __FUNCTION__;
+  streamers_.insert({ streamer_id, std::make_unique<Streamer>(max_visible, max_distance) });
 }
 
 void StreamerWorker::Add(uint32_t streamer_id, uint32_t entity_id, float x, float y, float z) {
-  LOG(INFO) << __FUNCTION__;
+  auto iterator = streamers_.find(streamer_id);
+  if (iterator != streamers_.end())
+    iterator->second->Add(entity_id, x, y, z);
 }
 
 void StreamerWorker::Optimise(uint32_t streamer_id) {
-  LOG(INFO) << __FUNCTION__;
+  auto iterator = streamers_.find(streamer_id);
+  if (iterator != streamers_.end())
+    iterator->second->Optimise();
 }
 
 void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
-  LOG(INFO) << __FUNCTION__;
+  latest_update_ = std::move(updates);
 }
 
 void StreamerWorker::Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback) {
-  LOG(INFO) << __FUNCTION__;
+  std::set<uint32_t> entities;
+
+  auto iterator = streamers_.find(streamer_id);
+  if (iterator != streamers_.end())
+    entities = iterator->second->Stream(latest_update_);
+
+  main_thread_io_context_.post(boost::bind(callback, std::move(entities)));
 }
 
 void StreamerWorker::Delete(uint32_t streamer_id, uint32_t entity_id) {
-  LOG(INFO) << __FUNCTION__;
+  auto iterator = streamers_.find(streamer_id);
+  if (iterator != streamers_.end())
+    iterator->second->Delete(entity_id);
 }
 
 void StreamerWorker::DeleteAll(uint32_t streamer_id) {
-  LOG(INFO) << __FUNCTION__;
-}
-
-void StreamerWorker::CallOnMainThread(boost::function<void()> function) {
-  main_thread_io_context_.post(function);
+  streamers_.erase(streamer_id);
 }
 
 }  // namespace streamer

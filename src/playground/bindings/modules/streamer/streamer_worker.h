@@ -7,7 +7,9 @@
 
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <memory>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "base/macros.h"
@@ -15,6 +17,8 @@
 
 namespace bindings {
 namespace streamer {
+
+class Streamer;
 
 // Worker for the streamer system. Runs on a background thread. Receives several signals from the
 // host, particularly in regards to data manipulation. Data updates can be requested asynchronously.
@@ -47,11 +51,10 @@ class StreamerWorker {
   void DeleteAll(uint32_t streamer_id);
 
  private:
-  // Calls the given |function| on the main thread. All responses and callbacks must be invoked on
-  // the main thread as that's where V8 and the rest of the PlaygroundJS plugin code lives.
-  void CallOnMainThread(boost::function<void()> function);
-
   boost::asio::io_context& main_thread_io_context_;
+
+  std::vector<StreamerUpdate> latest_update_;
+  std::unordered_map<uint32_t, std::unique_ptr<Streamer>> streamers_;
 
   DISALLOW_COPY_AND_ASSIGN(StreamerWorker);
 };
