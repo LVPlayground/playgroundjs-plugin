@@ -150,9 +150,6 @@
     <ClCompile Include="bindings\modules\streamer\streamer.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\modules\streamer\streamer_test.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bindings\profiler.cc">
       <Filter>Source Files</Filter>
     </ClCompile>

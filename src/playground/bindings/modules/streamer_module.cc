@@ -4,11 +4,12 @@
 
 #include "bindings/modules/streamer_module.h"
 
+#include <boost/bind/bind.hpp>
+#include <boost/lambda/bind.hpp>
 #include <set>
 
 #include "base/logging.h"
 #include "base/macros.h"
-#include "bindings/modules/streamer/streamer.h"
 #include "bindings/modules/streamer/streamer_host.h"
 #include "bindings/promise.h"
 #include "bindings/utilities.h"
@@ -17,13 +18,20 @@ namespace bindings {
 
 namespace {
 
-// Bindings class bridging between the JavaScript streamer object and the 
-class StreamerBindings : public ::streamer::Streamer {
- public:
-   StreamerBindings(uint32_t max_visible, double stream_distance)
-       : Streamer(max_visible, stream_distance) {}
+streamer::StreamerHost* GetHost() {
+  return Runtime::FromIsolate(v8::Isolate::GetCurrent())->GetStreamerHost();
+}
 
-   ~StreamerBindings() override {}
+// Bindings class holding state for a Streamer instance.
+class StreamerBindings {
+ public:
+   StreamerBindings(uint16_t max_visible, uint16_t max_distance)
+       : streamer_id_(GetHost()->CreateStreamer(max_visible, max_distance)) {}
+
+   ~StreamerBindings() = default;
+
+   // Gets the unique streamer ID that's represented by this object.
+   uint32_t streamer_id() const { return streamer_id_; }
 
   // Installs a weak reference to |object|, which is the JavaScript object that owns this instance.
   // A callback will be used to determine when it has been collected, so we can free up resources.
@@ -37,8 +45,12 @@ class StreamerBindings : public ::streamer::Streamer {
   static void OnGarbageCollected(const v8::WeakCallbackInfo<StreamerBindings>& data) {
     StreamerBindings* instance = data.GetParameter();
     instance->object_.Reset();
+
+    GetHost()->DeleteStreamer(instance->streamer_id());
     delete instance;
   }
+
+  uint32_t streamer_id_;
 
   v8::Persistent<v8::Object> object_;
 
@@ -105,15 +117,15 @@ void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
     return;
   }
 
-  uint32_t max_visible = 0;
-  double stream_distance = 300;
+  uint16_t max_visible = 0;
+  uint16_t max_distance = 300;
 
   if (!arguments[0]->IsNumber()) {
     ThrowException("unable to construct Streamer: expected a number for the first argument.");
     return;
   }
 
-  max_visible = arguments[0]->Uint32Value(context).ToChecked();
+  max_visible = static_cast<uint16_t>(arguments[0]->Uint32Value(context).ToChecked());
 
   if (arguments.Length() >= 2) {
     if (!arguments[1]->IsNumber()) {
@@ -121,16 +133,16 @@ void StreamerConstructorCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
       return;
     }
 
-    stream_distance = arguments[1]->NumberValue(context).ToChecked();
+    max_distance = static_cast<uint16_t>(arguments[1]->Uint32Value(context).ToChecked());
   }
 
-  StreamerBindings* instance = new StreamerBindings(max_visible, stream_distance);
+  StreamerBindings* instance = new StreamerBindings(max_visible, max_distance);
   instance->WeakBind(v8::Isolate::GetCurrent(), arguments.Holder());
 
   arguments.Holder()->SetAlignedPointerInInternalField(0, instance);
 }
 
-// void Streamer.prototype.add(unsigned id, double x, double y, double z)
+// number Streamer.prototype.add(number x, number y, number z)
 void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
@@ -138,8 +150,8 @@ void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   if (!instance)
     return;
 
-  if (arguments.Length() < 4) {
-    ThrowException("unable to call add(): 4 argument required, but only " +
+  if (arguments.Length() < 3) {
+    ThrowException("unable to call add(): 3 argument required, but only " +
                    std::to_string(arguments.Length()) + " provided.");
     return;
   }
@@ -159,27 +171,16 @@ void StreamerAddCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
     return;
   }
 
-  if (!arguments[3]->IsNumber()) {
-    ThrowException("unable to call add(): expected a number for the fourth argument.");
-    return;
-  }
+  uint32_t entity_id = GetHost()->Add(
+      instance->streamer_id(),
+      static_cast<float>(arguments[0]->NumberValue(context).ToChecked()),
+      static_cast<float>(arguments[1]->NumberValue(context).ToChecked()),
+      static_cast<float>(arguments[2]->NumberValue(context).ToChecked()));
 
-  instance->Add(arguments[0]->Uint32Value(context).ToChecked(),  // id
-                arguments[1]->NumberValue(context).ToChecked(),  // x
-                arguments[2]->NumberValue(context).ToChecked(),  // y
-                arguments[3]->NumberValue(context).ToChecked()); // z
+  arguments.GetReturnValue().Set(entity_id);
 }
 
-// void Streamer.prototype.optimise()
-void StreamerOptimiseCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
-  if (!instance)
-    return;
-
-  instance->Optimise();
-}
-
-// void Streamer.prototype.delete(unsigned id)
+// void Streamer.prototype.delete(number entityId)
 void StreamerDeleteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
@@ -197,19 +198,10 @@ void StreamerDeleteCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
     return;
   }
 
-  instance->Delete(arguments[0]->Uint32Value(context).ToChecked());
+  GetHost()->Delete(instance->streamer_id(), arguments[0]->Uint32Value(context).ToChecked());
 }
 
-// void Streamer.prototype.clear()
-void StreamerClearCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
-  StreamerBindings* instance = GetInstanceFromObject(arguments.Holder());
-  if (!instance)
-    return;
-
-  instance->Clear();
-}
-
-// Promise<sequence<unsigned>> Streamer.prototype.stream(number visible, double x, double y, double z)
+// Promise<sequence<unsigned>> Streamer.prototype.stream()
 void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto context = arguments.GetIsolate()->GetCurrentContext();
 
@@ -217,64 +209,26 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   if (!instance)
     return;
 
-  if (arguments.Length() < 4) {
-    ThrowException("unable to call stream(): 4 argument required, but only " +
-                   std::to_string(arguments.Length()) + " provided.");
-    return;
-  }
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
 
-  if (!arguments[0]->IsNumber() || !arguments[0]->IsUint32()) {
-    ThrowException("unable to call add(): expected a positive integer for the first argument.");
-    return;
-  }
+  bool result = GetHost()->Stream(
+      instance->streamer_id(),
+      boost::lambda::bind([](std::shared_ptr<Promise> promise, std::set<uint32_t> entities) {
+        
 
-  if (!arguments[1]->IsNumber()) {
-    ThrowException("unable to call add(): expected a number for the second argument.");
-    return;
-  }
-
-  if (!arguments[2]->IsNumber()) {
-    ThrowException("unable to call add(): expected a number for the third argument.");
-    return;
-  }
-
-  if (!arguments[3]->IsNumber()) {
-    ThrowException("unable to call add(): expected a number for the first argument.");
-    return;
-  }
-
-  Promise promise;
+      }, promise, boost::lambda::_1));
   
-  const auto& results = instance->Stream(arguments[0]->Uint32Value(context).ToChecked(),  // visible
-                                         arguments[1]->NumberValue(context).ToChecked(),  // x
-                                         arguments[2]->NumberValue(context).ToChecked(),  // y
-                                         arguments[3]->NumberValue(context).ToChecked()); // z
+  if (!result)
+    promise->Reject(v8::Exception::TypeError(v8String("The streamer has been deleted.")));
 
-  v8::Isolate* isolate = v8::Isolate::GetCurrent();
-  v8::Local<v8::Array> id_array = v8::Array::New(isolate, results.size());
-
-  for (size_t i = 0; i < results.size(); ++i)
-    id_array->Set(context, i, v8::Number::New(isolate, static_cast<double>(results[i])));
-
-  promise.Resolve(id_array);
-
-  arguments.GetReturnValue().Set(promise.GetPromise());
-}
-
-// Streamer.prototype.size
-void StreamerSizeGetter(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) {
-  StreamerBindings* instance = GetInstanceFromObject(info.This());
-  if (!instance)
-    return;
-
-  info.GetReturnValue().Set(instance->size());
+  arguments.GetReturnValue().Set(promise->GetPromise());
 }
 
 }  // namespace
 
-StreamerModule::StreamerModule() {}
+StreamerModule::StreamerModule() = default;
 
-StreamerModule::~StreamerModule() {}
+StreamerModule::~StreamerModule() = default;
 
 void StreamerModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   v8::Isolate* isolate = v8::Isolate::GetCurrent();
@@ -287,12 +241,8 @@ void StreamerModule::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
 
   v8::Local<v8::ObjectTemplate> prototype_template = function_template->PrototypeTemplate();
   prototype_template->Set(v8String("add"), v8::FunctionTemplate::New(isolate, StreamerAddCallback));
-  prototype_template->Set(v8String("optimise"), v8::FunctionTemplate::New(isolate, StreamerOptimiseCallback));
   prototype_template->Set(v8String("delete"), v8::FunctionTemplate::New(isolate, StreamerDeleteCallback));
-  prototype_template->Set(v8String("clear"), v8::FunctionTemplate::New(isolate, StreamerClearCallback));
   prototype_template->Set(v8String("stream"), v8::FunctionTemplate::New(isolate, StreamerStreamCallback));
-
-  prototype_template->SetAccessor(v8String("ready"), StreamerSizeGetter);
 
   global->Set(v8String("Streamer"), function_template);
 }

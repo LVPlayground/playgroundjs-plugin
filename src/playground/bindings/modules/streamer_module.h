@@ -17,19 +17,14 @@ namespace bindings {
 // interface Streamer {
 //     static setTrackedPlayers(Set playerIds);
 //
-//     void add(unsigned id, double x, double y, double z);
-//     void delete(unsigned id);
+//     number add(number x, number y, number z);
+//     void delete(number entityId)
 //
-//     Promise<sequence<unsigned>> stream(number visible, double x, double y, double z);
-//
-//     void optimise();
-//     void clear();
-//
-//     readonly attribute unsigned size;
+//     Promise<sequence<number>> stream();
 // };
 //
 // The Streamer interface should only rarely be used directly. Instead, use the slightly higher-
-// level implementations available in //components/streamer/.
+// level implementations available in //features/streamer/.
 class StreamerModule {
 public:
   StreamerModule();
