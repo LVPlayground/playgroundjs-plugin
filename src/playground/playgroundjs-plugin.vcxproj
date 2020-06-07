@@ -38,7 +38,9 @@
     <ClCompile Include="bindings\modules\socket\web_socket.cc" />
     <ClCompile Include="bindings\modules\socket_module.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer.cc" />
+    <ClCompile Include="bindings\modules\streamer\streamer_host.cc" />
     <ClCompile Include="bindings\modules\streamer\streamer_test.cc" />
+    <ClCompile Include="bindings\modules\streamer\streamer_worker.cc" />
     <ClCompile Include="bindings\modules\streamer_module.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_client.cc" />
     <ClCompile Include="bindings\modules\mysql\connection_host.cc" />
@@ -100,7 +102,8 @@
     <ClInclude Include="bindings\modules\socket\web_socket.h" />
     <ClInclude Include="bindings\modules\socket_module.h" />
     <ClInclude Include="bindings\modules\streamer\streamer.h" />
-    <ClInclude Include="bindings\modules\streamer\streamer_delegate.h" />
+    <ClInclude Include="bindings\modules\streamer\streamer_host.h" />
+    <ClInclude Include="bindings\modules\streamer\streamer_worker.h" />
     <ClInclude Include="bindings\modules\streamer_module.h" />
     <ClInclude Include="bindings\modules\mysql\connection_client.h" />
     <ClInclude Include="bindings\modules\mysql\connection_delegate.h" />

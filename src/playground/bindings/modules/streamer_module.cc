@@ -15,7 +15,7 @@ namespace bindings {
 namespace {
 
 // Bindings class bridging between the JavaScript streamer object and the 
-class StreamerBindings : public streamer::Streamer {
+class StreamerBindings : public ::streamer::Streamer {
  public:
    StreamerBindings(uint32_t max_visible, double stream_distance)
        : Streamer(max_visible, stream_distance) {}

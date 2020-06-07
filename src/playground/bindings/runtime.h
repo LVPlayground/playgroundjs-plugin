@@ -30,6 +30,10 @@ class Profiler;
 class RuntimeModulator;
 class TimerQueue;
 
+namespace streamer {
+class StreamerHost;
+}
+
 // The runtime class represents a v8 virtual machine. It must be externally owned, but additional
 // references may be retrieved by the v8 Isolate it's keyed on.
 class Runtime {
@@ -170,6 +174,9 @@ class Runtime {
   
   // The server's background thread. Owned by the Runtime instance.
   std::unique_ptr<boost::thread> background_thread_;
+
+  // The streamer host, which will be streaming entities for us.
+  std::unique_ptr<streamer::StreamerHost> streamer_host_;
 
   // Flag indicating whether the JavaScript code has properly loaded.
   bool is_ready_;

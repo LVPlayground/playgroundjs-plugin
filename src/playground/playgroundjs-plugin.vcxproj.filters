@@ -183,6 +183,12 @@
     <ClCompile Include="bindings\modules\socket\web_socket.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bindings\modules\streamer\streamer_host.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="bindings\modules\streamer\streamer_worker.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -347,9 +353,6 @@
     <ClInclude Include="bindings\modules\streamer\streamer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="bindings\modules\streamer\streamer_delegate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bindings\profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -381,6 +384,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\socket\web_socket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\streamer\streamer_host.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bindings\modules\streamer\streamer_worker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

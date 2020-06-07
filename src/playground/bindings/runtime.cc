@@ -18,6 +18,7 @@
 #include "bindings/exception_handler.h"
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
+#include "bindings/modules/streamer/streamer_host.h"
 #include "bindings/profiler.h"
 #include "bindings/runtime_modulator.h"
 #include "bindings/timer_queue.h"
@@ -161,6 +162,9 @@ Runtime::Runtime(Delegate* runtime_delegate,
   profiler_.reset(new Profiler(isolate_));
   timer_queue_.reset(new TimerQueue(this));
 
+  streamer_host_ = std::make_unique<streamer::StreamerHost>(
+      main_thread_io_context_, background_io_context_);
+
   source_directory_ = base::FilePath::CurrentDirectory().Append("javascript");
 }
 
@@ -242,6 +246,8 @@ void Runtime::OnFrame() {
     main_thread_io_context_.restart();
 
   main_thread_io_context_.run_one();
+
+  streamer_host_->OnFrame(current_time);
 
   if (exception_handler_->HasQueuedMessages()) {
     v8::HandleScope handle_scope(isolate_);
