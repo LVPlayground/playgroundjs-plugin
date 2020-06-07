@@ -18,7 +18,15 @@ void StreamerWorker::Initialize(uint32_t streamer_id, uint16_t max_visible, uint
   LOG(INFO) << __FUNCTION__;
 }
 
+void StreamerWorker::Add(uint32_t streamer_id, uint32_t entity_id, float x, float y, float z) {
+  LOG(INFO) << __FUNCTION__;
+}
+
 void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
+  LOG(INFO) << __FUNCTION__;
+}
+
+void StreamerWorker::Delete(uint32_t streamer_id, uint32_t entity_id) {
   LOG(INFO) << __FUNCTION__;
 }
 

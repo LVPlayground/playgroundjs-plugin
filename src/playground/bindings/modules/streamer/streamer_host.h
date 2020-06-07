@@ -37,7 +37,11 @@ class StreamerHost {
   // Creates a new streamer. Returns a globally unique ID for the streamer.
   uint32_t CreateStreamer(uint16_t max_visible, uint16_t max_distance);
 
+  // Adds a new entity to the streamer with the given |x|, |y| and |z| coordinates.
+  uint32_t Add(uint32_t streamer_id, float x, float y, float z);
 
+  // Deletes the entity with the given |entity_id| from the given |streamer_id|.
+  void Delete(uint32_t streamer_id, uint32_t entity_id);
 
   // Deletes the streamer that exists with the given |streamer_id|.
   void DeleteStreamer(uint32_t streamer_id);
@@ -76,6 +80,7 @@ class StreamerHost {
 
   std::set<uint32_t> active_streamer_ids_;
   uint32_t last_streamer_id_ = 0;
+  uint32_t last_entity_id_ = 0;
 
   std::set<uint16_t> tracked_players_;
   bool tracked_players_invalidated_ = false;

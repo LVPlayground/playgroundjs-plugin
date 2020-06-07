@@ -25,9 +25,15 @@ class StreamerWorker {
   // Initializes a plane and general state for a new streamer with the given |streamer_id|.
   void Initialize(uint32_t streamer_id, uint16_t max_visible, uint16_t max_distance);
 
+  // Adds a new entity to the streamer with the given |x|, |y| and |z| coordinates.
+  void Add(uint32_t streamer_id, uint32_t entity_id, float x, float y, float z);
+
   // Called when there are |updates| in regards the the to-be-considered players, their positions,
   // interior Ids and virtual worlds. Will be stored for the next streamer update.
   void Update(std::vector<StreamerUpdate> updates);
+
+  // Deletes the entity with the given |entity_id| from the given |streamer_id|.
+  void Delete(uint32_t streamer_id, uint32_t entity_id);
 
   // Deletes all data associated with the given |streamer_id|.
   void DeleteAll(uint32_t streamer_id);
