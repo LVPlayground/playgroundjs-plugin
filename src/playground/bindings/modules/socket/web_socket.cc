@@ -191,7 +191,19 @@ void WebSocket::OnWrite(WriteCallback write_callback,
   }
 }
 
-void WebSocket::Close(CloseCallback close_callback) {}
+void WebSocket::Close(CloseCallback close_callback) {
+  auto callback =
+      boost::bind(&WebSocket::OnClose, this, close_callback, boost::asio::placeholders::error);
+
+  if (ssl_mode_ == SocketSSLMode::kNone)
+    ws_stream_->async_close(boost::beast::websocket::close_code::normal, callback);
+  else
+    wss_stream_->async_close(boost::beast::websocket::close_code::normal, callback);
+}
+
+void WebSocket::OnClose(CloseCallback close_callback, const boost::system::error_code& ec) {
+  CallOnMainThread(close_callback);
+}
 
 }  // namespace socket
 }  // namespace bindings

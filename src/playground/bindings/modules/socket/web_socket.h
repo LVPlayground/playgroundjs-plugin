@@ -85,6 +85,9 @@ class WebSocket : public BaseSocket {
                const boost::system::error_code& ec,
                std::size_t bytes_transferred);
 
+  // Called when the socket has been closed.
+  void OnClose(CloseCallback close_callback, const boost::system::error_code& ec);
+
   // Level of security that should be applied to the socket.
   SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
 
