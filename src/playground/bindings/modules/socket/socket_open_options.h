@@ -20,10 +20,10 @@ struct SocketOpenOptions {
       : port(-1), timeout(30), ssl(SocketSSLMode::kNone) {}
 
   SocketOpenOptions(SocketOpenOptions&&) = default;
-  SocketOpenOptions(const SocketOpenOptions&) = delete;
+  SocketOpenOptions(const SocketOpenOptions&) = default;
 
   SocketOpenOptions& operator=(SocketOpenOptions&&) = default;
-  SocketOpenOptions& operator=(SocketOpenOptions const&) = delete;
+  SocketOpenOptions& operator=(SocketOpenOptions const&) = default;
 
   std::string host;
   int32_t port;

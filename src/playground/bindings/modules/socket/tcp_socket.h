@@ -39,6 +39,13 @@ class TcpSocket : public BaseSocket {
   // server frames. This is necessary because Socket I/O is done on a background thread.
   void CallOnMainThread(boost::function<void()> function);
 
+  // Called when DNS resolution has finished prior to opening the connection. We might now know
+  // where the connection has to be opened to.
+  void OnResolved(const boost::system::error_code& ec,
+                  boost::asio::ip::tcp::resolver::iterator endpoint_iterator,
+                  SocketOpenOptions options,
+                  OpenCallback open_callback);
+
   // Called when the socket has connected. Sockets with a security context will start performing
   // the handshake, whereas regular, non-secure sockets are hereafter considered active.
   void OnConnected(const boost::system::error_code& ec,
@@ -74,6 +81,9 @@ class TcpSocket : public BaseSocket {
   // The IO Contexts, owned by the bindings Runtime, on which to post tasks.
   boost::asio::io_context& main_thread_io_context_;
   boost::asio::io_context& background_io_context_;
+
+  // The resolver used for resolving DNS, when used rather than an IP address.
+  boost::asio::ip::tcp::resolver resolver_;
 
   // The SSL context to use with this socket.
   std::unique_ptr<boost::asio::ssl::context> boost_ssl_context_;

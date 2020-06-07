@@ -24,6 +24,7 @@ std::shared_ptr<bindings::Runtime> Runtime() {
 TcpSocket::TcpSocket()
     : main_thread_io_context_(Runtime()->main_thread_io_context()),
       background_io_context_(Runtime()->background_io_context()),
+      resolver_(background_io_context_),
       boost_deadline_timer_(background_io_context_),
       boost_tcp_socket_(background_io_context_) {}
 
@@ -34,9 +35,23 @@ void TcpSocket::CallOnMainThread(boost::function<void()> function) {
 }
 
 void TcpSocket::Open(SocketOpenOptions options, OpenCallback open_callback) {
-  boost::asio::ip::tcp::endpoint endpoint{
-      boost::asio::ip::address_v4::from_string(options.host),
-      static_cast<uint16_t>(options.port) };
+  boost::asio::ip::tcp::resolver::query query(options.host, std::to_string(options.port));
+
+  resolver_.async_resolve(
+    query, boost::bind(&TcpSocket::OnResolved, this, boost::asio::placeholders::error,
+                       boost::asio::placeholders::iterator, options, open_callback));
+}
+
+void TcpSocket::OnResolved(const boost::system::error_code& ec,
+                           boost::asio::ip::tcp::resolver::iterator endpoint_iterator,
+                           SocketOpenOptions options,
+                           OpenCallback open_callback) {
+  if (ec) {
+    CallOnMainThread(boost::bind(open_callback, ec));
+    return;
+  }
+
+  boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
 
   ssl_mode_ = options.ssl;
 

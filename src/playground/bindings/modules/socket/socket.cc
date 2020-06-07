@@ -54,6 +54,7 @@ void Socket::Open(SocketOpenOptions options, std::shared_ptr<Promise> promise) {
       break;
   }
 
+  state_ = State::kConnecting;
   engine_->Open(std::move(options), 
                 boost::bind(&Socket::OnConnect, this, boost::asio::placeholders::error, promise));
 }
