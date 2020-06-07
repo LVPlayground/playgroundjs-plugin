@@ -4,6 +4,8 @@
 
 #include "bindings/modules/streamer/streamer_worker.h"
 
+#include "base/logging.h"
+
 namespace bindings {
 namespace streamer {
 
@@ -11,6 +13,10 @@ StreamerWorker::StreamerWorker(boost::asio::io_context& main_thread_io_context)
     : main_thread_io_context_(main_thread_io_context) {}
 
 StreamerWorker::~StreamerWorker() = default;
+
+void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
+  LOG(INFO) << "Updated.";
+}
 
 void StreamerWorker::CallOnMainThread(boost::function<void()> function) {
   main_thread_io_context_.post(function);

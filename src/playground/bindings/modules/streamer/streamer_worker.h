@@ -7,8 +7,10 @@
 
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <vector>
 
 #include "base/macros.h"
+#include "bindings/modules/streamer/streamer_update.h"
 
 namespace bindings {
 namespace streamer {
@@ -19,6 +21,10 @@ class StreamerWorker {
  public:
   explicit StreamerWorker(boost::asio::io_context& main_thread_io_context);
   ~StreamerWorker();
+
+  // Called when there are |updates| in regards the the to-be-considered players, their positions,
+  // interior Ids and virtual worlds. Will be stored for the next streamer update.
+  void Update(std::vector<StreamerUpdate> updates);
 
  private:
   // Calls the given |function| on the main thread. All responses and callbacks must be invoked on

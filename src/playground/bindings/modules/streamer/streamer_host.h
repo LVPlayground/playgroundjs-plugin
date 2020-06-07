@@ -68,6 +68,7 @@ class StreamerHost {
   std::shared_ptr<StreamerWorker> worker_;
 
   std::set<uint16_t> tracked_players_;
+  bool tracked_players_invalidated_ = false;
 
   double last_update_time_;
 

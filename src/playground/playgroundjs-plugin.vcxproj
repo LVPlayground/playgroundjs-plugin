@@ -103,6 +103,7 @@
     <ClInclude Include="bindings\modules\socket_module.h" />
     <ClInclude Include="bindings\modules\streamer\streamer.h" />
     <ClInclude Include="bindings\modules\streamer\streamer_host.h" />
+    <ClInclude Include="bindings\modules\streamer\streamer_update.h" />
     <ClInclude Include="bindings\modules\streamer\streamer_worker.h" />
     <ClInclude Include="bindings\modules\streamer_module.h" />
     <ClInclude Include="bindings\modules\mysql\connection_client.h" />

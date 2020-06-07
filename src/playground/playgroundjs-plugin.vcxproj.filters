@@ -392,5 +392,8 @@
     <ClInclude Include="bindings\modules\streamer\streamer_worker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="bindings\modules\streamer\streamer_update.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

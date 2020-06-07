@@ -4,8 +4,12 @@
 
 #include "bindings/modules/streamer/streamer_host.h"
 
+#include <boost/bind/bind.hpp>
+#include <vector>
+
 #include "base/logging.h"
 #include "base/time.h"
+#include "bindings/modules/streamer/streamer_update.h"
 #include "bindings/modules/streamer/streamer_worker.h"
 #include "plugin/plugin_controller.h"
 
@@ -40,10 +44,28 @@ void StreamerHost::OnFrame(double current_time) {
     return;
 
   last_update_time_ = current_time;
+
+  std::vector<StreamerUpdate> updates;
+  for (uint16_t playerid : tracked_players_) {
+    StreamerUpdate update;
+
+    GetPlayerPosition(playerid, (float**) &update.position);
+
+    update.interior = GetPlayerInteriorId(playerid);
+    update.virtual_world = GetPlayerVirtualWorld(playerid);
+
+    updates.emplace_back(std::move(update));
+  }
+
+  if (updates.size() || tracked_players_invalidated_)
+    CallOnWorkerThread(boost::bind(&StreamerWorker::Update, worker_, updates));
+
+  tracked_players_invalidated_ = false;
 }
 
 void StreamerHost::SetTrackedPlayers(std::set<uint16_t> tracked_players) {
   tracked_players_ = std::move(tracked_players);
+  tracked_players_invalidated_ = true;
 }
 
 // -----------------------------------------------------------------------------------------------
