@@ -8,9 +8,6 @@
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 
-#include <boost/beast.hpp>
-#include <boost/beast/ssl.hpp>
-
 namespace bindings {
 namespace socket {
 
@@ -25,7 +22,8 @@ std::shared_ptr<bindings::Runtime> Runtime() {
 WebSocket::WebSocket()
     : main_thread_io_context_(Runtime()->main_thread_io_context()),
       background_io_context_(Runtime()->background_io_context()),
-      resolver_(background_io_context_) {}
+      resolver_(background_io_context_),
+      boost_deadline_timer_(background_io_context_) {}
 
 WebSocket::~WebSocket() = default;
 
@@ -53,12 +51,83 @@ void WebSocket::OnResolved(const boost::system::error_code& ec,
   boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
 
   ssl_mode_ = options.ssl;
-
   if (ssl_mode_ != SocketSSLMode::kNone) {
     boost_ssl_context_ = CreateSecureContext(ssl_mode_);
+
+    wss_stream_ = std::make_unique<WssSocketType>(background_io_context_, *boost_ssl_context_);
+    wss_stream_->next_layer().next_layer().async_connect(
+        endpoint, boost::bind(&WebSocket::OnSecureConnected, this, boost::asio::placeholders::error,
+                              options, open_callback));
+  } else {
+    ws_stream_ = std::make_unique<WsSocketType>(background_io_context_);
+    ws_stream_->next_layer().async_connect(
+        endpoint, boost::bind(&WebSocket::OnConnected, this, boost::asio::placeholders::error,
+                              options, open_callback));
   }
 
-  LOG(INFO) << __FUNCTION__;
+  // Regardless of security mode, set a timer for the attempt to time out.
+  boost_deadline_timer_.expires_from_now(boost::posix_time::seconds(options.timeout));
+  boost_deadline_timer_.async_wait(
+      boost::bind(&WebSocket::OnConnectionTimeout, this, boost::asio::placeholders::error,
+                  open_callback));
+}
+
+void WebSocket::OnSecureConnected(const boost::system::error_code& ec,
+                                  SocketOpenOptions options,
+                                  OpenCallback open_callback) {
+  if (ec) {
+    boost_deadline_timer_.cancel();
+    CallOnMainThread(boost::bind(open_callback, ec));
+    return;
+  }
+
+  wss_stream_->next_layer().async_handshake(
+      boost::asio::ssl::stream_base::client,
+      boost::bind(&WebSocket::OnConnected, this, boost::asio::placeholders::error, options,
+                  open_callback));
+}
+
+void WebSocket::OnConnected(const boost::system::error_code& ec,
+                            SocketOpenOptions options,
+                            OpenCallback open_callback) {
+  if (ec) {
+    boost_deadline_timer_.cancel();
+    CallOnMainThread(boost::bind(open_callback, ec));
+    return;
+  }
+
+  if (ssl_mode_ != SocketSSLMode::kNone) {
+    wss_stream_->async_handshake(
+        options.host, options.path,
+        boost::bind(&WebSocket::OnHandshakeCompleted, this, boost::asio::placeholders::error,
+                    open_callback));
+  } else {
+    ws_stream_->async_handshake(
+        options.host, options.path,
+        boost::bind(&WebSocket::OnHandshakeCompleted, this, boost::asio::placeholders::error,
+                    open_callback));
+  }
+}
+
+void WebSocket::OnHandshakeCompleted(const boost::system::error_code& ec,
+  OpenCallback open_callback) {
+  boost_deadline_timer_.cancel();
+  CallOnMainThread(boost::bind(open_callback, ec));
+}
+
+void WebSocket::OnConnectionTimeout(const boost::system::error_code& ec,
+                                    OpenCallback open_callback) {
+  if (ec.value() == boost::asio::error::operation_aborted)
+    return;  // the timer was cancelled
+
+  // Forcefully close the socket to make sure that the active connection attempt has been stopped
+  // as well. This also solves a potential issue where the Promise gets resolved twice.
+  if (ssl_mode_ == SocketSSLMode::kNone)
+    ws_stream_->close(boost::beast::websocket::close_code::none);
+  else
+    wss_stream_->close(boost::beast::websocket::close_code::none);
+
+  CallOnMainThread(boost::bind(open_callback, boost::asio::error::timed_out));
 }
 
 void WebSocket::Read(ReadCallback read_callback, ErrorCallback error_callback) {}

@@ -72,6 +72,9 @@ bool ParseSocketOpenOptions(v8::Local<v8::Value> value, SocketOpenOptions* optio
     return false;
   }
 
+  if (!ReadStringFromObject(context, dict, "path", &options->path))
+    options->path = "/";
+
   if (!ReadNumberFromObject(context, dict, "port", &options->port)) {
     ThrowException("unable to call open(): missing or invalid `ip` option.");
     return false;

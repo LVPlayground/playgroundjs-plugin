@@ -22,11 +22,15 @@ namespace bindings {
 //
 // ** Options available for all protocols
 //
-//    `ip`       The IP address that the socket should be opened to.
+//    `host`     Hostname to which the socket should be opened to.
 //    `port`     The port number (1-65535) that the socket should be opened to.
 //    `timeout`  Timeout, in seconds, to wait for the socket's connection to succeed.
 //    `ssl`      Whether the connection should use SSL. Must be one of the following constants:
 //               "none" | "auto" | "ssl" | "tls" | "tlsv11" | "tlsv12" | "tlsv13"
+//
+// ** Options available for WebSocket
+//
+//    `path`     Path (starting with /) for the WebSocket service on the host.
 //
 // Once connected, data may be written by calling the `write()` method, and the connection may be
 // closed by calling the `close()` method. It is valid for multiple `write()` operations to be

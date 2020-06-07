@@ -11,6 +11,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
 
 namespace bindings {
 namespace socket {
@@ -29,6 +31,10 @@ class WebSocket : public BaseSocket {
   void Close(CloseCallback close_callback) override;
 
  private:
+  using WsSocketType = boost::beast::websocket::stream<boost::beast::tcp_stream>;
+  using WssSocketType =
+      boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>;
+
   // Schedules the given |function| to be called on the main thread. Will be aligned with SA-MP
   // server frames. This is necessary because Socket I/O is done on a background thread.
   void CallOnMainThread(boost::function<void()> function);
@@ -39,6 +45,26 @@ class WebSocket : public BaseSocket {
                   boost::asio::ip::tcp::resolver::iterator endpoint_iterator,
                   SocketOpenOptions options,
                   OpenCallback open_callback);
+
+  // Called when the secure socket has connected. Will continue with the SSL handshake to make
+  // sure that we can talk to the remote host in a secure manner.
+  void OnSecureConnected(const boost::system::error_code& ec,
+                         SocketOpenOptions options,
+                         OpenCallback open_callback);
+
+  // Called when a secure connection has been established. Proceeds with the WebSocket handshake
+  // that will issue the HTTP Upgrade call through headers.
+  void OnConnected(const boost::system::error_code& ec,
+                   SocketOpenOptions options,
+                   OpenCallback open_callback);
+
+  // Called when the connection handshake has completed for secure connections. For secured
+  // connections, this signals the point at which the connection is ready for use.
+  void OnHandshakeCompleted(const boost::system::error_code& ec, OpenCallback open_callback);
+
+  // Called when the socket connection has timed out. The method may be called with an |ec| of
+  // operation aborted, which happens when the deadline timer gets cancelled instead.
+  void OnConnectionTimeout(const boost::system::error_code& ec, OpenCallback open_callback);
 
   // Level of security that should be applied to the socket.
   SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
@@ -52,6 +78,13 @@ class WebSocket : public BaseSocket {
 
   // The SSL context to use with this socket.
   std::unique_ptr<boost::asio::ssl::context> boost_ssl_context_;
+
+  // The deadline timer for managing connection timeouts.
+  boost::asio::deadline_timer boost_deadline_timer_;
+
+  // The stream that will be used. Depends on |ssl_mode_| to switch between ws and wss.
+  std::unique_ptr<WsSocketType> ws_stream_;
+  std::unique_ptr<WssSocketType> wss_stream_;
 
   DISALLOW_COPY_AND_ASSIGN(WebSocket);
 };

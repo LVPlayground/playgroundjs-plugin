@@ -26,6 +26,7 @@ struct SocketOpenOptions {
   SocketOpenOptions& operator=(SocketOpenOptions const&) = default;
 
   std::string host;
+  std::string path;
   int32_t port;
   int32_t timeout;
   SocketSSLMode ssl;
