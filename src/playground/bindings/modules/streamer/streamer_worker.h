@@ -7,6 +7,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/function.hpp>
+#include <set>
 #include <vector>
 
 #include "base/macros.h"
@@ -31,6 +32,10 @@ class StreamerWorker {
   // Called when there are |updates| in regards the the to-be-considered players, their positions,
   // interior Ids and virtual worlds. Will be stored for the next streamer update.
   void Update(std::vector<StreamerUpdate> updates);
+
+  // Requests the streamer with the given |streamer_id| to stream. Will call |callback| when the
+  // streaming calculations have finished.
+  void Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback);
 
   // Deletes the entity with the given |entity_id| from the given |streamer_id|.
   void Delete(uint32_t streamer_id, uint32_t entity_id);

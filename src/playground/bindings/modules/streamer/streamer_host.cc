@@ -45,13 +45,33 @@ uint32_t StreamerHost::CreateStreamer(uint16_t max_visible, uint16_t max_distanc
 }
 
 uint32_t StreamerHost::Add(uint32_t streamer_id, float x, float y, float z) {
+  if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
+    LOG(WARNING) << "Unable to add entity to streamer with invalid ID: " << streamer_id;
+    return 0;
+  }
+
   CallOnWorkerThread(boost::bind(&StreamerWorker::Add, worker_, streamer_id, ++last_entity_id_,
                                  x, y, z));
 
   return last_entity_id_;
 }
 
+bool StreamerHost::Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback) {
+  if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
+    LOG(WARNING) << "Unable to stream streamer with invalid ID: " << streamer_id;
+    return false;
+  }
+
+  CallOnWorkerThread(boost::bind(&StreamerWorker::Stream, worker_, streamer_id, callback));
+  return true;
+}
+
 void StreamerHost::Delete(uint32_t streamer_id, uint32_t entity_id) {
+  if (active_streamer_ids_.find(streamer_id) == active_streamer_ids_.end()) {
+    LOG(WARNING) << "Unable to delete entity from streamer with invalid ID: " << streamer_id;
+    return;
+  }
+
   CallOnWorkerThread(boost::bind(&StreamerWorker::Delete, worker_, streamer_id, entity_id));
 }
 

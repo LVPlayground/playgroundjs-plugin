@@ -26,6 +26,10 @@ void StreamerWorker::Update(std::vector<StreamerUpdate> updates) {
   LOG(INFO) << __FUNCTION__;
 }
 
+void StreamerWorker::Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback) {
+  LOG(INFO) << __FUNCTION__;
+}
+
 void StreamerWorker::Delete(uint32_t streamer_id, uint32_t entity_id) {
   LOG(INFO) << __FUNCTION__;
 }

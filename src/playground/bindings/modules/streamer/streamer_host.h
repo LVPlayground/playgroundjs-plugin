@@ -40,6 +40,9 @@ class StreamerHost {
   // Adds a new entity to the streamer with the given |x|, |y| and |z| coordinates.
   uint32_t Add(uint32_t streamer_id, float x, float y, float z);
 
+  // Requests the streamer to stream. Invokes |callback| with visible entities when finished.
+  bool Stream(uint32_t streamer_id, boost::function<void(std::set<uint32_t>)> callback);
+
   // Deletes the entity with the given |entity_id| from the given |streamer_id|.
   void Delete(uint32_t streamer_id, uint32_t entity_id);
 
