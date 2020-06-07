@@ -7,6 +7,7 @@
 
 #include "base/macros.h"
 #include "bindings/modules/socket/base_socket.h"
+#include "bindings/modules/socket/socket_ssl_mode.h"
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
@@ -39,6 +40,8 @@ class WebSocket : public BaseSocket {
                   SocketOpenOptions options,
                   OpenCallback open_callback);
 
+  // Level of security that should be applied to the socket.
+  SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
 
   // The IO Contexts, owned by the bindings Runtime, on which to post tasks.
   boost::asio::io_context& main_thread_io_context_;
@@ -46,6 +49,9 @@ class WebSocket : public BaseSocket {
 
   // The resolver used for resolving DNS, when used rather than an IP address.
   boost::asio::ip::tcp::resolver resolver_;
+
+  // The SSL context to use with this socket.
+  std::unique_ptr<boost::asio::ssl::context> boost_ssl_context_;
 
   DISALLOW_COPY_AND_ASSIGN(WebSocket);
 };

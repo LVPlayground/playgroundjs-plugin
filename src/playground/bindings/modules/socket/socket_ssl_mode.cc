@@ -32,6 +32,35 @@ bool FromString(const std::string& string, SocketSSLMode* mode) {
   return true;
 }
 
+std::unique_ptr<boost::asio::ssl::context> CreateSecureContext(SocketSSLMode mode) {
+  auto method = boost::asio::ssl::context::tls;
+  switch (mode) {
+    case SocketSSLMode::kAuto:
+      method = boost::asio::ssl::context::sslv23;
+      break;
+    case SocketSSLMode::kSSL:
+      method = boost::asio::ssl::context::sslv3;
+      break;
+    case SocketSSLMode::kTLS:
+      method = boost::asio::ssl::context::tls;
+      break;
+    case SocketSSLMode::kTLSv11:
+      method = boost::asio::ssl::context::tlsv11;
+      break;
+    case SocketSSLMode::kTLSv12:
+      method = boost::asio::ssl::context::tlsv12;
+      break;
+    case SocketSSLMode::kTLSv13:
+      method = boost::asio::ssl::context::tlsv13;
+      break;
+  }
+
+  auto context = std::make_unique<boost::asio::ssl::context>(method);
+  context->set_verify_mode(boost::asio::ssl::verify_none);
+
+  return context;
+}
+
 }  // namespace socket
 }  // namespace bindings
 

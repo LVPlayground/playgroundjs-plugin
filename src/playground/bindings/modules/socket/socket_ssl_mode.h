@@ -5,7 +5,10 @@
 #ifndef PLAYGROUND_BINDINGS_MODULES_SOCKET_SOCKET_SSL_MODE_H_
 #define PLAYGROUND_BINDINGS_MODULES_SOCKET_SOCKET_SSL_MODE_H_
 
+#include <memory>
 #include <string>
+
+#include <boost/asio/ssl.hpp>
 
 namespace bindings {
 namespace socket {
@@ -21,6 +24,8 @@ enum class SocketSSLMode {
 };
 
 bool FromString(const std::string& string, SocketSSLMode* mode);
+
+std::unique_ptr<boost::asio::ssl::context> CreateSecureContext(SocketSSLMode mode);
 
 }  // namespace socket
 }  // namespace bindings

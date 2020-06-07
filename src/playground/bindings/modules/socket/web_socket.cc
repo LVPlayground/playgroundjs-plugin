@@ -8,6 +8,9 @@
 #include "bindings/runtime.h"
 #include "bindings/utilities.h"
 
+#include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
+
 namespace bindings {
 namespace socket {
 
@@ -48,6 +51,12 @@ void WebSocket::OnResolved(const boost::system::error_code& ec,
   }
 
   boost::asio::ip::tcp::endpoint endpoint = *endpoint_iterator;
+
+  ssl_mode_ = options.ssl;
+
+  if (ssl_mode_ != SocketSSLMode::kNone) {
+    boost_ssl_context_ = CreateSecureContext(ssl_mode_);
+  }
 
   LOG(INFO) << __FUNCTION__;
 }

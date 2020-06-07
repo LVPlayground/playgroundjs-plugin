@@ -56,30 +56,7 @@ void TcpSocket::OnResolved(const boost::system::error_code& ec,
   ssl_mode_ = options.ssl;
 
   if (ssl_mode_ != SocketSSLMode::kNone) {
-    auto method = boost::asio::ssl::context::tls;
-    switch (ssl_mode_) {
-      case SocketSSLMode::kAuto:
-        method = boost::asio::ssl::context::sslv23;
-        break;
-      case SocketSSLMode::kSSL:
-        method = boost::asio::ssl::context::sslv3;
-        break;
-      case SocketSSLMode::kTLS:
-        method = boost::asio::ssl::context::tls;
-        break;
-      case SocketSSLMode::kTLSv11:
-        method = boost::asio::ssl::context::tlsv11;
-        break;
-      case SocketSSLMode::kTLSv12:
-        method = boost::asio::ssl::context::tlsv12;
-        break;
-      case SocketSSLMode::kTLSv13:
-        method = boost::asio::ssl::context::tlsv13;
-        break;
-    }
-
-    boost_ssl_context_ = std::make_unique<boost::asio::ssl::context>(method);
-    boost_ssl_context_->set_verify_mode(boost::asio::ssl::verify_none);
+    boost_ssl_context_ = CreateSecureContext(ssl_mode_);
 
     boost_ssl_socket_ =
         std::make_unique<SecureSocketType>(background_io_context_, *boost_ssl_context_);
