@@ -25,7 +25,7 @@ struct SocketOpenOptions {
   SocketOpenOptions& operator=(SocketOpenOptions&&) = default;
   SocketOpenOptions& operator=(SocketOpenOptions const&) = delete;
 
-  std::string ip;
+  std::string host;
   int32_t port;
   int32_t timeout;
   SocketSSLMode ssl;

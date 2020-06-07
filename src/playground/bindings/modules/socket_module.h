@@ -47,7 +47,8 @@ namespace bindings {
 // enum SocketSSLMode { "none" | "auto" | "ssl" | "tls" | "tlsv11" | "tlsv12" | "tlsv13" };
 //
 // dictionary SocketOpenOptions {
-//             string         ip;
+//             string         ip;  // deprecated
+//             string         host;
 //             number         port;
 //   optional  number         timeout = 30;
 //   optional  SocketSSLMode  ssl = "none";

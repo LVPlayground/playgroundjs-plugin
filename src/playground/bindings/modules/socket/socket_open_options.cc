@@ -66,8 +66,9 @@ bool ParseSocketOpenOptions(v8::Local<v8::Value> value, SocketOpenOptions* optio
 
   v8::Local<v8::Object> dict = value.As<v8::Object>();
 
-  if (!ReadStringFromObject(context, dict, "ip", &options->ip)) {
-    ThrowException("unable to call open(): missing or invalid `ip` option.");
+  if (!ReadStringFromObject(context, dict, "host", &options->host) &&
+      !ReadStringFromObject(context, dict, "ip", &options->host)) {
+    ThrowException("unable to call open(): missing or invalid `host` option.");
     return false;
   }
 

@@ -35,7 +35,7 @@ void TcpSocket::CallOnMainThread(boost::function<void()> function) {
 
 void TcpSocket::Open(SocketOpenOptions options, OpenCallback open_callback) {
   boost::asio::ip::tcp::endpoint endpoint{
-      boost::asio::ip::address_v4::from_string(options.ip),
+      boost::asio::ip::address_v4::from_string(options.host),
       static_cast<uint16_t>(options.port) };
 
   ssl_mode_ = options.ssl;
