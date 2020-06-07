@@ -5,6 +5,9 @@
 #ifndef PLAYGROUND_BINDINGS_MODULES_SOCKET_WEB_SOCKET_H_
 #define PLAYGROUND_BINDINGS_MODULES_SOCKET_WEB_SOCKET_H_
 
+#include <memory>
+#include <queue>
+
 #include "base/macros.h"
 #include "bindings/modules/socket/base_socket.h"
 #include "bindings/modules/socket/socket_ssl_mode.h"
@@ -31,6 +34,8 @@ class WebSocket : public BaseSocket {
   void Close(CloseCallback close_callback) override;
 
  private:
+  using WriteQueue = std::queue<boost::function<void()>>;
+
   using WsSocketType = boost::beast::websocket::stream<boost::beast::tcp_stream>;
   using WssSocketType =
       boost::beast::websocket::stream<boost::beast::ssl_stream<boost::beast::tcp_stream>>;
@@ -66,6 +71,13 @@ class WebSocket : public BaseSocket {
   // operation aborted, which happens when the deadline timer gets cancelled instead.
   void OnConnectionTimeout(const boost::system::error_code& ec, OpenCallback open_callback);
 
+  // Called when a write operation has completed. Particularly in secured connections it's
+  // important to wait for completion of one operation before starting the next, so this
+  // might continue flushing the queue if any.
+  void OnWrite(WriteCallback write_callback,
+               const boost::system::error_code& ec,
+               std::size_t bytes_transferred);
+
   // Level of security that should be applied to the socket.
   SocketSSLMode ssl_mode_ = SocketSSLMode::kNone;
 
@@ -85,6 +97,10 @@ class WebSocket : public BaseSocket {
   // The stream that will be used. Depends on |ssl_mode_| to switch between ws and wss.
   std::unique_ptr<WsSocketType> ws_stream_;
   std::unique_ptr<WssSocketType> wss_stream_;
+
+  // Queue for the outgoing message(s), and a flag on whether there's a pending write.
+  WriteQueue write_queue_;
+  bool active_write_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(WebSocket);
 };
