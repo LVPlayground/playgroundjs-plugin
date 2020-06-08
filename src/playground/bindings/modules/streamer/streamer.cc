@@ -25,7 +25,8 @@ void Streamer::Add(uint32_t entity_id, float x, float y, float z) {
 }
 
 void Streamer::Optimise() {
-  LOG(INFO) << __FUNCTION__;
+  Tree optimised_tree(tree_.begin(), tree_.end());
+  tree_.swap(optimised_tree);
 }
 
 std::set<uint32_t> Streamer::Stream(const std::vector<StreamerUpdate>& updates) {
