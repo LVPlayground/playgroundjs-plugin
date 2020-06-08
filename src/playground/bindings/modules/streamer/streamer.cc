@@ -18,7 +18,7 @@ Streamer::Streamer(uint16_t max_visible, uint16_t max_distance)
 Streamer::~Streamer() = default;
 
 void Streamer::Add(uint32_t entity_id, float x, float y, float z) {
-  Point position(x, y, z);
+  Point position(x, y);
 
   entities_.insert({ entity_id, position });
   tree_.insert({ position, entity_id });
@@ -30,9 +30,58 @@ void Streamer::Optimise() {
 }
 
 std::set<uint32_t> Streamer::Stream(const std::vector<StreamerUpdate>& updates) {
-  LOG(INFO) << __FUNCTION__;
+  std::vector<Tree::const_query_iterator> query_iterators;
+  query_iterators.reserve(updates.size());
 
-  return std::set<uint32_t>();
+  uint32_t max_per_player = max_visible_ / updates.size();
+
+  for (const StreamerUpdate& update : updates) {
+    if (update.interior != 0 || update.virtual_world != 0)
+      continue;
+    
+    Point position(update.position[0], update.position[1]);
+    Box box(Point(update.position[0] - max_distance_, update.position[1] - max_distance_),
+            Point(update.position[0] + max_distance_, update.position[1] + max_distance_));
+
+    uint32_t max_visible = std::max(max_per_player * 2, 100u);
+
+    query_iterators.push_back(
+        tree_.qbegin(boost::geometry::index::within(box) &&
+                     boost::geometry::index::nearest(position, max_visible)));
+  }
+
+  std::set<uint32_t> entities;
+
+  // Add entities to the |entities| set in iterations. We begin by ensuring that the player's share
+  // of the maximum visible entities is represented. After that we continue iterating over each of
+  // the query iterators, adding similar size batches, until we either reach the maximum number of
+  // entities on the server, or all available entities for the given players will be created.
+  while (entities.size() < max_visible_ && query_iterators.size()) {
+    max_per_player = std::max((max_visible_ - entities.size()) / updates.size(), 2u);
+
+    for (auto iter = query_iterators.begin(); iter != query_iterators.end();) {
+      if (entities.size() == max_visible_)
+        break;
+
+      auto& query_iterator = *iter;
+
+      uint32_t batch_size = 0;
+      for (; query_iterator != tree_.qend() && batch_size < max_per_player; ++query_iterator) {
+        entities.insert(query_iterator->second);
+        if (entities.size() == max_visible_)
+          break;
+
+        ++batch_size;
+      }
+
+      if (batch_size != max_per_player)
+        iter = query_iterators.erase(iter);
+      else
+        iter++;
+    }
+  }
+
+  return entities;
 }
 
 void Streamer::Delete(uint32_t entity_id) {

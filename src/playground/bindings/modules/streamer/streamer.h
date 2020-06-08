@@ -42,7 +42,8 @@ public:
   uint32_t size() const;
 
  private:
-  using Point = boost::geometry::model::point<double, 3, boost::geometry::cs::cartesian>;
+  using Point = boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian>;
+  using Box = boost::geometry::model::box<Point>;
 
   using TreeValue = std::pair<Point, uint32_t>;
   using TreeType = boost::geometry::index::rstar<32, 16>;
