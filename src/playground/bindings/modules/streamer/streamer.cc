@@ -30,6 +30,9 @@ void Streamer::Optimise() {
 }
 
 std::set<uint32_t> Streamer::Stream(const std::vector<StreamerUpdate>& updates) {
+  if (!updates.size())
+    return std::set<uint32_t>();
+
   std::vector<Tree::const_query_iterator> query_iterators;
   query_iterators.reserve(updates.size());
 

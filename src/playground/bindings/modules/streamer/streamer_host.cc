@@ -18,7 +18,7 @@ namespace streamer {
 namespace {
 
 // Interval at which the streamer will update player positioning information.
-const double kStreamerUpdateIntervalMs = 1000;
+const double kStreamerUpdateIntervalMs = 250;
 
 }  // namespace
 

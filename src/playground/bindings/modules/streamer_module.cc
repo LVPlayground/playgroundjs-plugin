@@ -223,7 +223,20 @@ void StreamerStreamCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments
   bool result = GetHost()->Stream(
       instance->streamer_id(),
       boost::lambda::bind([](std::shared_ptr<Promise> promise, std::set<uint32_t> entities) {
-        
+        v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+        v8::HandleScope handle_scope(isolate);
+
+        v8::Local<v8::Context> context = Runtime::FromIsolate(isolate)->context();
+        v8::Context::Scope context_scope(context);
+
+        v8::Local<v8::Array> entities_array = v8::Array::New(isolate, entities.size());
+
+        uint32_t index = 0;
+        for (uint32_t entity_id : entities)
+          entities_array->Set(context, index++, v8::Number::New(isolate, entity_id));
+
+        promise->Resolve(entities_array);
 
       }, promise, boost::lambda::_1));
   

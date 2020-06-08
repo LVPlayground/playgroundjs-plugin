@@ -49,6 +49,11 @@ TEST_F(StreamerTest, AddOptimiseDelete) {
   EXPECT_EQ(streamer.size(), 0);
 }
 
+TEST_F(StreamerTest, StreamWithEmptyPlane) {
+  Streamer streamer(/* max_visible= */ 100, /* max_distance= */ 300);
+  streamer.Stream({});
+}
+
 TEST_F(StreamerTest, AllResultsStreamedIn) {
   Streamer streamer(/* max_visible= */ 100, /* max_distance= */ 10000);
   for (uint32_t entity_id = 1; entity_id <= 50; ++entity_id)
