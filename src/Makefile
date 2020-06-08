@@ -83,6 +83,8 @@ playground_bindings_socket:
 playground_bindings_streamer:
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer_module.cc -o out/obj/playground_bindings_modules_streamer_module.o
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer.cc -o out/obj/playground_bindings_modules_streamer_streamer.o
+	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer_host.cc -o out/obj/playground_bindings_modules_streamer_streamer_host.o
+	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer_worker.cc -o out/obj/playground_bindings_modules_streamer_streamer_worker.o
 
 # Target: /playground/bindings/
 playground_bindings: playground_bindings_mysql playground_bindings_streamer playground_bindings_socket
