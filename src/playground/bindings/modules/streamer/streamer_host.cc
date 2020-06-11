@@ -98,7 +98,7 @@ void StreamerHost::DeleteStreamer(uint32_t streamer_id) {
 // -----------------------------------------------------------------------------------------------
 
 void StreamerHost::OnFrame(double current_time) {
-  if ((current_time - last_update_time_) > kStreamerUpdateIntervalMs)
+  if ((current_time - last_update_time_) < kStreamerUpdateIntervalMs)
     return;
 
   last_update_time_ = current_time;

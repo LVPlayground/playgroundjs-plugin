@@ -41,7 +41,7 @@ std::set<uint32_t> Streamer::Stream(const std::vector<StreamerUpdate>& updates) 
   for (const StreamerUpdate& update : updates) {
     if (update.interior != 0 || update.virtual_world != 0)
       continue;
-    
+
     Point position(update.position[0], update.position[1]);
     Box box(Point(update.position[0] - max_distance_, update.position[1] - max_distance_),
             Point(update.position[0] + max_distance_, update.position[1] + max_distance_));
