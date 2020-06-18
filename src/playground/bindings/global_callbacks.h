@@ -16,6 +16,7 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
 void CaptureProfileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ClearModuleCacheCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void ExecCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FlushExceptionQueueCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

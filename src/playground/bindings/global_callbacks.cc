@@ -9,8 +9,10 @@
 #include "base/logging.h"
 #include "bindings/event.h"
 #include "bindings/global_scope.h"
+#include "bindings/modules/execute.h"
 #include "bindings/pawn_invoke.h"
 #include "bindings/profiler.h"
+#include "bindings/promise.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_modulator.h"
 #include "bindings/utilities.h"
@@ -118,6 +120,56 @@ void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
     global->DispatchEvent(type, arguments[1]);
   else
     global->DispatchEvent(type, v8::Null(arguments.GetIsolate()));
+}
+
+// Promise<{ exitCode, output, error }> exec(string command, ...arguments);
+void ExecCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(arguments.GetIsolate());
+
+  if (!arguments.Length()) {
+    ThrowException("unable to execute exec(): 1 arguments required, but none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute exec(): expected a string for argument 1.");
+    return;
+  }
+
+  std::string command = toString(arguments[0]);
+  std::vector<std::string> args;
+
+  for (int i = 1; i < arguments.Length(); ++i) {
+    if (!arguments[i]->IsString()) {
+      ThrowException("unable to execute exec(): expected a string for argument " +
+                     std::to_string(i + 1) + ".");
+      return;
+    }
+
+    args.push_back(toString(arguments[i]));
+  }
+
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
+
+  Execute(runtime->main_thread_io_context(), command, args,
+          [promise](int exit_code, const std::string& output, const std::string& error) {
+            v8::Isolate* isolate = v8::Isolate::GetCurrent();
+
+            v8::HandleScope handle_scope(isolate);
+
+            v8::Local<v8::Context> context = Runtime::FromIsolate(isolate)->context();
+            v8::Context::Scope context_scope(context);
+
+            v8::Local<v8::Object> object = v8::Object::New(isolate);
+
+            object->Set(context, v8String("exitCode"), v8::Number::New(isolate, exit_code));
+            object->Set(context, v8String("output"), v8String(output));
+            object->Set(context, v8String("error"), v8String(error));
+
+            promise->Resolve(object);
+          });
+
+  arguments.GetReturnValue().Set(promise->GetPromise());
 }
 
 // object { duration, fps } frameCounter();

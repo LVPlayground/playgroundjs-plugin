@@ -30,6 +30,8 @@
     <ClCompile Include="bindings\global_callbacks.cc" />
     <ClCompile Include="bindings\global_scope.cc" />
     <ClCompile Include="bindings\console.cc" />
+    <ClCompile Include="bindings\modules\execute.cc" />
+    <ClCompile Include="bindings\modules\execute.test.cc" />
     <ClCompile Include="bindings\modules\socket\socket.cc" />
     <ClCompile Include="bindings\modules\socket\socket_open_options.cc" />
     <ClCompile Include="bindings\modules\socket\socket_protocol.cc" />
@@ -93,6 +95,7 @@
     <ClInclude Include="bindings\global_callbacks.h" />
     <ClInclude Include="bindings\global_scope.h" />
     <ClInclude Include="bindings\console.h" />
+    <ClInclude Include="bindings\modules\execute.h" />
     <ClInclude Include="bindings\modules\socket\socket.h" />
     <ClInclude Include="bindings\modules\socket\base_socket.h" />
     <ClInclude Include="bindings\modules\socket\socket_open_options.h" />

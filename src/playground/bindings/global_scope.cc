@@ -64,6 +64,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
   InstallFunction(global, "wait", WaitCallback);
+  InstallFunction(global, "exec", ExecCallback);
 
   // Fast-path since idle checks generally are expensive.
   InstallFunction(global, "isPlayerMinimized", IsPlayerMinimizedCallback);
