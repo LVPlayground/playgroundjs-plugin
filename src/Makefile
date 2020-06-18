@@ -93,6 +93,7 @@ playground_bindings: playground_bindings_mysql playground_bindings_streamer play
 	$(CC) $(CFLAGS) playground/bindings/exception_handler.cc -o out/obj/playground_bindings_exception_handler.o
 	$(CC) $(CFLAGS) playground/bindings/global_callbacks.cc -o out/obj/playground_bindings_global_callbacks.o
 	$(CC) $(CFLAGS) playground/bindings/global_scope.cc -o out/obj/playground_bindings_global_scope.o
+	$(CC) $(CFLAGS) playground/bindings/modules/execute.cc -o out/obj/playground_bindings_modules_execute.o
 	$(CC) $(CFLAGS) playground/bindings/pawn_invoke.cc -o out/obj/playground_bindings_pawn_invoke.o
 	$(CC) $(CFLAGS) playground/bindings/profiler.cc -o out/obj/playground_bindings_profiler.o
 	$(CC) $(CFLAGS) playground/bindings/provided_natives.cc -o out/obj/playground_bindings_provided_natives.o
