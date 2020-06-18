@@ -50,6 +50,7 @@ v8::Local<v8::Value> toValue(char* data, unsigned long length, enum_field_types 
   case MYSQL_TYPE_DECIMAL:
   case MYSQL_TYPE_FLOAT:
   case MYSQL_TYPE_DOUBLE:
+  case MYSQL_TYPE_NEWDECIMAL:
     return v8Number(atof(data));
   
   case MYSQL_TYPE_NULL:
