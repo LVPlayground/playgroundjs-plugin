@@ -46,8 +46,8 @@ struct PawnInvoke::StaticBuffer {
   int number_values[PawnInvoke::kMaxArgumentCount];
 
   // Maximum length of a string stored in the static buffer. Total memory required for this is
-  // kMaxArgumentCount (24) * kMaxStringLength (2048) = 48 KiB.
-  static const size_t kMaxStringLength = 2048;
+  // kMaxArgumentCount (24) * kMaxStringLength (3072) = 72 KiB.
+  static const size_t kMaxStringLength = 3072;
 
   char string_values[PawnInvoke::kMaxArgumentCount][kMaxStringLength];
 
