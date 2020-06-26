@@ -28,6 +28,12 @@ namespace bindings {
 
 namespace {
 
+// Context extensions that should be enabled on our v8 scope.
+const int kContextExtensionCount = 1;
+const char* kContextExtensions[] = {
+  "v8/statistics",
+};
+
 // Map of v8 Isolates to the associated Runtime instances (weak references).
 std::unordered_map<v8::Isolate*, std::weak_ptr<Runtime>> g_runtime_instances_;
 
@@ -192,7 +198,8 @@ void Runtime::Initialize() {
   // include instantiations of previously installed prototypes (e.g. the console global).
   global_scope_->InstallPrototypes(global);
 
-  v8::Local<v8::Context> context = v8::Context::New(isolate_, nullptr, global);
+  v8::ExtensionConfiguration configuration(kContextExtensionCount, kContextExtensions);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_, &configuration, global);
 
   v8::Context::Scope context_scope(context);
   global_scope_->InstallObjects(context);
