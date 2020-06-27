@@ -15,6 +15,7 @@
 
 namespace mysql {
 
+int64_t g_queryResultLive = 0;
 int64_t g_queryResultInstanceId = 0;
 
 QueryResult::QueryResult()
@@ -22,11 +23,11 @@ QueryResult::QueryResult()
       insert_id_(kInvalidValue),
       instance_id_(++g_queryResultInstanceId),
       result_(nullptr) {
-  LOG(ALLOC) << "QueryResult " << instance_id_;
+  LOG(ALLOC) << "QueryResult " << instance_id_ << " (live: " << (++g_queryResultLive) << ")";;
 }
 
 QueryResult::~QueryResult() {
-  LOG(ALLOC) << "~QueryResult " << instance_id_;
+  LOG(ALLOC) << "~QueryResult " << instance_id_ << " (live: " << (--g_queryResultLive) << ")";;
 
   if (result_) {
     mysql_free_result(result_);

@@ -15,32 +15,33 @@ namespace {
 
 const std::string g_empty_string;
 
+int64_t g_argumentsLive = 0;
 int64_t g_argumentsInstanceId = 0;
 
 }  // namespace
 
 Arguments::Arguments()
-    : instance_id_(++g_argumentsInstanceId ) {
-  LOG(ALLOC) << "Arguments " << instance_id_;
+    : instance_id_(++g_argumentsInstanceId) {
+  LOG(ALLOC) << "Arguments " << instance_id_ << " (live: " << (++g_argumentsLive) << ")";
 }
 
 Arguments::Arguments(Arguments&& other) {
   instance_id_ = other.instance_id_;
   values_ = std::move(other.values_);
 
-  other.instance_id_ = 1;
+  other.instance_id_ = -1;
 }
 
 Arguments::~Arguments() {
   if (instance_id_ != -1)
-    LOG(ALLOC) << "~Arguments " << instance_id_;
+    LOG(ALLOC) << "~Arguments " << instance_id_ << " (live: " << (--g_argumentsLive) << ")";;
 }
 
 void Arguments::operator=(Arguments&& other) noexcept {
   instance_id_ = other.instance_id_;
   values_ = std::move(other.values_);
 
-  other.instance_id_ = 1;
+  other.instance_id_ = -1;
 }
 
 Arguments Arguments::Copy() const {

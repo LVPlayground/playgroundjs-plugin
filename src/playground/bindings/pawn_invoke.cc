@@ -62,7 +62,7 @@ PawnInvoke::PawnInvoke(plugin::PluginController* plugin_controller)
     : static_buffer_(static_cast<StaticBuffer*>(calloc(1, sizeof(StaticBuffer)))),
       plugin_controller_(plugin_controller) {}
 
-PawnInvoke::~PawnInvoke() {}
+PawnInvoke::~PawnInvoke() = default;
 
 v8::Local<v8::Value> PawnInvoke::Call(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   DCHECK(arguments.Length() >= 1);

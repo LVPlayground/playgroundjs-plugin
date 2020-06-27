@@ -241,7 +241,7 @@ std::string GlobalScope::ReadFile(const std::string& filename) const {
 }
 
 v8::Local<v8::Promise> GlobalScope::Wait(Runtime* runtime, int64_t time) {
-  std::shared_ptr<Promise> promise(new Promise);
+  std::shared_ptr<Promise> promise = std::make_shared<Promise>();
 
   runtime->GetTimerQueue()->Add(promise, time);
 
