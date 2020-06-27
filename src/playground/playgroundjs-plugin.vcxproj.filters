@@ -195,6 +195,9 @@
     <ClCompile Include="bindings\modules\execute.test.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="base\memory.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bindings\runtime.h">
@@ -402,6 +405,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\execute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

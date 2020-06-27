@@ -20,6 +20,7 @@ void ExecCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FrameCounterCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void FlushExceptionQueueCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void GetRuntimeStatisticsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

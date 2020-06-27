@@ -58,6 +58,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "frameCounter", FrameCounterCallback);
   InstallFunction(global, "flushExceptionQueue", FlushExceptionQueueCallback);
   InstallFunction(global, "getDeferredEvents", GetDeferredEventsCallback);
+  InstallFunction(global, "getRuntimeStatistics", GetRuntimeStatisticsCallback);
   InstallFunction(global, "highResolutionTime", HighResolutionTimeCallback);
   InstallFunction(global, "pawnInvoke", PawnInvokeCallback);
   InstallFunction(global, "provideNative", ProvideNativeCallback);
@@ -244,6 +245,15 @@ v8::Local<v8::Promise> GlobalScope::Wait(Runtime* runtime, int64_t time) {
   runtime->GetTimerQueue()->Add(promise, time);
 
   return promise->GetPromise();
+}
+
+size_t GlobalScope::event_handler_count() const {
+  size_t count = 0;
+
+  for (const auto& [name, listeners] : event_listeners_)
+    count += listeners.size();
+
+  return count;
 }
 
 void GlobalScope::InstallFunction(v8::Local<v8::ObjectTemplate> global,

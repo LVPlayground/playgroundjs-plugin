@@ -67,6 +67,8 @@ class ExceptionHandler {
   // Called when a non-recoverable error occurs within the runtime.
   void OnFatalError(const char* location, const char* message);
 
+  size_t size() const { return queued_messages_.size(); }
+
  private:
   Runtime* runtime_;
   Runtime::Delegate* runtime_delegate_;

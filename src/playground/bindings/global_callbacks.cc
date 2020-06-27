@@ -8,6 +8,7 @@
 #include "base/file_search.h"
 #include "base/logging.h"
 #include "bindings/event.h"
+#include "bindings/exception_handler.h"
 #include "bindings/global_scope.h"
 #include "bindings/modules/execute.h"
 #include "bindings/pawn_invoke.h"
@@ -15,6 +16,7 @@
 #include "bindings/promise.h"
 #include "bindings/runtime.h"
 #include "bindings/runtime_modulator.h"
+#include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
 #include "performance/trace_manager.h"
 #include "plugin/sdk/plugincommon.h"
@@ -224,6 +226,27 @@ void GetDeferredEventsCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
   deferred_events.clear();
 
   arguments.GetReturnValue().Set(events);
+}
+
+#define ADD_NUMBER(name, value) \
+    object->Set(context, v8String(name), v8::Number::New(isolate, value))
+
+// object getRuntimeStatistics();
+void GetRuntimeStatisticsCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  v8::Isolate* isolate = arguments.GetIsolate();
+  auto context = isolate->GetCurrentContext();
+
+  std::shared_ptr<Runtime> runtime = Runtime::FromIsolate(isolate);
+  auto* global = runtime->GetGlobalScope();
+
+  v8::Local<v8::Object> object = v8::Object::New(isolate);
+
+  ADD_NUMBER("deferred_event_queue_size", global->deferred_events().size());
+  ADD_NUMBER("event_handler_size", global->event_handler_count());
+  ADD_NUMBER("exception_handler_queue_size", runtime->GetExceptionHandler()->size());
+  ADD_NUMBER("timer_queue_size", runtime->GetTimerQueue()->size());
+
+  arguments.GetReturnValue().Set(object);
 }
 
 // sequence<string> glob(string base, string pattern);

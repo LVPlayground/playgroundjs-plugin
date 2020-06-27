@@ -23,6 +23,7 @@
     <ClCompile Include="base\file_path.cc" />
     <ClCompile Include="base\file_search.cc" />
     <ClCompile Include="base\logging.cc" />
+    <ClCompile Include="base\memory.cc" />
     <ClCompile Include="base\string_piece.cc" />
     <ClCompile Include="base\time.cc" />
     <ClCompile Include="bindings\event.cc" />
@@ -87,6 +88,7 @@
     <ClInclude Include="base\file_search.h" />
     <ClInclude Include="base\logging.h" />
     <ClInclude Include="base\macros.h" />
+    <ClInclude Include="base\memory.h" />
     <ClInclude Include="base\string_piece.h" />
     <ClInclude Include="base\time.h" />
     <ClInclude Include="bindings\event.h" />

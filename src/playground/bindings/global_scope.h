@@ -110,6 +110,7 @@ class GlobalScope {
   v8::Local<v8::Promise> Wait(Runtime* runtime, int64_t time);
 
   DeferredEventMultimapType& deferred_events() { return deferred_events_; }
+  size_t event_handler_count() const;
 
  private:
   // Installs the function named |name| on the |global| template, for which the v8 engine will

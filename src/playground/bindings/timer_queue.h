@@ -29,6 +29,9 @@ class TimerQueue {
   // Runs the timer queue - determines if there's anything that should be executed this cycle.
   void Run(double current_time);
 
+  // Returns the number of items currently in the timer queue.
+  size_t size() const { return timers_.size(); }
+
  private:
   Runtime* runtime_;
 
