@@ -6,6 +6,7 @@
 
 #include <sstream>
 
+#include "base/memory.h"
 #include "plugin/callback.h"
 
 namespace plugin {
@@ -14,15 +15,33 @@ namespace {
 
 const std::string g_empty_string;
 
+int64_t g_argumentsInstanceId = 0;
+
 }  // namespace
 
-Arguments::Arguments() = default;
-
-Arguments::Arguments(Arguments&& other) {
-  values_ = std::move(other.values_);
+Arguments::Arguments()
+    : instance_id_(++g_argumentsInstanceId ) {
+  LOG(ALLOC) << "Arguments " << instance_id_;
 }
 
-Arguments::~Arguments() = default;
+Arguments::Arguments(Arguments&& other) {
+  instance_id_ = other.instance_id_;
+  values_ = std::move(other.values_);
+
+  other.instance_id_ = 1;
+}
+
+Arguments::~Arguments() {
+  if (instance_id_ != -1)
+    LOG(ALLOC) << "~Arguments " << instance_id_;
+}
+
+void Arguments::operator=(Arguments&& other) noexcept {
+  instance_id_ = other.instance_id_;
+  values_ = std::move(other.values_);
+
+  other.instance_id_ = 1;
+}
 
 Arguments Arguments::Copy() const {
   Arguments copy;

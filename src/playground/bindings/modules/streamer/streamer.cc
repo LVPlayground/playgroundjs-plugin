@@ -7,15 +7,23 @@
 #include <boost/geometry/geometry.hpp>
 
 #include "base/logging.h"
+#include "base/memory.h"
 
 namespace bindings {
 namespace streamer {
 
-Streamer::Streamer(uint16_t max_visible, uint16_t max_distance)
-    : max_visible_(max_visible),
-      max_distance_(max_distance) {}
+int32_t g_streamerInstanceId = 0;
 
-Streamer::~Streamer() = default;
+Streamer::Streamer(uint16_t max_visible, uint16_t max_distance)
+    : instance_id_(++g_streamerInstanceId),
+      max_visible_(max_visible),
+      max_distance_(max_distance) {
+  LOG(ALLOC) << "Streamer " << instance_id_;
+}
+
+Streamer::~Streamer() {
+  LOG(ALLOC) << "~Streamer " << instance_id_;
+}
 
 void Streamer::Add(uint32_t entity_id, float x, float y, float z) {
   Point position(x, y);

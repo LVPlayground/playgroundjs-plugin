@@ -57,6 +57,7 @@ playground_base:
 	$(CC) $(CFLAGS) playground/base/file_path.cc -o out/obj/playground_base_file_path.o
 	$(CC) $(CFLAGS) playground/base/file_search.cc -o out/obj/playground_base_file_search.o
 	$(CC) $(CFLAGS) playground/base/logging.cc -o out/obj/playground_base_logging.o
+	$(CC) $(CFLAGS) playground/base/memory.cc -o out/obj/playground_base_memory.o
 	$(CC) $(CFLAGS) playground/base/string_piece.cc -o out/obj/playground_base_string_piece.o
 	$(CC) $(CFLAGS) playground/base/time.cc -o out/obj/playground_base_time.o
 

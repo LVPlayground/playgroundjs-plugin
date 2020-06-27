@@ -64,6 +64,7 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "provideNative", ProvideNativeCallback);
   InstallFunction(global, "startTrace", StartTraceCallback);
   InstallFunction(global, "stopTrace", StopTraceCallback);
+  InstallFunction(global, "toggleMemoryLogging", ToggleMemoryLoggingCallback);
   InstallFunction(global, "wait", WaitCallback);
   InstallFunction(global, "exec", ExecCallback);
 

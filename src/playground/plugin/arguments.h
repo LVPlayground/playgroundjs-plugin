@@ -25,6 +25,7 @@ class Arguments {
   ~Arguments();
 
   void operator=(const Arguments&) = delete;
+  void operator=(Arguments&&) noexcept;
 
   Arguments Copy() const;
 
@@ -40,6 +41,7 @@ class Arguments {
   void clear() { values_.clear(); }
 
  private:
+  int64_t instance_id_;
   std::unordered_map<std::string, std::any> values_;
 };
 

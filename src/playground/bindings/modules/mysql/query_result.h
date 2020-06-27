@@ -39,6 +39,8 @@ class QueryResult {
   int64_t affected_rows_;
   int64_t insert_id_;
 
+  int64_t instance_id_;
+
   MYSQL_RES* result_;
 };
 

@@ -7,6 +7,7 @@
 #include "base/file_path.h"
 #include "base/file_search.h"
 #include "base/logging.h"
+#include "base/memory.h"
 #include "bindings/event.h"
 #include "bindings/exception_handler.h"
 #include "bindings/global_scope.h"
@@ -492,6 +493,11 @@ void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 
   // Write the captured traces to the |path|, clear state afterwards.
   performance::TraceManager::GetInstance()->Write(file, true /* clear_traces */);
+}
+
+// void toggleMemoryLogging();
+void ToggleMemoryLoggingCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  base::g_debugMemoryAllocations = !base::g_debugMemoryAllocations;
 }
 
 // Promise<void> wait(unsigned long time);

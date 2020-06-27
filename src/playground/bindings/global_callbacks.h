@@ -34,6 +34,7 @@ void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argu
 void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void ToggleMemoryLoggingCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void WaitCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 
 }  // namespace

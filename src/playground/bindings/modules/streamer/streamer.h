@@ -49,6 +49,8 @@ public:
   using TreeType = boost::geometry::index::rstar<32, 16>;
   using Tree = boost::geometry::index::rtree<TreeValue, TreeType>;
 
+  int64_t instance_id_;
+
   uint16_t max_visible_;
   uint16_t max_distance_;
 
