@@ -42,7 +42,8 @@ tp_gtest:
 	$(CC) $(CFLAGS) gtest/gtest-typed-test.cc -o out/obj/gtest_gtest_typed_test.o
 
 # Target: /playground/
-playground: playground_base playground_bindings playground_performance playground_plugin playground_third_party playground_test
+playground: playground_base playground_bindings playground_performance playground_plugin playground_third_party playground_test playground_self
+playground_self:
 	$(CC) $(CFLAGS) playground/playground_controller.cc -o out/obj/playground_playground_controller.o
 
 # Target: /playground/*_test.cc
@@ -88,7 +89,8 @@ playground_bindings_streamer:
 	$(CC) $(CFLAGS) playground/bindings/modules/streamer/streamer_worker.cc -o out/obj/playground_bindings_modules_streamer_streamer_worker.o
 
 # Target: /playground/bindings/
-playground_bindings: playground_bindings_mysql playground_bindings_streamer playground_bindings_socket
+playground_bindings: playground_bindings_mysql playground_bindings_streamer playground_bindings_socket playground_bindings_self
+playground_bindings_self:
 	$(CC) $(CFLAGS) playground/bindings/console.cc -o out/obj/playground_bindings_console.o
 	$(CC) $(CFLAGS) playground/bindings/event.cc -o out/obj/playground_bindings_event.o
 	$(CC) $(CFLAGS) playground/bindings/exception_handler.cc -o out/obj/playground_bindings_exception_handler.o
@@ -114,7 +116,8 @@ playground_plugin_sdk:
 	$(CC) $(CFLAGS) playground/plugin/sdk/amxplugin.cpp -o out/obj/playground_plugin_sdk_amxplugin.o
 
 # Target: /playground/plugin/
-playground_plugin: playground_plugin_sdk
+playground_plugin: playground_plugin_sdk playground_plugin_self
+playground_plugin_self:
 	$(CC) $(CFLAGS) playground/plugin/arguments.cc -o out/obj/playground_plugin_arguments.o
 	$(CC) $(CFLAGS) playground/plugin/callback_hook.cc -o out/obj/playground_plugin_callback_hook.o
 	$(CC) $(CFLAGS) playground/plugin/callback_manager.cc -o out/obj/playground_plugin_callback_manager.o
