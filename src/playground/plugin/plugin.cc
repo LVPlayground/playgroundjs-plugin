@@ -7,6 +7,7 @@
 #include "base/encoding.h"
 #include "base/file_path.h"
 #include "base/logging.h"
+#include "base/time.h"
 #include "bindings/provided_natives.h"
 #include "plugin/native_parameters.h"
 #include "plugin/native_parser.h"
@@ -73,8 +74,10 @@ bool GetStringFromPawnArg(AMX* amx, cell param, std::string* result) {
 static cell AMX_NATIVE_CALL n_IsPlayerMinimized(AMX* amx, cell* params) {
   CHECK_PARAMS(1);
 
-  if (g_plugin_controller)
-    return g_plugin_controller->IsPlayerMinimized(params[1]) ? 1 : 0;
+  if (g_plugin_controller) {
+    return g_plugin_controller->IsPlayerMinimized(
+      params[1], base::monotonicallyIncreasingTime()) ? 1 : 0;
+  }
 
   return 0;
 }

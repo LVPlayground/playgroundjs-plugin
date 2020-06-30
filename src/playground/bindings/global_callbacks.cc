@@ -8,6 +8,7 @@
 #include "base/file_search.h"
 #include "base/logging.h"
 #include "base/memory.h"
+#include "base/time.h"
 #include "bindings/event.h"
 #include "bindings/exception_handler.h"
 #include "bindings/global_scope.h"
@@ -316,7 +317,7 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
   arguments.GetReturnValue().Set(global->HighResolutionTime());
 }
 
-// bool isPlayerMinimized(playerId);
+// bool isPlayerMinimized(playerId [, currentTime]);
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
 
@@ -333,7 +334,15 @@ void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& argume
     return;
   }
 
-  arguments.GetReturnValue().Set(global->IsPlayerMinimized(arguments[0]->Int32Value(context).ToChecked()));
+  double current_time = 0;
+
+  if (arguments.Length() >= 2 && arguments[1]->IsNumber())
+    current_time = arguments[1]->NumberValue(context).ToChecked();
+  else
+    current_time = base::monotonicallyIncreasingTime();
+
+  arguments.GetReturnValue().Set(
+    global->IsPlayerMinimized(arguments[0]->Int32Value(context).ToChecked(), current_time));
 }
 
 // void notifyReady();

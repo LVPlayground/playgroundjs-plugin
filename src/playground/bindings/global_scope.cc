@@ -199,8 +199,8 @@ double GlobalScope::HighResolutionTime() const {
   return base::monotonicallyIncreasingTime();
 }
 
-bool GlobalScope::IsPlayerMinimized(int player_id) const {
-  return plugin_controller_->IsPlayerMinimized(player_id);
+bool GlobalScope::IsPlayerMinimized(int player_id, double current_time) const {
+  return plugin_controller_->IsPlayerMinimized(player_id, current_time);
 }
 
 void GlobalScope::RemoveEventListener(const std::string& type, v8::Local<v8::Function> listener) {

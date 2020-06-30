@@ -96,7 +96,7 @@ class GlobalScope {
   double HighResolutionTime() const;
 
   // Implementation of the isPlayerMinimized() global function.
-  bool IsPlayerMinimized(int player_id) const;
+  bool IsPlayerMinimized(int player_id, double current_time) const;
 
   // Implementation of the removeEventListener() function, which will remove |listener| from the
   // persistently held list of handlers for events of type |type|. If |listener| is an empty

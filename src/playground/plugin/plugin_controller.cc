@@ -97,13 +97,12 @@ void PluginController::Output(const std::string& message) const {
     g_logprintf("%s", message.substr(offset, kLogLimit).c_str());
 }
 
-bool PluginController::IsPlayerMinimized(int player_id) const {
+bool PluginController::IsPlayerMinimized(int player_id, double current_time) const {
   const auto iter = player_update_time_.find(player_id);
   if (iter == player_update_time_.end())
     return true;  // no updates have ever been received for the |player_id|
 
   const double last_update = iter->second;
-  const double current_time = base::monotonicallyIncreasingTime();
 
   return (current_time - last_update) >= kIdleThresholdMs;
 }

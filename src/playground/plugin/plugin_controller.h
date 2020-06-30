@@ -41,7 +41,7 @@ class PluginController : public CallbackHook::Delegate {
   void Output(const std::string& message) const;
 
   // Returns whether the player with |player_id| has not recently sent an update to the server.
-  bool IsPlayerMinimized(int player_id) const;
+  bool IsPlayerMinimized(int player_id, double current_time) const;
 
   // Returns whether a function named |function_name| exists in the Pawn runtime.
   bool FunctionExists(const std::string& function_name) const;
