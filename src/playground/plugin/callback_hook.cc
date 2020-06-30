@@ -74,8 +74,14 @@ bool CallbackHook::Install() {
 int CallbackHook::OnExecute(AMX* amx, int* retval, int index) {
   if (g_ignore_depth > 0) {
     // Ignore the callback altogether, as part of the plugin relies on this.
-    LOG(INFO) << "Callback ignored because a ScopedIgnore is in place.";
 
+    auto interceptor_iter = intercept_indices_.find(index);
+    if (interceptor_iter != intercept_indices_.end()) {
+      LOG(WARNING) << "Callback (" << interceptor_iter->second->name << ") ignored << "
+                      "because a ScopedIgnore is in place.";
+    } else {
+      LOG(WARNING) << "Callback (" << index << ") ignored because a ScopedIgnore is in place.";
+    }
   } else if (index == AMX_EXEC_MAIN) {
     OnGamemodeLoaded(amx);
   } else if (gamemode_ == amx) {
