@@ -148,7 +148,7 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
 
     // Special case "content" from the CAC_OnMemoryRead callback, which should be an Uint8Array
     // instead of a string. std::string is still used to carry the data.
-    if (event_type_ == "cac_onmemoryread" && argument.first == "content") {
+    if (event_type_ == "CAC_OnMemoryReadEvent" && argument.first == "content") {
       const std::vector<uint32_t>& data = arguments.GetArray(argument.first);
 
       v8::Local<v8::Array> array = v8::Array::New(isolate, data.size());

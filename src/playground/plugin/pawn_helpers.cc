@@ -21,21 +21,20 @@ T ReadValueFromStack(AMX* amx, int offset) {
   static_assert(sizeof(T) == sizeof(cell), "sizeof(T) must be equal to typeof(cell).");
 
   AMX_HEADER* header = reinterpret_cast<AMX_HEADER*>(amx->base);
-  unsigned char* data =
-    amx->data == nullptr ? amx->base + header->dat
-    : amx->data;
+  unsigned char* data = amx->data == nullptr ? amx->base + header->dat
+                                             : amx->data;
 
-  return *(T*)(data + amx->stk + offset * sizeof(cell));
+  return *(T *)(data + amx->stk + offset * sizeof(cell));
 }
 
 }  // namespace
 
 const std::vector<uint32_t>& ReadArrayFromAmx(
     AMX* amx, int array_index, size_t array_size, std::vector<uint32_t>* buffer) {
+  buffer->resize(array_size);
+
   if (!array_size)
     return *buffer;
-
-  buffer->resize(array_size);
 
   cell* array_address = nullptr;
 
@@ -44,7 +43,9 @@ const std::vector<uint32_t>& ReadArrayFromAmx(
     return *buffer;
   }
 
-  memcpy(&*buffer->begin(), array_address, array_size);
+  for (size_t index = 0; index < array_size; ++index)
+    (*buffer)[index] = static_cast<uint32_t>(array_address[index]);
+
   return *buffer;
 }
 
