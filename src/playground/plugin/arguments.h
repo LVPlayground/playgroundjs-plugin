@@ -6,8 +6,10 @@
 #define PLAYGROUND_PLUGIN_ARGUMENTS_H_
 
 #include <any>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "base/macros.h"
 
@@ -18,6 +20,8 @@ struct Callback;
 // The Arguments class represents the arguments passed to a Pawn callback, which are to be forwarded
 // to the v8 runtime (or potentially other consumers).
 class Arguments {
+  using ArrayType = std::vector<uint32_t>;
+
  public:
   Arguments();
   Arguments(const Arguments&) = delete;
@@ -32,10 +36,12 @@ class Arguments {
   void AddInteger(const std::string& name, int value);
   void AddFloat(const std::string& name, float value);
   void AddString(const std::string& name, const std::string& value);
+  void AddArray(const std::string& name, const ArrayType& value);
 
   int GetInteger(const std::string& name) const;
   float GetFloat(const std::string& name) const;
   const std::string& GetString(const std::string& name) const;
+  const ArrayType& GetArray(const std::string& name) const;
 
   size_t size() const { return values_.size(); }
   void clear() { values_.clear(); }

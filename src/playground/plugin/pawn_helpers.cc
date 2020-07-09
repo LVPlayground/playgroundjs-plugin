@@ -4,6 +4,9 @@
 
 #include "plugin/pawn_helpers.h"
 
+#include <stdint.h>
+#include <vector>
+
 #include "base/logging.h"
 #include "plugin/sdk/amx.h"
 
@@ -11,19 +14,39 @@ namespace plugin {
 
 namespace {
 
+std::vector<uint32_t> g_array_buffer;
+
 template<typename T>
 T ReadValueFromStack(AMX* amx, int offset) {
   static_assert(sizeof(T) == sizeof(cell), "sizeof(T) must be equal to typeof(cell).");
 
   AMX_HEADER* header = reinterpret_cast<AMX_HEADER*>(amx->base);
   unsigned char* data =
-      amx->data == nullptr ? amx->base + header->dat
-                           : amx->data;
+    amx->data == nullptr ? amx->base + header->dat
+    : amx->data;
 
-  return *(T *)(data + amx->stk + offset * sizeof(cell));
+  return *(T*)(data + amx->stk + offset * sizeof(cell));
 }
 
 }  // namespace
+
+const std::vector<uint32_t>& ReadArrayFromAmx(
+    AMX* amx, int array_index, size_t array_size, std::vector<uint32_t>* buffer) {
+  if (!array_size)
+    return *buffer;
+
+  buffer->resize(array_size);
+
+  cell* array_address = nullptr;
+
+  if (amx_GetAddr(amx, array_index, &array_address) != AMX_ERR_NONE) {
+    LOG(ERROR) << "Unable to read the address of a array argument.";
+    return *buffer;
+  }
+
+  memcpy(&*buffer->begin(), array_address, array_size);
+  return *buffer;
+}
 
 int ReadIntFromStack(AMX* amx, int index) {
   return ReadValueFromStack<int>(amx, index);

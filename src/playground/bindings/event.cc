@@ -145,6 +145,20 @@ v8::Local<v8::Object> Event::NewInstance(const plugin::Arguments& arguments) con
 
   for (const auto& argument : callback_.arguments) {
     v8::Local<v8::String> property = v8String(argument.first);
+
+    // Special case "content" from the CAC_OnMemoryRead callback, which should be an Uint8Array
+    // instead of a string. std::string is still used to carry the data.
+    if (event_type_ == "cac_onmemoryread" && argument.first == "content") {
+      const std::vector<uint32_t>& data = arguments.GetArray(argument.first);
+
+      v8::Local<v8::Array> array = v8::Array::New(isolate, data.size());
+      for (size_t index = 0; index < data.size(); ++index)
+        array->Set(context, index, v8::Number::New(isolate, data[index]));
+      
+      instance->Set(context, property, array);
+      continue;
+    }
+
     switch (argument.second) {
     case plugin::ARGUMENT_TYPE_INT:
       instance->Set(context, property, v8::Number::New(isolate, arguments.GetInteger(argument.first)));

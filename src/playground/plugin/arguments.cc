@@ -13,6 +13,7 @@ namespace plugin {
 
 namespace {
 
+const std::vector<uint32_t> g_empty_array;
 const std::string g_empty_string;
 
 int64_t g_argumentsLive = 0;
@@ -63,6 +64,10 @@ void Arguments::AddString(const std::string& name, const std::string& value) {
   values_[name] = std::make_any<std::string>(value);
 }
 
+void Arguments::AddArray(const std::string& name, const Arguments::ArrayType& value) {
+  values_[name] = std::make_any<ArrayType>(value);
+}
+
 int Arguments::GetInteger(const std::string& name) const {
   auto value_iter = values_.find(name);
   if (value_iter == values_.end() || value_iter->second.type() != typeid(int32_t))
@@ -85,6 +90,14 @@ const std::string& Arguments::GetString(const std::string& name) const {
     return g_empty_string;
 
   return std::any_cast<const std::string&>(value_iter->second);
+}
+
+const Arguments::ArrayType& Arguments::GetArray(const std::string& name) const {
+  auto value_iter = values_.find(name);
+  if (value_iter == values_.end() || value_iter->second.type() != typeid(ArrayType))
+    return g_empty_array;
+
+  return std::any_cast<const ArrayType&>(value_iter->second);
 }
 
 std::string GetCallbackRepresentation(const Callback& callback, const Arguments& arguments) {

@@ -115,9 +115,27 @@ bool CallbackHook::DoIntercept(AMX* amx, int* retval, const Callback& callback) 
   }
 
   size_t index = 0;
+  size_t cac_OnMemoryRead_size = 0;
 
   arguments.clear();
   for (const auto& argument : callback.arguments) {
+    // Special case "content" from the CAC_OnMemoryRead callback, which is given as an array and can
+    // contain NULL characters, which would fail with ReadStringFromAmx.
+    if (callback.name == "CAC_OnMemoryRead") {
+      if (argument.first == "size") {
+        cac_OnMemoryRead_size = ReadIntFromStack(amx, index);
+      } else if (argument.first == "content") {
+        int array_index = ReadIntFromStack(amx, index);
+
+        arguments.AddArray(
+            argument.first,
+            ReadArrayFromAmx(amx, array_index, cac_OnMemoryRead_size, &array_buffer_));
+
+        ++index;
+        continue;
+      }
+    }
+
     switch (argument.second) {
     case ARGUMENT_TYPE_INT:
       arguments.AddInteger(argument.first, ReadIntFromStack(amx, index));

@@ -6,8 +6,10 @@
 #define PLAYGROUND_PLUGIN_CALLBACK_HOOK_H_
 
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 typedef struct tagAMX AMX;
 
@@ -86,6 +88,7 @@ class CallbackHook {
   int on_player_update_index_;
 
   std::string text_buffer_;
+  std::vector<uint32_t> array_buffer_;
 
   AMX* gamemode_;
 };
