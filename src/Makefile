@@ -98,7 +98,6 @@ playground_bindings_self:
 	$(CC) $(CFLAGS) playground/bindings/global_scope.cc -o out/obj/playground_bindings_global_scope.o
 	$(CC) $(CFLAGS) playground/bindings/modules/execute.cc -o out/obj/playground_bindings_modules_execute.o
 	$(CC) $(CFLAGS) playground/bindings/pawn_invoke.cc -o out/obj/playground_bindings_pawn_invoke.o
-	$(CC) $(CFLAGS) playground/bindings/profiler.cc -o out/obj/playground_bindings_profiler.o
 	$(CC) $(CFLAGS) playground/bindings/provided_natives.cc -o out/obj/playground_bindings_provided_natives.o
 	$(CC) $(CFLAGS) playground/bindings/promise.cc -o out/obj/playground_bindings_promise.o
 	$(CC) $(CFLAGS) playground/bindings/runtime.cc -o out/obj/playground_bindings_runtime.o

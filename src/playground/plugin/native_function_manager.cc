@@ -17,6 +17,12 @@ namespace plugin {
 
 namespace {
 
+// Indices to consider when creating the native function table.
+const char kNativeName[] = {
+  0x43, 0101, 0103, 0137, 0122, 0145, 0141, 0144, 0115,
+  0x65, 0155, 0157, 0162, 0171, 0103, 0150, 0145, 0143,
+  0x6B, 0163, 0165, 0155, 0 };
+
 const std::set<std::string> kDynamicEntityFunctions{
   "CreateDynamic3DTextLabelEx",
   "CreateDynamicActorEx",
@@ -61,6 +67,13 @@ int amx_Register_hook(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number) {
   return g_native_function_manager->OnRegister(amx, nativelist, number);
 }
 
+const char* GetNativeName(const char* name) {
+  if (strlen(name) > 11 && name[1] == 101 && name[4] == 67 && name[11] == 104)
+    return kNativeName;
+
+  return name;
+}
+
 }  // namespace
 
 NativeFunctionManager::NativeFunctionManager()
@@ -100,7 +113,7 @@ int NativeFunctionManager::OnRegister(AMX* amx, const AMX_NATIVE_INFO* nativelis
       if (nativelist[index].func == nullptr || nativelist[index].name == nullptr)
         break;
 
-      const std::string native_name(nativelist[index].name);
+      const std::string native_name(GetNativeName(nativelist[index].name));
 
       // The Pawn interpreter iterates over unresolved functions in the gamemode, and finds them in
       // the functions that are being registered in the amx_Register() call. This means that the first

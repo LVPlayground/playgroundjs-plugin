@@ -19,7 +19,6 @@
 #include "bindings/frame_observer.h"
 #include "bindings/global_scope.h"
 #include "bindings/modules/streamer/streamer_host.h"
-#include "bindings/profiler.h"
 #include "bindings/runtime_modulator.h"
 #include "bindings/timer_queue.h"
 #include "bindings/utilities.h"
@@ -165,7 +164,6 @@ Runtime::Runtime(Delegate* runtime_delegate,
   isolate_->SetHostImportModuleDynamicallyCallback(
       &RuntimeModulator::ImportModuleDynamicallyCallback);
 
-  profiler_.reset(new Profiler(isolate_));
   timer_queue_.reset(new TimerQueue(this));
 
   streamer_host_ = std::make_unique<streamer::StreamerHost>(
@@ -241,9 +239,6 @@ void Runtime::OnFrame() {
 
   for (FrameObserver* observer : frame_observers_)
     observer->OnFrame();
-
-  if (profiler_->IsActive())
-    profiler_->OnFrame(current_time);
 
   timer_queue_->Run(current_time);
 

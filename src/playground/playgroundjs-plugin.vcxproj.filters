@@ -150,9 +150,6 @@
     <ClCompile Include="bindings\modules\streamer\streamer.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bindings\profiler.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bindings\runtime_modulator.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -360,9 +357,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\modules\streamer\streamer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bindings\profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="bindings\runtime_modulator.h">
