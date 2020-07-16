@@ -107,7 +107,12 @@ void Base64DecodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) 
   const std::string encoded = toString(arguments[0]);
   const std::string plaintext = Base64Transform(encoded, /* encode= */ false);
 
-  arguments.GetReturnValue().Set(v8String(plaintext));
+  v8::MaybeLocal<v8::String> v8_plaintext =
+      v8::String::NewFromOneByte(arguments.GetIsolate(), (const uint8_t*)plaintext.data(),
+                                 v8::NewStringType::kNormal, plaintext.size());
+  
+  if (!v8_plaintext.IsEmpty())
+    arguments.GetReturnValue().Set(v8_plaintext.ToLocalChecked());
 }
 
 // string btoa(string data);
@@ -125,7 +130,12 @@ void Base64EncodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) 
   const std::string plaintext = toString(arguments[0]);
   const std::string encoded = Base64Transform(plaintext, /* encode= */ true);
 
-  arguments.GetReturnValue().Set(v8String(encoded));
+  v8::MaybeLocal<v8::String> v8_encoded =
+      v8::String::NewFromOneByte(arguments.GetIsolate(), (const uint8_t*)encoded.data(),
+                                 v8::NewStringType::kNormal, encoded.size());
+
+  if (!v8_encoded.IsEmpty())
+    arguments.GetReturnValue().Set(v8_encoded.ToLocalChecked());
 }
 
 // void clearModuleCache(string prefix);
