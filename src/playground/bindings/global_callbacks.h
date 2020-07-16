@@ -13,6 +13,8 @@ class Value;
 namespace bindings {
 
 void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void Base64DecodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void Base64EncodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ClearModuleCacheCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void DispatchEventCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ExecCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);

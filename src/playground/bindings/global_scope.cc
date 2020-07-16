@@ -67,6 +67,11 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "wait", WaitCallback);
   InstallFunction(global, "exec", ExecCallback);
 
+  // JavaScript methods for converting a string to base64, and vice versa. Names based on:
+  // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/atob
+  InstallFunction(global, "atob", Base64DecodeCallback);
+  InstallFunction(global, "btoa", Base64EncodeCallback);
+
   // Fast-path since idle checks generally are expensive.
   InstallFunction(global, "isPlayerMinimized", IsPlayerMinimizedCallback);
 

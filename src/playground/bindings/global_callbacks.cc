@@ -4,6 +4,9 @@
 
 #include "bindings/global_callbacks.h"
 
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+
 #include "base/file_path.h"
 #include "base/file_search.h"
 #include "base/logging.h"
@@ -48,6 +51,81 @@ void AddEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& argumen
   }
 
   global->AddEventListener(toString(arguments[0]), v8::Local<v8::Function>::Cast(arguments[1]));
+}
+
+static std::string Base64Transform(const std::string& input, bool encode) {
+  static std::vector<char> buffer;
+
+  BIO* base64 = BIO_new(BIO_f_base64());
+  BIO* bio = BIO_new(BIO_s_mem());
+
+  BIO_set_flags(base64, BIO_FLAGS_BASE64_NO_NL);
+  BIO_push(base64, bio);
+
+  int length = 0;
+
+  if (encode) {
+    buffer.resize(4 + (size_t)(input.size() * 1.5));  // +50% for encoding overhead
+
+    int ret = BIO_write(base64, input.data(), input.length());
+    BIO_flush(base64);
+
+    if (ret > 0)
+      length = BIO_read(bio, buffer.data(), buffer.size());
+
+  } else {
+    buffer.resize((size_t)(input.size() * 0.8));  // data will shrink by ~33%.
+
+    int ret = BIO_write(bio, input.data(), input.length());
+    BIO_flush(bio);
+
+    if (ret > 0)
+      length = BIO_read(base64, buffer.data(), buffer.size());
+  }
+
+  BIO_free(base64);
+  BIO_free_all(bio);
+
+  if (length <= 0)
+    return std::string();
+
+  return std::string(buffer.data(), buffer.data() + length);
+}
+
+// string atob(string data);
+void Base64DecodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 1) {
+    ThrowException("unable to execute atob(): 1 argument required, none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute atob(): expected a string for argument 1.");
+    return;
+  }
+
+  const std::string encoded = toString(arguments[0]);
+  const std::string plaintext = Base64Transform(encoded, /* encode= */ false);
+
+  arguments.GetReturnValue().Set(v8String(plaintext));
+}
+
+// string btoa(string data);
+void Base64EncodeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 1) {
+    ThrowException("unable to execute atob(): 1 argument required, none provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute atob(): expected a string for argument 1.");
+    return;
+  }
+
+  const std::string plaintext = toString(arguments[0]);
+  const std::string encoded = Base64Transform(plaintext, /* encode= */ true);
+
+  arguments.GetReturnValue().Set(v8String(encoded));
 }
 
 // void clearModuleCache(string prefix);
