@@ -25,6 +25,7 @@ void GetRuntimeStatisticsCallback(const v8::FunctionCallbackInfo<v8::Value>& arg
 void GlobCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HasEventListenersCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void HmacCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void NotifyReadyCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
@@ -33,9 +34,11 @@ void ProvideNativeCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 void ReadFileCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void RemoveEventListenerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ReportTestsFinishedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void SignMessageCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void ToggleMemoryLoggingCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
+void VerifyMessageCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 void WaitCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments);
 
 }  // namespace

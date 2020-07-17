@@ -4,8 +4,12 @@
 
 #include "bindings/global_callbacks.h"
 
+#include <iomanip>
 #include <openssl/bio.h>
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <openssl/pem.h>
+#include <openssl/rsa.h>
 
 #include "base/file_path.h"
 #include "base/file_search.h"
@@ -368,6 +372,50 @@ void HighResolutionTimeCallback(const v8::FunctionCallbackInfo<v8::Value>& argum
   arguments.GetReturnValue().Set(global->HighResolutionTime());
 }
 
+// string hmac(string privateKey, string message);
+void HmacCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 2) {
+    ThrowException("unable to execute hmac(): 2 argument required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute hmac(): expected a string for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute hmac(): expected a string for argument 2.");
+    return;
+  }
+
+  const std::string private_key = toString(arguments[0]);
+  const std::string message = toString(arguments[1]);
+
+  unsigned int signature_length = 32;
+  unsigned char signature[32];
+
+  // (1) Compute the signature to apply for the given message.
+  HMAC_CTX* context = HMAC_CTX_new();
+  HMAC_Init_ex(context, private_key.c_str(), private_key.size(), EVP_sha256(), nullptr);
+  HMAC_Update(context, (const unsigned char*)message.c_str(), message.length());
+  HMAC_Final(context, signature, &signature_length);
+  HMAC_CTX_free(context);
+
+  // (2) Convert the signature to a string that can be encoded.
+  std::stringstream stream;
+  stream << std::setfill('0');
+
+  for (size_t index = 0; index < signature_length; ++index)
+    stream << signature[index];
+
+  // (3) Encode the string to base64
+  const std::string encoded_string = Base64Transform(stream.str(), /* encode= */ true);
+
+  arguments.GetReturnValue().Set(v8String(encoded_string));
+}
+
 // bool isPlayerMinimized(playerId [, currentTime]);
 void IsPlayerMinimizedCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   auto runtime = Runtime::FromIsolate(arguments.GetIsolate());
@@ -524,6 +572,74 @@ void KillServerCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 #endif
 }
 
+// string signMessage(string privateKey, string plaintext);
+void SignMessageCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 2) {
+    ThrowException("unable to execute signMessage(): 2 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute signMessage(): expected a string for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute signMessage(): expected a string for argument 2.");
+    return;
+  }
+
+  arguments.GetReturnValue().SetNull();
+
+  const std::string private_key = toString(arguments[0]);
+  const std::string plaintext = toString(arguments[1]);
+
+  RSA* cipher = nullptr;
+  BIO* key = BIO_new_mem_buf((void*)private_key.data(), -1);
+
+  if (!PEM_read_bio_RSAPrivateKey(key, &cipher, nullptr, nullptr)) {
+    ThrowException("unable to execute signMessage(): unable to decode the private key.");
+    return;
+  }
+
+  EVP_MD_CTX* sign_context = EVP_MD_CTX_create();
+
+  EVP_PKEY* pkey = EVP_PKEY_new();
+  EVP_PKEY_assign_RSA(pkey, cipher);
+
+  std::string signature;
+  size_t signature_length = 0;
+
+  // (1) Create the binary signature, and write it to |signature|.
+  if (EVP_DigestSignInit(sign_context, nullptr, EVP_sha256(), nullptr, pkey) > 0) {
+    if (EVP_DigestSignUpdate(sign_context, plaintext.data(), plaintext.size()) > 0) {
+      if (EVP_DigestSignFinal(sign_context, nullptr, &signature_length) > 0) {
+        signature.resize(signature_length);
+        if (EVP_DigestSignFinal(sign_context, (unsigned char*)signature.data(), &signature_length) <= 0)
+          ThrowException("unable to execute signMessage(): unable to write the finalized digest.");
+
+      } else {
+        ThrowException("unable to execute signMessage(): unable to finalize the digest.");
+      }
+    } else {
+      ThrowException("unable to execute signMessage(): unable to update the digest.");
+    }
+  } else {
+    ThrowException("unable to execute signMessage(): unable to initialize the digest.");
+  }
+
+  EVP_MD_CTX_free(sign_context);
+  
+  // (2) Encode the binary signature with base64.
+  if (signature.size() > 0) {
+    const std::string encoded_signature = Base64Transform(signature, /* encode= */ true);
+
+    // (3) Return the newly encoded signature as a string.
+    arguments.GetReturnValue().Set(v8String(encoded_signature));
+  }
+}
+
 // void startTrace();
 void StartTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   LOG(INFO) << "[TraceManager] Started capturing traces.";
@@ -558,6 +674,73 @@ void StopTraceCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
 // void toggleMemoryLogging();
 void ToggleMemoryLoggingCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
   base::g_debugMemoryAllocations = !base::g_debugMemoryAllocations;
+}
+
+// bool verifyMessage(string publicKey, string signature, string message);
+void VerifyMessageCallback(const v8::FunctionCallbackInfo<v8::Value>& arguments) {
+  if (arguments.Length() < 3) {
+    ThrowException("unable to execute verifyMessage(): 3 arguments required, but only " +
+                   std::to_string(arguments.Length()) + " provided.");
+    return;
+  }
+
+  if (!arguments[0]->IsString()) {
+    ThrowException("unable to execute verifyMessage(): expected a string for argument 1.");
+    return;
+  }
+
+  if (!arguments[1]->IsString()) {
+    ThrowException("unable to execute verifyMessage(): expected a string for argument 2.");
+    return;
+  }
+
+  if (!arguments[2]->IsString()) {
+    ThrowException("unable to execute verifyMessage(): expected a string for argument 3.");
+    return;
+  }
+
+  const std::string public_key = toString(arguments[0]);
+  const std::string signature = toString(arguments[1]);
+  const std::string plaintext = toString(arguments[2]);
+
+  RSA* cipher = nullptr;
+  BIO* key = BIO_new_mem_buf((void*)public_key.data(), -1);
+
+  if (!PEM_read_bio_RSA_PUBKEY(key, &cipher, nullptr, nullptr)) {
+    ThrowException("unable to execute verifyMessage(): unable to decode the public key.");
+    return;
+  }
+
+  EVP_MD_CTX* verify_context = EVP_MD_CTX_create();
+
+  EVP_PKEY* pkey = EVP_PKEY_new();
+  EVP_PKEY_assign_RSA(pkey, cipher);
+
+  int status = -1;
+
+  // (1) Decode the signature, which is base64 encoded.
+  const std::string decoded_signature = Base64Transform(signature, /* encode= */ false);
+
+  // (2) Verify the signature against the given |plaintext|.
+  if (EVP_DigestVerifyInit(verify_context, nullptr, EVP_sha256(), nullptr, pkey) > 0) {
+    if (EVP_DigestVerifyUpdate(verify_context, plaintext.c_str(), plaintext.size()) > 0) {
+      status = EVP_DigestVerifyFinal(
+        verify_context, (const unsigned char*)decoded_signature.c_str(), decoded_signature.size());
+
+      if (status != /* unauthentic */ 0 && status != 1 /* authentic */)
+        ThrowException("unable to execute verifyMessage(): unable to finalize the digest.");
+
+    } else {
+      ThrowException("unable to execute verifyMessage(): unable to update the digest.");
+    }
+  } else {
+    ThrowException("unable to execute verifyMessage(): unable to initialize the digest.");
+  }
+
+  EVP_MD_CTX_free(verify_context);
+
+  // (3) Return whether the |status| was set to 1 (authenticated).
+  arguments.GetReturnValue().Set(status == 1);
 }
 
 // Promise<void> wait(unsigned long time);

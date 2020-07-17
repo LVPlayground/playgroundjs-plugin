@@ -72,6 +72,11 @@ void GlobalScope::InstallPrototypes(v8::Local<v8::ObjectTemplate> global) {
   InstallFunction(global, "atob", Base64DecodeCallback);
   InstallFunction(global, "btoa", Base64EncodeCallback);
 
+  // JavaScript methods for signing or verifying RSA signatures.
+  InstallFunction(global, "hmac", HmacCallback);
+  InstallFunction(global, "signMessage", SignMessageCallback);
+  InstallFunction(global, "verifyMessage", VerifyMessageCallback);
+
   // Fast-path since idle checks generally are expensive.
   InstallFunction(global, "isPlayerMinimized", IsPlayerMinimizedCallback);
 
